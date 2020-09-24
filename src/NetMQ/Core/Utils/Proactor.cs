@@ -2,7 +2,6 @@
 using System.Collections.Generic;
 using System.Threading;
 using AsyncIO;
-using JetBrains.Annotations;
 
 namespace NetMQ.Core.Utils
 {
@@ -14,20 +13,19 @@ namespace NetMQ.Core.Utils
         private readonly CompletionPort m_completionPort;
         private readonly string m_name;
 
-        private Thread m_worker;
+        private Thread? m_worker;
         private bool m_stopping;
         private bool m_stopped;
 
         private class Item
         {
-            public Item([NotNull] IProactorEvents proactorEvents) => ProactorEvents = proactorEvents;
+            public Item(IProactorEvents proactorEvents) => ProactorEvents = proactorEvents;
 
-            [NotNull]
             public IProactorEvents ProactorEvents { get; }
             public bool Cancelled { get; set; }
         }
 
-        public Proactor([NotNull] string name)
+        public Proactor(string name)
         {
             m_name = name;
             m_stopping = false;
@@ -53,6 +51,7 @@ namespace NetMQ.Core.Utils
             {
                 try
                 {
+                    Assumes.NotNull(m_worker);
                     m_worker.Join();
                 }
                 catch (Exception)

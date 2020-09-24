@@ -80,7 +80,7 @@ namespace NetMQ.Tests
                 monitor.Stop();
 
                 var ex = Assert.Throws<AggregateException>(() => task.Wait(TimeSpan.FromMilliseconds(1000)));
-                Assert.Equal(1, ex.InnerExceptions.Count);
+                Assert.Single(ex.InnerExceptions);
                 Assert.True(ex.InnerExceptions.Single() is EndpointNotFoundException);
             }
         }

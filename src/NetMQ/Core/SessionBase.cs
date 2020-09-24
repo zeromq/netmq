@@ -24,7 +24,6 @@ using System;
 using System.Collections.Generic;
 using System.Diagnostics;
 using System.Net.Sockets;
-using JetBrains.Annotations;
 using NetMQ.Core.Patterns;
 using NetMQ.Core.Transports;
 using NetMQ.Core.Transports.Ipc;
@@ -33,9 +32,22 @@ using NetMQ.Core.Transports.Tcp;
 
 namespace NetMQ.Core
 {
+    internal enum PushMsgResult
+    {
+        Ok,
+        Full,
+        Error
+    }
+
+    internal enum PullMsgResult
+    {
+        Ok,
+        Empty,
+        Error
+    }
+    
     internal class SessionBase : Own,
-        Pipe.IPipeEvents, IProactorEvents,
-        IMsgSink, IMsgSource
+        Pipe.IPipeEvents, IProactorEvents
     {
         /// <summary>
         /// If true, this session (re)connects to the peer. Otherwise, it's
@@ -46,7 +58,7 @@ namespace NetMQ.Core
         /// <summary>
         /// Pipe connecting the session to its socket.
         /// </summary>
-        private Pipe m_pipe;
+        private Pipe? m_pipe;
 
         /// <summary>
         /// This set is added to with pipes we are disconnecting, but haven't yet completed
@@ -68,7 +80,7 @@ namespace NetMQ.Core
         /// <summary>
         /// The protocol I/O engine connected to the session.
         /// </summary>
-        private IEngine m_engine;
+        private IEngine? m_engine;
 
         /// <summary>
         /// The socket the session belongs to.
@@ -92,21 +104,11 @@ namespace NetMQ.Core
         private bool m_hasLingerTimer;
 
         /// <summary>
-        /// If true, identity has been sent to the network.
-        /// </summary>
-        private bool m_identitySent;
-
-        /// <summary>
-        /// If true, identity has been received from the network.
-        /// </summary>
-        private bool m_identityReceived;
-
-        /// <summary>
         /// Protocol and address to use when connecting.
         /// </summary>
         private readonly Address m_addr;
 
-        [NotNull] private readonly IOObject m_ioObject;
+        private readonly IOObject m_ioObject;
 
         /// <summary>
         /// Create a return a new session.
@@ -119,37 +121,36 @@ namespace NetMQ.Core
         /// <param name="addr">an <c>Address</c> object that specifies the protocol and address to connect to</param>
         /// <returns>the newly-created instance of whichever subclass of SessionBase is specified by the options</returns>
         /// <exception cref="InvalidException">The socket must be of the correct type.</exception>
-        [NotNull]
-        public static SessionBase Create([NotNull] IOThread ioThread, bool connect, [NotNull] SocketBase socket, [NotNull] Options options, [NotNull] Address addr)
+        public static SessionBase Create(IOThread ioThread, bool connect, SocketBase socket, Options options, Address addr)
         {
             switch (options.SocketType)
             {
                 case ZmqSocketType.Req:
                     return new Req.ReqSession(ioThread, connect, socket, options, addr);
+                case ZmqSocketType.Radio:
+                    return new Radio.RadioSession(ioThread, connect, socket, options, addr);
+                case ZmqSocketType.Dish:
+                    return new Dish.DishSession(ioThread, connect, socket, options, addr);
                 case ZmqSocketType.Dealer:
-                    return new Dealer.DealerSession(ioThread, connect, socket, options, addr);
                 case ZmqSocketType.Rep:
-                    return new Rep.RepSession(ioThread, connect, socket, options, addr);
                 case ZmqSocketType.Router:
-                    return new Router.RouterSession(ioThread, connect, socket, options, addr);
                 case ZmqSocketType.Pub:
-                    return new Pub.PubSession(ioThread, connect, socket, options, addr);
                 case ZmqSocketType.Xpub:
-                    return new XPub.XPubSession(ioThread, connect, socket, options, addr);
                 case ZmqSocketType.Sub:
-                    return new Sub.SubSession(ioThread, connect, socket, options, addr);
                 case ZmqSocketType.Xsub:
-                    return new XSub.XSubSession(ioThread, connect, socket, options, addr);
                 case ZmqSocketType.Push:
-                    return new Push.PushSession(ioThread, connect, socket, options, addr);
                 case ZmqSocketType.Pull:
-                    return new Pull.PullSession(ioThread, connect, socket, options, addr);
                 case ZmqSocketType.Pair:
-                    return new Pair.PairSession(ioThread, connect, socket, options, addr);
                 case ZmqSocketType.Stream:
-                    return new Stream.StreamSession(ioThread, connect, socket, options, addr);
                 case ZmqSocketType.Peer:
-                    return new Peer.PeerSession(ioThread, connect, socket, options, addr);
+                case ZmqSocketType.Server:
+                case ZmqSocketType.Client: 
+                case ZmqSocketType.Gather:
+                case ZmqSocketType.Scatter:
+                    if (options.CanSendHelloMsg && options.HelloMsg != null)
+                        return new HelloMsgSession(ioThread, connect, socket, options, addr);
+                    else
+                        return new SessionBase(ioThread, connect, socket, options, addr);
                 default:
                     throw new InvalidException("SessionBase.Create called with invalid SocketType of " + options.SocketType);
             }
@@ -163,7 +164,7 @@ namespace NetMQ.Core
         /// <param name="socket">the socket to contain</param>
         /// <param name="options">Options that dictate the settings of this session</param>
         /// <param name="addr">an Address that dictates the protocol and IP-address to use when connecting</param>
-        public SessionBase([NotNull] IOThread ioThread, bool connect, [NotNull] SocketBase socket, [NotNull] Options options, [NotNull] Address addr)
+        public SessionBase(IOThread ioThread, bool connect, SocketBase socket, Options options, Address addr)
             : base(ioThread, options)
         {
             m_ioObject = new IOObject(ioThread);
@@ -172,13 +173,6 @@ namespace NetMQ.Core
             m_socket = socket;
             m_ioThread = ioThread;
             m_addr = addr;
-
-            if (options.RawSocket)
-            {
-                m_identitySent = true;
-                m_identityReceived = true;
-            }
-
             m_terminatingPipes = new HashSet<Pipe>();
         }
 
@@ -207,11 +201,11 @@ namespace NetMQ.Core
         /// <remarks>
         /// This is to be used once only, when creating the session.
         /// </remarks>
-        public void AttachPipe([NotNull] Pipe pipe)
+        public void AttachPipe(Pipe pipe)
         {
             Debug.Assert(!IsTerminating);
             Debug.Assert(m_pipe == null);
-            Debug.Assert(pipe != null);
+            Assumes.NotNull(pipe);
             m_pipe = pipe;
             m_pipe.SetEventSink(this);
         }
@@ -221,26 +215,13 @@ namespace NetMQ.Core
         /// </summary>
         /// <param name="msg">a reference to a Msg to put the message into</param>
         /// <returns>true if the Msg is successfully sent</returns>
-        public virtual bool PullMsg(ref Msg msg)
+        public virtual PullMsgResult PullMsg(ref Msg msg)
         {
-            // First message to send is identity
-            if (!m_identitySent)
-            {
-                msg.InitPool(m_options.IdentitySize);
-                msg.Put(m_options.Identity, 0, m_options.IdentitySize);
-                m_identitySent = true;
-                m_incompleteIn = false;
-
-                return true;
-            }
-
             if (m_pipe == null || !m_pipe.Read(ref msg))
-            {
-                return false;
-            }
+                return PullMsgResult.Empty;
             m_incompleteIn = msg.HasMore;
 
-            return true;
+            return PullMsgResult.Ok;
         }
 
         /// <summary>
@@ -248,29 +229,18 @@ namespace NetMQ.Core
         /// </summary>
         /// <param name="msg">the Msg to push to the pipe</param>
         /// <returns>true if the Msg was successfully sent</returns>
-        public virtual bool PushMsg(ref Msg msg)
+        public virtual PushMsgResult PushMsg(ref Msg msg)
         {
-            // First message to receive is identity (if required).
-            if (!m_identityReceived)
-            {
-                msg.SetFlags(MsgFlags.Identity);
-                m_identityReceived = true;
-
-                if (!m_options.RecvIdentity)
-                {
-                    msg.Close();
-                    msg.InitEmpty();
-                    return true;
-                }
-            }
-
+            if (msg.HasCommand)
+                return PushMsgResult.Ok;
+            
             if (m_pipe != null && m_pipe.Write(ref msg))
             {
                 msg.InitEmpty();
-                return true;
+                return PushMsgResult.Ok;
             }
 
-            return false;
+            return PushMsgResult.Full;
         }
 
         /// <summary>
@@ -278,17 +248,6 @@ namespace NetMQ.Core
         /// </summary>
         protected virtual void Reset()
         {
-            // Restore identity flags.
-            if (m_options.RawSocket)
-            {
-                m_identitySent = true;
-                m_identityReceived = true;
-            }
-            else
-            {
-                m_identitySent = false;
-                m_identityReceived = false;
-            }
         }
 
         /// <summary>
@@ -318,7 +277,7 @@ namespace NetMQ.Core
                     var msg = new Msg();
                     msg.InitEmpty();
 
-                    if (!PullMsg(ref msg))
+                    if (PullMsg(ref msg) != PullMsgResult.Ok)
                     {
                         Debug.Assert(!m_incompleteIn);
                         break;
@@ -403,7 +362,6 @@ namespace NetMQ.Core
         /// <summary>
         /// Get the contained socket.
         /// </summary>
-        [NotNull]
         public SocketBase Socket => m_socket;
 
         /// <summary>
@@ -424,7 +382,7 @@ namespace NetMQ.Core
         /// <param name="engine">the IEngine to plug in</param>
         protected override void ProcessAttach(IEngine engine)
         {
-            Debug.Assert(engine != null);
+            Assumes.NotNull(engine);
 
             // Create the pipe if it does not exist yet.
             if (m_pipe == null && !IsTerminating)
@@ -432,8 +390,7 @@ namespace NetMQ.Core
                 ZObject[] parents = { this, m_socket };
                 int[] highWaterMarks = { m_options.ReceiveHighWatermark, m_options.SendHighWatermark };
                 int[] lowWaterMarks = { m_options.ReceiveLowWatermark, m_options.SendLowWatermark };
-                bool[] delays = { m_options.DelayOnClose, m_options.DelayOnDisconnect };
-                Pipe[] pipes = Pipe.PipePair(parents, highWaterMarks, lowWaterMarks, delays);
+                Pipe[] pipes = Pipe.PipePair(parents, highWaterMarks, lowWaterMarks);
 
                 // Plug the local end of the pipe.
                 pipes[0].SetEventSink(this);
@@ -533,7 +490,7 @@ namespace NetMQ.Core
             m_hasLingerTimer = false;
 
             // Ask pipe to terminate even though there may be pending messages in it.
-            Debug.Assert(m_pipe != null);
+            Assumes.NotNull(m_pipe);
             m_pipe.Terminate(false);
         }
 
@@ -583,8 +540,8 @@ namespace NetMQ.Core
 
             // Choose I/O thread to run connector in. Given that we are already
             // running in an I/O thread, there must be at least one available.
-            IOThread ioThread = ChooseIOThread(m_options.Affinity);
-            Debug.Assert(ioThread != null);
+            IOThread? ioThread = ChooseIOThread(m_options.Affinity);
+            Assumes.NotNull(ioThread);
 
             // Create the connector object.
 
@@ -604,6 +561,7 @@ namespace NetMQ.Core
                 case Address.EpgmProtocol:
                 {
                     var pgmSender = new PgmSender(m_ioThread, m_options, m_addr, wait);
+                    Assumes.NotNull(m_addr.Resolved);
                     pgmSender.Init((PgmAddress)m_addr.Resolved);
                     SendAttach(this, pgmSender);
                     return;

@@ -21,7 +21,6 @@
 using System.Collections.Generic;
 using System.Diagnostics;
 using System.Threading;
-using JetBrains.Annotations;
 
 namespace NetMQ.Core
 {
@@ -34,7 +33,6 @@ namespace NetMQ.Core
         /// <summary>
         /// The Options of this Own.
         /// </summary>
-        [NotNull]
         protected readonly Options m_options;
 
         /// <summary>
@@ -57,8 +55,7 @@ namespace NetMQ.Core
         /// Socket owning this object. It's responsible for shutting down
         /// this object.
         /// </summary>
-        [CanBeNull]
-        private Own m_owner;
+        private Own? m_owner;
 
         /// <summary>
         /// List of all objects owned by this socket. We are responsible
@@ -80,7 +77,7 @@ namespace NetMQ.Core
         /// Note that the owner is unspecified in the constructor. It'll be assigned later on using <see cref="SetOwner"/>
         /// when the object is plugged in.
         /// </remarks>
-        protected Own([NotNull] Ctx parent, int threadId)
+        protected Own(Ctx parent, int threadId)
             : base(parent, threadId)
         {
             m_options = new Options();
@@ -95,7 +92,7 @@ namespace NetMQ.Core
         /// Note that the owner is unspecified in the constructor. It'll be assigned later on using <see cref="SetOwner"/>
         /// when the object is plugged in.
         /// </remarks>
-        protected Own([NotNull] IOThread ioThread, [NotNull] Options options)
+        protected Own(IOThread ioThread, Options options)
             : base(ioThread)
         {
             m_options = options;
@@ -119,7 +116,7 @@ namespace NetMQ.Core
         /// Set the owner of *this* Own object, to be the given owner.
         /// </summary>
         /// <param name="owner">the Own object to be our new owner</param>
-        private void SetOwner([NotNull] Own owner)
+        private void SetOwner(Own owner)
         {
             Debug.Assert(m_owner == null);
             m_owner = owner;
@@ -150,7 +147,7 @@ namespace NetMQ.Core
         /// Launch the supplied object and become its owner.
         /// </summary>
         /// <param name="obj">The object to be launched.</param>
-        protected void LaunchChild([NotNull] Own obj)
+        protected void LaunchChild(Own obj)
         {
             // Specify the owner of the object.
             obj.SetOwner(this);
@@ -165,7 +162,7 @@ namespace NetMQ.Core
         /// <summary>
         /// Terminate owned object.
         /// </summary>
-        protected void TermChild([NotNull] Own obj)
+        protected void TermChild(Own obj)
         {
             ProcessTermReq(obj);
         }

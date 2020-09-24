@@ -1,16 +1,22 @@
 version: 4.0.0.{build}
 skip_tags: true
-image: Visual Studio 2017
+image: Visual Studio 2019
 configuration: Release
+
+before_build:
+  - choco install opencover.portable
+  - choco install codecov
+
 build_script:
   - dotnet restore src/NetMQ.sln
-  - msbuild src/NetMQ.sln /p:Configuration=Release /p:PackageVersion=%APPVEYOR_BUILD_VERSION%-pre /p:Version=%APPVEYOR_BUILD_VERSION% /verbosity:minimal
+  - dotnet build src/NetMQ.sln /p:Configuration=Release /p:PackageVersion=%APPVEYOR_BUILD_VERSION%-pre /p:Version=%APPVEYOR_BUILD_VERSION% /p:ContinuousIntegrationBuild=true /verbosity:minimal
   - dotnet pack src/NetMQ/NetMQ.csproj -c Release --no-build /p:PackageVersion=%APPVEYOR_BUILD_VERSION%-pre /p:Version=%APPVEYOR_BUILD_VERSION%
+
 test_script:
-  - cd src\NetMQ.Tests
-  - dotnet xunit -configuration Release -verbose -nobuild -parallel none -f netcoreapp2.0 -fxversion 2.0.3
-  - dotnet xunit -configuration Release -verbose -nobuild -parallel none -f netcoreapp1.0 -fxversion 1.0.5
-  - dotnet xunit -configuration Release -verbose -nobuild -parallel none -f net452
+  - dotnet test -v n -p:ParallelizeTestCollections=false --configuration Release --no-build -f netcoreapp2.1 src\NetMQ.Tests\NetMQ.Tests.csproj
+  - dotnet test -v n -p:ParallelizeTestCollections=false --configuration Release --no-build -f net47 src\NetMQ.Tests\NetMQ.Tests.csproj
+  - OpenCover.Console.exe -register:user -target:"C:\Program Files\dotnet\dotnet.exe" -targetargs:"test --no-build --configuration Release -f netcoreapp2.1 --logger:trx;LogFileName=results.trx /p:DebugType=full src\NetMQ.Tests\NetMQ.Tests.csproj" -filter:"+[NetMQ*]* -[NetMQ.Tests*]*" -output:".\NetMQ_coverage.xml" -oldStyle
+  - codecov -f "NetMQ_coverage.xml"
 
 artifacts:
   - path: '**\*.nupkg'

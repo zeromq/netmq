@@ -1,17 +1,18 @@
-using JetBrains.Annotations;
-
 namespace NetMQ.Core.Transports
 {
+    internal enum DecodeResult
+    {
+        Error,
+        Processing,
+        MessageReady
+    }
+    
     internal interface IDecoder
     {
-        void SetMsgSink([CanBeNull] IMsgSink msgSink);
-
         void GetBuffer(out ByteArraySegment data, out int size);
 
-        int ProcessBuffer([NotNull] ByteArraySegment data, int size);
+        DecodeResult Decode(ByteArraySegment data, int size, out int processed);
 
-        bool MessageReadySize(int msgSize);
-
-        bool Stalled();
+        PushMsgResult PushMsg(ProcessMsgDelegate sink);
     }
 }

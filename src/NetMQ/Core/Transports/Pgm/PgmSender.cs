@@ -3,7 +3,6 @@ using System.Diagnostics;
 using System.Net;
 using System.Net.Sockets;
 using AsyncIO;
-using JetBrains.Annotations;
 
 namespace NetMQ.Core.Transports.Pgm
 {
@@ -17,12 +16,12 @@ namespace NetMQ.Core.Transports.Pgm
         private readonly Options m_options;
         private readonly Address m_addr;
         private readonly bool m_delayedStart;
-        private readonly V1Encoder m_encoder;
+        private readonly V1Encoder? m_encoder;
 
-        private AsyncSocket m_socket;
-        private PgmSocket m_pgmSocket;
+        private AsyncSocket? m_socket;
+        private PgmSocket? m_pgmSocket;
 
-        private ByteArraySegment m_outBuffer;
+        private ByteArraySegment? m_outBuffer;
         private int m_outBufferSize;
 
         private int m_writeSize;
@@ -38,11 +37,12 @@ namespace NetMQ.Core.Transports.Pgm
         }
 
         private State m_state;
-        private PgmAddress m_pgmAddress;
-        private SessionBase m_session;
+        private PgmAddress? m_pgmAddress;
+        private SessionBase? m_session;
         private int m_currentReconnectIvl;
+        private bool m_moreFlag;
 
-        public PgmSender([NotNull] IOThread ioThread, [NotNull] Options options, [NotNull] Address addr, bool delayedStart)
+        public PgmSender(IOThread ioThread, Options options, Address addr, bool delayedStart)
             : base(ioThread)
         {
             m_options = options;
@@ -54,18 +54,23 @@ namespace NetMQ.Core.Transports.Pgm
             m_writeSize = 0;
             m_encoder = new V1Encoder(0, m_options.Endian);
             m_currentReconnectIvl = m_options.ReconnectIvl;
+            m_moreFlag = false;
 
             m_state = State.Idle;
         }
 
-        public void Init([NotNull] PgmAddress pgmAddress)
+        public void Init(PgmAddress pgmAddress)
         {
             m_pgmAddress = pgmAddress;
+
+            Assumes.NotNull(m_addr.Resolved);
 
             m_pgmSocket = new PgmSocket(m_options, PgmSocketType.Publisher, (PgmAddress)m_addr.Resolved);
             m_pgmSocket.Init();
 
             m_socket = m_pgmSocket.Handle;
+
+            Assumes.NotNull(m_socket);
 
             var localEndpoint = new IPEndPoint(IPAddress.Any, 0);
 
@@ -80,19 +85,16 @@ namespace NetMQ.Core.Transports.Pgm
         public void Plug(IOThread ioThread, SessionBase session)
         {
             m_session = session;
-            m_encoder.SetMsgSource(session);
 
             // get the first message from the session because we don't want to send identities
             var msg = new Msg();
             msg.InitEmpty();
 
-            bool ok = session.PullMsg(ref msg);
-
-            if (ok)
-            {
+            var pullResult = session.PullMsg(ref msg);
+            if (pullResult == PullMsgResult.Ok)
                 msg.Close();
-            }
 
+            Assumes.NotNull(m_socket);
             AddSocket(m_socket);
 
             if (!m_delayedStart)
@@ -109,6 +111,9 @@ namespace NetMQ.Core.Transports.Pgm
         private void StartConnecting()
         {
             m_state = State.Connecting;
+
+            Assumes.NotNull(m_socket);
+            Assumes.NotNull(m_pgmAddress);
 
             try
             {
@@ -205,29 +210,51 @@ namespace NetMQ.Core.Transports.Pgm
 
         private void BeginSending()
         {
+            Assumes.NotNull(m_outBuffer);
+
             // If write buffer is empty,  try to read new data from the encoder.
             if (m_writeSize == 0)
             {
+                Assumes.NotNull(m_encoder);
+                Assumes.NotNull(m_session);
+
                 // First two bytes (sizeof uint16_t) are used to store message
                 // offset in following steps. Note that by passing our buffer to
                 // the get data function we prevent it from returning its own buffer.
-                var bf = new ByteArraySegment(m_outBuffer, sizeof(ushort));
-                int bfsz = m_outBufferSize - sizeof(ushort);
-                int offset = -1;
-                m_encoder.GetData(ref bf, ref bfsz, ref offset);
+                ushort offset = 0xffff;
+                var buffer = new ByteArraySegment(m_outBuffer, sizeof(ushort));
+                int bufferSize = m_outBufferSize - sizeof(ushort);
+
+                int bytes = m_encoder.Encode(ref buffer, bufferSize);
+                int lastBytes = bytes;
+                while (bytes < bufferSize)
+                {
+                    if (!m_moreFlag && offset == 0xffff)
+                        offset = (ushort)bytes;
+                    Msg msg = new Msg();
+                    if (m_session.PullMsg(ref msg) != PullMsgResult.Ok)
+                        break;
+                    m_moreFlag = msg.HasMore;
+                    m_encoder.LoadMsg(ref msg);
+                    buffer = buffer! + lastBytes;
+                    lastBytes = m_encoder.Encode(ref buffer, bufferSize - bytes);
+                    bytes += lastBytes;
+                }
 
                 // If there are no data to write stop polling for output.
-                if (bfsz == 0)
+                if (bytes == 0)
                 {
                     m_state = State.ActiveSendingIdle;
                     return;
                 }
 
                 // Put offset information in the buffer.
-                m_writeSize = bfsz + sizeof(ushort);
+                m_writeSize = bytes + sizeof(ushort);
 
-                m_outBuffer.PutUnsignedShort(m_options.Endian, offset == -1 ? (ushort)0xffff : (ushort)offset, 0);
+                m_outBuffer.PutUnsignedShort(m_options.Endian, offset, 0);
             }
+
+            Assumes.NotNull(m_socket);
 
             try
             {
@@ -244,7 +271,7 @@ namespace NetMQ.Core.Transports.Pgm
 
         private void Error()
         {
-            Debug.Assert(m_session != null);
+            Assumes.NotNull(m_session);
             m_session.Detach();
             Destroy();
         }
@@ -256,9 +283,11 @@ namespace NetMQ.Core.Transports.Pgm
                 CancelTimer(ReconnectTimerId);
             }
 
+            Assumes.NotNull(m_pgmSocket);
+            Assumes.NotNull(m_socket);
+
             m_pgmSocket.Dispose();
             RemoveSocket(m_socket);
-            m_encoder.SetMsgSource(null);
         }
 
         /// <summary>

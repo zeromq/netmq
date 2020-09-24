@@ -313,7 +313,8 @@ namespace NetMQ.Tests
                 pub.SendMoreFrame("A");
                 pub.SendFrame("Hello");
 
-                Assert.False(sub.TryReceiveFrameString(out string str));
+                Assert.False(sub.TryReceiveFrameString(out string? str));
+                Assert.Null(str);
             }
         }
 

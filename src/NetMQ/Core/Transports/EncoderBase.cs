@@ -29,12 +29,9 @@ namespace NetMQ.Core.Transports
         /// <summary>
         /// Where to get the data to write from.
         /// </summary>
-        private ByteArraySegment m_writePos;
-
-        /// <summary>
-        /// If true, first byte of the message is being written.
-        /// </summary>
-        private bool m_beginning;
+        private ByteArraySegment? m_writePos;
+        
+        private bool m_newMsgFlag;
 
         /// <summary>
         /// How much data to write before the next step should be executed.
@@ -51,10 +48,8 @@ namespace NetMQ.Core.Transports
         /// </summary>
         private readonly int m_bufferSize;
 
-        /// <summary>
-        /// This flag indicates whether there has been an encoder error.
-        /// </summary>
-        private bool m_error;
+        protected Msg m_inProgress;
+        private bool m_hasMessage;
 
         /// <summary>
         /// Create a new EncoderBase with a buffer of the given size.
@@ -66,34 +61,31 @@ namespace NetMQ.Core.Transports
             Endian = endian;
             m_bufferSize = bufferSize;
             m_buffer = new byte[bufferSize];
+            m_inProgress.InitEmpty();
+            m_hasMessage = false;
+            m_newMsgFlag = false;
+        }
+
+        public void Dispose()
+        {
+            if (m_inProgress.IsInitialised)
+            m_inProgress.Close();
         }
 
         /// <summary>
         /// Get the Endianness (Big or Little) that this EncoderBase uses.
         /// </summary>
         public Endianness Endian { get; }
-
-        public abstract void SetMsgSource(IMsgSource msgSource);
-
-        /// <summary>
-        /// This returns a batch of binary data. The data
-        /// are filled to a supplied buffer. If no buffer is supplied (data_
-        /// points to NULL) decoder object will provide buffer of its own.
-        /// </summary>
-        public void GetData(ref ByteArraySegment data, ref int size)
-        {
-            int offset = -1;
-
-            GetData(ref data, ref size, ref offset);
-        }
-
-        public void GetData(ref ByteArraySegment data, ref int size, ref int offset)
+        
+        public int Encode(ref ByteArraySegment? data, int size)
         {
             ByteArraySegment buffer = data ?? new ByteArraySegment(m_buffer);
             int bufferSize = data == null ? m_bufferSize : size;
 
-            int pos = 0;
+            if (!m_hasMessage)
+                return 0;
 
+            int pos = 0;
             while (pos < bufferSize)
             {
                 // If there are no more data to return, run the state machine.
@@ -101,19 +93,14 @@ namespace NetMQ.Core.Transports
                 // in the buffer.
                 if (m_toWrite == 0)
                 {
-                    // If we are to encode the beginning of a new message,
-                    // adjust the message offset.
-
-                    if (m_beginning)
-                    {
-                        if (offset == -1)
-                        {
-                            offset = pos;
-                        }
+                    if (m_newMsgFlag) {
+                        m_inProgress.Close();
+                        m_inProgress.InitEmpty();
+                        m_hasMessage = false;
+                        break;
                     }
 
-                    if (!Next())
-                        break;
+                    Next();
                 }
 
                 // If there are no data in the buffer yet and we are able to
@@ -129,11 +116,11 @@ namespace NetMQ.Core.Transports
                 if (pos == 0 && data == null && m_toWrite >= bufferSize)
                 {
                     data = m_writePos;
-                    size = m_toWrite;
+                    pos = m_toWrite;
 
                     m_writePos = null;
                     m_toWrite = 0;
-                    return;
+                    return pos;
                 }
 
                 // Copy data to the buffer. If the buffer is full, return.
@@ -141,6 +128,8 @@ namespace NetMQ.Core.Transports
 
                 if (toCopy != 0)
                 {
+                    Assumes.NotNull(m_writePos);
+
                     m_writePos.CopyTo(0, buffer, pos, toCopy);
                     pos += toCopy;
                     m_writePos.AdvanceOffset(toCopy);
@@ -149,54 +138,27 @@ namespace NetMQ.Core.Transports
             }
 
             data = buffer;
-            size = pos;
+            return pos;
+        }
+        
+        public void LoadMsg (ref Msg msg)
+        {
+            m_inProgress = msg;
+            m_hasMessage = true;
+            msg.InitEmpty();
+            Next();
         }
 
         protected int State { get; private set; }
 
-        /// <summary>
-        /// Set a flag that indicates that there has been an encoding-error.
-        /// </summary>
-        protected void EncodingError()
-        {
-            m_error = true;
-        }
+        protected abstract void Next();
 
-        /// <summary>
-        /// Return true if there has been an encoding error.
-        /// </summary>
-        /// <returns>the state of the error-flag</returns>
-        public bool IsError()
-        {
-            return m_error;
-        }
-
-        protected abstract bool Next();
-
-        //protected void next_step (Msg msg_, int state_, bool beginning_) {
-        //    if (msg_ == null)
-        //        next_step((ByteBuffer) null, 0, state_, beginning_);
-        //    else
-        //        next_step(msg_.data(), msg_.size(), state_, beginning_);
-        //}
-
-        protected void NextStep(ByteArraySegment writePos, int toWrite, int state, bool beginning)
+        protected void NextStep(ByteArraySegment? writePos, int toWrite, int state, bool newMsgFlag)
         {
             m_writePos = writePos;
             m_toWrite = toWrite;
             State = state;
-            m_beginning = beginning;
+            m_newMsgFlag = newMsgFlag;
         }
-
-        //protected void next_step (byte[] buf_, int to_write_,
-        //        int next_, bool beginning_)
-        //{
-        //    write_buf = null;
-        //    write_array = buf_;
-        //    write_pos = 0;
-        //    to_write = to_write_;
-        //    next = next_;
-        //    beginning = beginning_;
-        //}
     }
 }

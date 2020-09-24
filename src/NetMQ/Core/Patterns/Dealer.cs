@@ -20,7 +20,6 @@
 */
 
 using System.Diagnostics;
-using JetBrains.Annotations;
 using NetMQ.Core.Patterns.Utils;
 
 namespace NetMQ.Core.Patterns
@@ -32,24 +31,6 @@ namespace NetMQ.Core.Patterns
     internal class Dealer : SocketBase
     {
         /// <summary>
-        /// A DealerSession is a SessionBase subclass that is contained within the Dealer class.
-        /// </summary>
-        public class DealerSession : SessionBase
-        {
-            /// <summary>
-            /// Create a new DealerSession (which is just a SessionBase).
-            /// </summary>
-            /// <param name="ioThread">the I/O-thread to associate this with</param>
-            /// <param name="connect"></param>
-            /// <param name="socket"></param>
-            /// <param name="options"></param>
-            /// <param name="addr"></param>
-            public DealerSession([NotNull] IOThread ioThread, bool connect, [NotNull] SocketBase socket, [NotNull] Options options, [NotNull] Address addr)
-                : base(ioThread, connect, socket, options, addr)
-            {}
-        }
-
-        /// <summary>
         /// Messages are fair-queued from inbound pipes. And load-balanced to
         /// the outbound pipes.
         /// </summary>
@@ -58,41 +39,16 @@ namespace NetMQ.Core.Patterns
         private readonly LoadBalancer m_loadBalancer;
 
         /// <summary>
-        /// Have we prefetched a message.
-        /// </summary>
-        private bool m_prefetched;
-
-        /// <summary>
-        /// The Msg that we have pre-fetched.
-        /// </summary>
-        private Msg m_prefetchedMsg;
-
-        /// <summary>
         /// Create a new Dealer socket that holds the prefetched message.
         /// </summary>
-        public Dealer([NotNull] Ctx parent, int threadId, int socketId)
+        public Dealer(Ctx parent, int threadId, int socketId)
             : base(parent, threadId, socketId)
         {
-            m_prefetched = false;
             m_options.SocketType = ZmqSocketType.Dealer;
+            m_options.CanSendHelloMsg = true;
 
             m_fairQueueing = new FairQueueing();
             m_loadBalancer = new LoadBalancer();
-
-            m_options.RecvIdentity = true;
-
-            m_prefetchedMsg = new Msg();
-            m_prefetchedMsg.InitEmpty();
-        }
-
-        /// <summary>
-        /// Destroy this Dealer-socket and close out any pre-fetched Msg.
-        /// </summary>
-        public override void Destroy()
-        {
-            base.Destroy();
-
-            m_prefetchedMsg.Close();
         }
 
         /// <summary>
@@ -102,7 +58,7 @@ namespace NetMQ.Core.Patterns
         /// <param name="icanhasall">not used</param>
         protected override void XAttachPipe(Pipe pipe, bool icanhasall)
         {
-            Debug.Assert(pipe != null);
+            Assumes.NotNull(pipe);
             m_fairQueueing.Attach(pipe);
             m_loadBalancer.Attach(pipe);
         }
@@ -118,52 +74,35 @@ namespace NetMQ.Core.Patterns
         }
 
         /// <summary>
-        /// For a Dealer socket: If there's a pre-fetched message, snatch that.
-        /// Otherwise, dump any identity messages and get the first non-identity message,
-        /// or return false if there are no messages available.
+        /// Transmit the given message.  The <c>Send</c> method calls this to do the actual sending.
+        /// </summary>
+        /// <param name="msg">the message to transmit</param>
+        /// <param name="pipe">the pipe that the message was transmitted on (output)</param>
+        /// <returns><c>true</c> if the message was sent successfully</returns>
+        protected bool XSendPipe(ref Msg msg, out Pipe? pipe)
+        {
+            return m_loadBalancer.SendPipe(ref msg, out pipe);
+        }
+
+        /// <summary>
+        /// Get a message from FairQueuing data structure
         /// </summary>
         /// <param name="msg">a Msg to receive the message into</param>
         /// <returns><c>true</c> if the message was received successfully, <c>false</c> if there were no messages to receive</returns>
         protected override bool XRecv(ref Msg msg)
         {
-            return ReceiveInternal(ref msg);
+            return m_fairQueueing.Recv(ref msg);
         }
 
         /// <summary>
-        /// If there's a pre-fetched message, snatch that.
-        /// Otherwise, dump any identity messages and get the first non-identity message,
-        /// or return false if there are no messages available.
+        /// Get a message from FairQueuing data structure
         /// </summary>
         /// <param name="msg">a Msg to receive the message into</param>
-        /// <returns>false if there were no messages to receive</returns>
-        private bool ReceiveInternal(ref Msg msg)
+        /// <param name="pipe">a specific Pipe to receive on</param>
+        /// <returns><c>true</c> if the message was received successfully, <c>false</c> if there were no messages to receive</returns>
+        protected bool XRecvPipe(ref Msg msg, out Pipe? pipe)
         {
-            // If there is a prefetched message, return it.
-            if (m_prefetched)
-            {
-                msg.Move(ref m_prefetchedMsg);
-
-                m_prefetched = false;
-
-                return true;
-            }
-
-            // DEALER socket doesn't use identities. We can safely drop it and
-            while (true)
-            {
-                bool isMessageAvailable = m_fairQueueing.Recv(ref msg);
-
-                if (!isMessageAvailable)
-                {
-                    return false;
-                }
-
-                // Stop when we get any message that is not an Identity.
-                if (!msg.IsIdentity)
-                    break;
-            }
-
-            return true;
+            return m_fairQueueing.RecvPipe(ref msg, out pipe);
         }
 
         /// <summary>
@@ -173,18 +112,7 @@ namespace NetMQ.Core.Patterns
         /// <returns></returns>
         protected override bool XHasIn()
         {
-            // We may already have a message pre-fetched.
-            if (m_prefetched)
-                return true;
-
-            // Try to read the next message to the pre-fetch buffer.
-            bool isMessageAvailable = ReceiveInternal(ref m_prefetchedMsg);
-
-            if (!isMessageAvailable)
-                return false;
-
-            m_prefetched = true;
-            return true;
+            return m_fairQueueing.HasIn();
         }
 
         protected override bool XHasOut()

@@ -120,12 +120,12 @@ namespace NetMQ.Tests
                         Thread.Sleep(100);
                         pubSync.Set();
 
-                        NetMQMessage msg = null;
+                        NetMQMessage? msg = null;
                         Assert.False(subSocket.TryReceiveMultipartMessage(TimeSpan.FromMilliseconds(100), ref msg));
 
                         Assert.True(subSocket.TryReceiveMultipartMessage(TimeSpan.FromMilliseconds(waitTime), ref msg));
                         Assert.NotNull(msg);
-                        Assert.Equal(1, msg.FrameCount);
+                        Assert.Equal(1, msg!.FrameCount);
                         Assert.Equal(300, msg.First.MessageSize);
                         pubSync.Set();
                     }
@@ -218,7 +218,38 @@ namespace NetMQ.Tests
                 sub.Connect("tcp://127.0.0.1:" + port);
                 sub.Subscribe("");
 
-                Thread.Sleep(1000);
+                Thread.Sleep(100);
+
+                pub.SendFrame("");
+                sub.SkipFrame();
+
+                for (int i = 0; i < 100; i++)
+                {
+                    pub.SendFrame(largeMessage);
+
+                    byte[] recvMessage = sub.ReceiveFrameBytes();
+
+                    Assert.Equal(largeMessage, recvMessage);
+                }
+            }
+        }
+        
+        [Fact]
+        public void MultipleHugeMessages()
+        {
+            var largeMessage = new byte[20000];
+
+            for (int i = 0; i < largeMessage.Length; i++)
+                largeMessage[i] = (byte)(i % 256);
+
+            using (var pub = new PublisherSocket())
+            using (var sub = new SubscriberSocket())
+            {
+                var port = pub.BindRandomPort("tcp://127.0.0.1");
+                sub.Connect("tcp://127.0.0.1:" + port);
+                sub.Subscribe("");
+
+                Thread.Sleep(100);
 
                 pub.SendFrame("");
                 sub.SkipFrame();
@@ -295,7 +326,7 @@ namespace NetMQ.Tests
                 int bytesRead = clientSocket.Receive(buffer);
                 Assert.True(bytesRead > 0);
 
-                Assert.Equal(Encoding.ASCII.GetString(buffer, 0, bytesRead), "HelloRaw");
+                Assert.Equal("HelloRaw", Encoding.ASCII.GetString(buffer, 0, bytesRead));
             }
         }
 
@@ -399,7 +430,7 @@ namespace NetMQ.Tests
                 server.SkipFrame(); // identity
                 string message = server.ReceiveFrameString();
 
-                Assert.Equal(message, "1");
+                Assert.Equal("1", message);
 
                 // we read the message, it should false again
                 Assert.False(server.HasIn);
@@ -719,9 +750,9 @@ namespace NetMQ.Tests
                 {
                     for (int i = 0; i < 2; i++)
                     {
-                        void ThreadMethod(object state)
+                        void ThreadMethod(object? state)
                         {
-                            byte[] routerId = (byte[]) state;
+                            byte[]? routerId = (byte[]?) state;
                             byte[] workerId = Guid.NewGuid().ToByteArray();
                             using (var workerSocket = new DealerSocket())
                             {
@@ -858,7 +889,7 @@ namespace NetMQ.Tests
 
                 Assert.NotNull(sub.Options.LastEndpoint);
 
-                sub.Unbind(sub.Options.LastEndpoint);
+                sub.Unbind(sub.Options.LastEndpoint!);
                 closed.Wait(1000);
 
                 monitor.Stop();

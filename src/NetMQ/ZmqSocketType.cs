@@ -71,6 +71,39 @@
         /// </summary>
         Stream = 11,
         
+        /// <summary>
+        /// This denotes an Server socket.
+        /// </summary>
+        Server = 12,
+        
+        /// <summary>
+        /// This denotes an Client socket.
+        /// </summary>
+        Client = 13,
+        
+        /// <summary>
+        /// This denotes an Radio socket.
+        /// </summary>
+        Radio = 14,
+        
+        /// <summary>
+        /// This denotes an Dish socket.
+        /// </summary>
+        Dish = 15,
+
+        /// <summary>
+        /// This denotes an Gather socket.
+        /// </summary>
+        Gather = 16,
+        
+        /// <summary>
+        /// This denotes an Scatter socket.
+        /// </summary>
+        Scatter = 17,
+        
+        /// <summary>
+        /// This denotes a Peer socket.
+        /// </summary>
         Peer = 19
     }
 }

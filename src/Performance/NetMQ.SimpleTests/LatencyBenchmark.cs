@@ -1,7 +1,6 @@
 ﻿using System;
 using System.Diagnostics;
 using System.Threading;
-using JetBrains.Annotations;
 using NetMQ.Sockets;
 
 namespace NetMQ.SimpleTests
@@ -12,7 +11,7 @@ namespace NetMQ.SimpleTests
 
         private static readonly int[] s_messageSizes = { 8, 64, 512, 4096, 8192, 16384, 32768 };
 
-        public string TestName { get; protected set; }
+        public string? TestName { get; protected set; }
 
         public void RunTest()
         {
@@ -64,11 +63,11 @@ namespace NetMQ.SimpleTests
             }
         }
 
-        [NotNull] protected abstract NetMQSocket CreateClientSocket();
-        [NotNull] protected abstract NetMQSocket CreateServerSocket();
+        protected abstract NetMQSocket CreateClientSocket();
+        protected abstract NetMQSocket CreateServerSocket();
 
-        protected abstract long DoClient([NotNull] NetMQSocket socket, int messageSize);
-        protected abstract void DoServer([NotNull] NetMQSocket socket, int messageSize);
+        protected abstract long DoClient(NetMQSocket socket, int messageSize);
+        protected abstract void DoServer(NetMQSocket socket, int messageSize);
     }
 
     internal class LatencyBenchmark : LatencyBenchmarkBase

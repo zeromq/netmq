@@ -1,6 +1,5 @@
 ﻿using System.Collections;
 using System.Net.Sockets;
-using JetBrains.Annotations;
 
 namespace NetMQ.Core.Utils
 {
@@ -46,7 +45,7 @@ namespace NetMQ.Core.Utils
         /// </remarks>
         /// <exception cref="System.ArgumentNullException">none of the three lists of sockets may be null.</exception>
         /// <exception cref="SocketException">an error occurred when attempting to access the socket.</exception>
-        public static void Select([CanBeNull] IList checkRead, [CanBeNull] IList checkWrite, [CanBeNull] IList checkError, int microSeconds)
+        public static void Select(IList? checkRead, IList? checkWrite, IList? checkError, int microSeconds)
         {
 #if NET35
             // .NET 3.5 has a bug, such that -1 is not blocking the select call - therefore we use here instead the maximum integer value.

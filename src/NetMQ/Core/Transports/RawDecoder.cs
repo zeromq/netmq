@@ -1,85 +1,40 @@
-﻿using System.Diagnostics;
+﻿using System;
+using System.Diagnostics;
 
 namespace NetMQ.Core.Transports
 {
     internal class RawDecoder : DecoderBase
     {
-        private readonly long m_maxMsgSize;
-
-        private IMsgSink m_msgSink;
         private Msg m_inProgress;
 
         private const int RawMessageReadyState = 1;
+        private byte[] m_buffer;
 
-        public RawDecoder(int bufferSize, long maxMsgSize, IMsgSink msgSink,
-          Endianness endianness)
+        public RawDecoder(int bufferSize, long maxMsgSize, Endianness endianness)
             : base(bufferSize, endianness)
         {
-            m_msgSink = msgSink;
-            m_maxMsgSize = maxMsgSize;
+            m_buffer = new byte[bufferSize];
         }
 
-        public override void SetMsgSink(IMsgSink msgSink)
+        public override void GetBuffer(out ByteArraySegment data, out int size)
         {
-            m_msgSink = msgSink;
+            data = new ByteArraySegment(m_buffer);
+            size = m_buffer.Length;
         }
 
-        public override bool Stalled()
+        public override DecodeResult Decode(ByteArraySegment data, int size, out int bytesUsed)
         {
-            return false;
+            m_inProgress.InitPool(size);
+            data.CopyTo(m_inProgress, size);
+            bytesUsed = size;
+            return DecodeResult.MessageReady;
         }
 
-        public override bool MessageReadySize(int msgSize)
+        protected override DecodeResult Next()
         {
-            m_inProgress = new Msg();
-            m_inProgress.InitPool(msgSize);
-
-            NextStep(new ByteArraySegment(m_inProgress.Data, m_inProgress.Offset),
-                m_inProgress.Size, RawMessageReadyState);
-
-            return true;
+            throw new NotImplementedException();
         }
 
-        protected override bool Next()
-        {
-            if (State == RawMessageReadyState)
-            {
-                return RawMessageReady();
-            }
-
-            return false;
-        }
-
-        private bool RawMessageReady()
-        {
-            Debug.Assert(m_inProgress.Size != 0);
-
-            // Message is completely read. Push it further and start reading
-            // new message. (in_progress is a 0-byte message after this point.)
-            if (m_msgSink == null)
-                return false;
-
-            try
-            {
-
-                bool isMessagedPushed = m_msgSink.PushMsg(ref m_inProgress);
-
-                if (isMessagedPushed)
-                {
-                    // NOTE: This is just to break out of process_buffer
-                    // raw_message_ready should never get called in state machine w/o
-                    // message_ready_size from stream_engine.
-                    NextStep(new ByteArraySegment(m_inProgress.Data, m_inProgress.Offset),
-                        1, RawMessageReadyState);
-                }
-
-                return isMessagedPushed;
-            }
-            catch (NetMQException)
-            {
-                DecodingError();
-                return false;
-            }
-        }
+        public override PushMsgResult PushMsg(ProcessMsgDelegate sink) => sink(ref m_inProgress);
     }
 }

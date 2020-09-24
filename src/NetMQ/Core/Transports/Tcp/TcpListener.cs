@@ -22,11 +22,10 @@
 using System;
 using System.Diagnostics;
 using System.Net.Sockets;
-#if NETSTANDARD1_6
+#if NETSTANDARD2_0 || NETSTANDARD2_1
 using System.Runtime.InteropServices;
 #endif
 using AsyncIO;
-using JetBrains.Annotations;
 
 namespace NetMQ.Core.Transports.Tcp
 {
@@ -34,20 +33,17 @@ namespace NetMQ.Core.Transports.Tcp
     {
         private const SocketOptionName IPv6Only = (SocketOptionName)27;
 
-        [NotNull]
         private readonly IOObject m_ioObject;
 
         /// <summary>
         /// Address to listen on.
         /// </summary>
-        [NotNull]
         private readonly TcpAddress m_address;
 
         /// <summary>
         /// Underlying socket.
         /// </summary>
-        [CanBeNull]
-        private AsyncSocket m_handle;
+        private AsyncSocket? m_handle;
 
 /*
         /// <summary>
@@ -59,13 +55,12 @@ namespace NetMQ.Core.Transports.Tcp
         /// <summary>
         /// Socket the listener belongs to.
         /// </summary>
-        [NotNull]
         private readonly SocketBase m_socket;
 
         /// <summary>
         /// String representation of endpoint to bind to
         /// </summary>
-        private string m_endpoint;
+        private string? m_endpoint;
 
         /// <summary>
         /// The port that was bound on
@@ -78,7 +73,7 @@ namespace NetMQ.Core.Transports.Tcp
         /// <param name="ioThread">the IOThread for this to live within</param>
         /// <param name="socket">a SocketBase to listen on</param>
         /// <param name="options">socket-related Options</param>
-        public TcpListener([NotNull] IOThread ioThread, [NotNull] SocketBase socket, [NotNull] Options options)
+        public TcpListener(IOThread ioThread, SocketBase socket, Options options)
             : base(ioThread, options)
         {
             m_ioObject = new IOObject(ioThread);
@@ -97,6 +92,8 @@ namespace NetMQ.Core.Transports.Tcp
 
         protected override void ProcessPlug()
         {
+            Assumes.NotNull(m_handle);
+
             m_ioObject.SetHandler(this);
             m_ioObject.AddSocket(m_handle);
 
@@ -109,6 +106,8 @@ namespace NetMQ.Core.Transports.Tcp
         /// <param name="linger">a time (in milliseconds) for this to linger before actually going away. -1 means infinite.</param>
         protected override void ProcessTerm(int linger)
         {
+            Assumes.NotNull(m_handle);
+           
             m_ioObject.SetHandler(this);
             m_ioObject.RemoveSocket(m_handle);
             Close();
@@ -119,15 +118,16 @@ namespace NetMQ.Core.Transports.Tcp
         /// Set address to listen on.
         /// </summary>
         /// <param name="addr">a string denoting the address to set this to</param>
-        public virtual void SetAddress([NotNull] string addr)
+        public virtual void SetAddress(string addr)
         {
             m_address.Resolve(addr, m_options.IPv4Only);
+
+            Assumes.NotNull(m_address.Address);
+            Assumes.NotNull(m_handle);
 
             try
             {
                 m_handle = AsyncSocket.Create(m_address.Address.AddressFamily, SocketType.Stream, ProtocolType.Tcp);
-
-                Debug.Assert(m_handle != null);
 
                 if (!m_options.IPv4Only && m_address.Address.AddressFamily == AddressFamily.InterNetworkV6)
                 {
@@ -141,7 +141,7 @@ namespace NetMQ.Core.Transports.Tcp
                     }
                 }
 
-#if NETSTANDARD1_6
+#if NETSTANDARD2_0 || NETSTANDARD2_1
                 // This command is failing on linux
                 if (RuntimeInformation.IsOSPlatform(OSPlatform.Windows))
                     m_handle.ExclusiveAddressUse = false;
@@ -170,6 +170,8 @@ namespace NetMQ.Core.Transports.Tcp
         {
             //m_acceptedSocket = AsyncSocket.Create(m_address.Address.AddressFamily, SocketType.Stream, ProtocolType.Tcp);
 
+            Assumes.NotNull(m_handle);
+
             // start accepting socket async
             m_handle.Accept();
 
@@ -186,6 +188,9 @@ namespace NetMQ.Core.Transports.Tcp
         /// <exception cref="NetMQException">A non-recoverable socket-error occurred.</exception>
         public void InCompleted(SocketError socketError, int bytesTransferred)
         {
+            Assumes.NotNull(m_handle);
+            Assumes.NotNull(m_endpoint);
+
             switch (socketError)
             {
                 case SocketError.Success:
@@ -218,7 +223,9 @@ namespace NetMQ.Core.Transports.Tcp
 
                     // Choose I/O thread to run connector in. Given that we are already
                     // running in an I/O thread, there must be at least one available.
-                    IOThread ioThread = ChooseIOThread(m_options.Affinity);
+                    IOThread? ioThread = ChooseIOThread(m_options.Affinity);
+
+                    Assumes.NotNull(ioThread);
 
                     // Create and launch a session object.
                     // TODO: send null in address parameter, is unneeded in this case
@@ -260,6 +267,8 @@ namespace NetMQ.Core.Transports.Tcp
             if (m_handle == null)
                 return;
 
+            Assumes.NotNull(m_endpoint);
+
             try
             {
                 m_handle.Dispose();
@@ -276,7 +285,6 @@ namespace NetMQ.Core.Transports.Tcp
         /// <summary>
         /// Get the bound address for use with wildcards
         /// </summary>
-        [NotNull]
         public virtual string Address => m_address.ToString();
 
         /// <summary>

@@ -18,7 +18,6 @@
     along with this program.  If not, see <http://www.gnu.org/licenses/>.
 */
 
-using JetBrains.Annotations;
 using NetMQ.Core.Transports.Tcp;
 
 namespace NetMQ.Core.Transports.Ipc
@@ -28,7 +27,7 @@ namespace NetMQ.Core.Transports.Ipc
     /// </summary>
     internal sealed class IpcConnector : TcpConnector
     {
-        public IpcConnector([NotNull] IOThread ioThread, [NotNull] SessionBase session, [NotNull] Options options, [NotNull] Address addr, bool wait)
+        public IpcConnector(IOThread ioThread, SessionBase session, Options options, Address addr, bool wait)
             : base(ioThread, session, options, addr, wait)
         {}
     }

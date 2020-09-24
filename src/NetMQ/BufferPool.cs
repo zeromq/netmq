@@ -1,10 +1,9 @@
 using System;
 using System.ServiceModel.Channels;
 using System.Threading;
-using JetBrains.Annotations;
 
 namespace NetMQ
-{
+{    
     /// <summary>
     /// The IBufferPool interface specifies two methods: Take, and Return.
     /// These provide for taking byte-array data from a common pool, and returning it.
@@ -16,14 +15,13 @@ namespace NetMQ
         /// </summary>
         /// <param name="size">the number of bytes to take</param>
         /// <returns>a byte-array that comes from the buffer-pool</returns>
-        [NotNull]
         byte[] Take(int size);
 
         /// <summary>
         /// Return the given byte-array buffer to the common buffer-pool.
         /// </summary>
         /// <param name="buffer">the byte-array to return to the buffer-pool</param>
-        void Return([NotNull] byte[] buffer);
+        void Return(byte[] buffer);
     }
 
     /// <summary>
@@ -180,7 +178,7 @@ namespace NetMQ
         /// Set BufferPool to use the specified IBufferPool implementation to manage the buffer-pool.
         /// </summary>
         /// <param name="bufferPool">the implementation of <see cref="IBufferPool"/> to use</param>
-        public static void SetCustomBufferPool([NotNull] IBufferPool bufferPool)
+        public static void SetCustomBufferPool(IBufferPool bufferPool)
         {
             var prior = Interlocked.Exchange(ref s_bufferPool, bufferPool);
 
@@ -192,7 +190,6 @@ namespace NetMQ
         /// </summary>
         /// <param name="size">The minimum size required, in bytes.</param>
         /// <returns>A byte array having at least <paramref name="size"/> bytes.</returns>
-        [NotNull]
         public static byte[] Take(int size)
         {
             return s_bufferPool.Take(size);
@@ -202,7 +199,7 @@ namespace NetMQ
         /// Returns <paramref name="buffer"/> to the <see cref="IBufferPool"/>.
         /// </summary>
         /// <param name="buffer">The byte array to be returned to the pool.</param>
-        public static void Return([NotNull] byte[] buffer)
+        public static void Return(byte[] buffer)
         {
             s_bufferPool.Return(buffer);
         }

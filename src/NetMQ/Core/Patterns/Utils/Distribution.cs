@@ -21,7 +21,6 @@
 */
 
 using System.Collections.Generic;
-using JetBrains.Annotations;
 
 namespace NetMQ.Core.Patterns.Utils
 {
@@ -70,7 +69,7 @@ namespace NetMQ.Core.Patterns.Utils
         /// Adds the pipe to the distributor object.
         /// </summary>
         /// <param name="pipe"></param>
-        public void Attach([NotNull] Pipe pipe)
+        public void Attach(Pipe pipe)
         {
             // If we are in the middle of sending a message, we'll add new pipe
             // into the list of eligible pipes. Otherwise we add it to the list
@@ -95,7 +94,7 @@ namespace NetMQ.Core.Patterns.Utils
         /// will send message also to this pipe.
         /// </summary>
         /// <param name="pipe"></param>
-        public void Match([NotNull] Pipe pipe)
+        public void Match(Pipe pipe)
         {
             int index = m_pipes.IndexOf(pipe);
 
@@ -124,7 +123,7 @@ namespace NetMQ.Core.Patterns.Utils
         /// This gets called by ProcessPipeTermAck or XTerminated to respond to the termination of the given pipe from the distributor.
         /// </summary>
         /// <param name="pipe">the pipe that was terminated</param>
-        public void Terminated([NotNull] Pipe pipe)
+        public void Terminated(Pipe pipe)
         {
             // Remove the pipe from the list; adjust number of matching, active and/or
             // eligible pipes accordingly.
@@ -141,7 +140,7 @@ namespace NetMQ.Core.Patterns.Utils
         /// Activates pipe that have previously reached high watermark.
         /// </summary>
         /// <param name="pipe"></param>
-        public void Activated([NotNull] Pipe pipe)
+        public void Activated(Pipe pipe)
         {
             // Move the pipe from passive to eligible state.
             m_pipes.Swap(m_pipes.IndexOf(pipe), m_eligible);
@@ -246,7 +245,7 @@ namespace NetMQ.Core.Patterns.Utils
         /// Write the message to the pipe. Make the pipe inactive if writing
         /// fails. In such a case false is returned.
         /// </summary>
-        private bool Write([NotNull] Pipe pipe, ref Msg msg)
+        private bool Write(Pipe pipe, ref Msg msg)
         {
             if (!pipe.Write(ref msg))
             {

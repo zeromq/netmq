@@ -21,20 +21,12 @@
 
 using System;
 using System.Text;
-using JetBrains.Annotations;
 
 namespace NetMQ.Core.Patterns
 {
     internal sealed class Sub : XSub
     {
-        public class SubSession : XSubSession
-        {
-            public SubSession([NotNull] IOThread ioThread, bool connect, [NotNull] SocketBase socket, [NotNull] Options options, [NotNull] Address addr)
-                : base(ioThread, connect, socket, options, addr)
-            {}
-        }
-
-        public Sub([NotNull] Ctx parent, int threadId, int socketId)
+        public Sub(Ctx parent, int threadId, int socketId)
             : base(parent, threadId, socketId)
         {
             m_options.SocketType = ZmqSocketType.Sub;
@@ -50,7 +42,7 @@ namespace NetMQ.Core.Patterns
         /// <param name="optionValue">the value to set the option to</param>
         /// <returns><c>true</c> if successful</returns>
         /// <exception cref="InvalidException">optionValue must be a String or a byte-array.</exception>
-        protected override bool XSetSocketOption(ZmqSocketOption option, object optionValue)
+        protected override bool XSetSocketOption(ZmqSocketOption option, object? optionValue)
         {
             // Only subscribe/unsubscribe options are supported
             if (option != ZmqSocketOption.Subscribe && option != ZmqSocketOption.Unsubscribe)

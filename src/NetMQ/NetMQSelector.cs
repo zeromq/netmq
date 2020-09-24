@@ -2,7 +2,6 @@
 using System.Collections.Generic;
 using System.Diagnostics;
 using System.Net.Sockets;
-using JetBrains.Annotations;
 using NetMQ.Core;
 using NetMQ.Core.Utils;
 
@@ -26,21 +25,46 @@ namespace NetMQ
         /// </summary>
         public sealed class Item
         {
+            /// <summary>
+            /// Create a new item for NetMQSocket
+            /// </summary>
+            /// <param name="socket"></param>
+            /// <param name="event"></param>
             public Item(NetMQSocket socket, PollEvents @event)
             {
                 Socket = socket;
                 Event = @event;
             }
 
+            /// <summary>
+            /// Create a new item for regular .net socket
+            /// </summary>
+            /// <param name="fileDescriptor"></param>
+            /// <param name="event"></param>
             public Item(Socket fileDescriptor, PollEvents @event)
             {
                 FileDescriptor = fileDescriptor;
                 Event = @event;
             }
 
-            public Socket FileDescriptor { get; }
-            public NetMQSocket Socket { get; }
+            /// <summary>
+            /// Item File Descriptor, regular .net Socket
+            /// </summary>
+            public Socket? FileDescriptor { get; }
+            
+            /// <summary>
+            /// Item NetMQSocket 
+            /// </summary>
+            public NetMQSocket? Socket { get; }
+            
+            /// <summary>
+            /// Events registered for
+            /// </summary>
             public PollEvents Event { get; }
+            
+            /// <summary>
+            /// Resulted events
+            /// </summary>
             public PollEvents ResultEvent { get; set; }
         }
 
@@ -54,7 +78,7 @@ namespace NetMQ
         /// <exception cref="FaultException">The internal select operation failed.</exception>
         /// <exception cref="ArgumentNullException"><paramref name="items"/> is <c>null</c>.</exception>
         /// <exception cref="TerminatingException">The socket has been stopped.</exception>
-        public bool Select([NotNull] Item[] items, int itemsCount, long timeout)
+        public bool Select(Item[] items, int itemsCount, long timeout)
         {
             if (items == null)
                 throw new ArgumentNullException(nameof(items));
@@ -65,7 +89,7 @@ namespace NetMQ
             bool firstPass = true;
             int numberOfEvents = 0;
 
-            Stopwatch stopwatch = null;
+            Stopwatch? stopwatch = null;
 
             while (true)
             {
@@ -82,7 +106,7 @@ namespace NetMQ
                 }
                 else
                 {
-                    currentTimeoutMicroSeconds = (timeout - stopwatch.ElapsedMilliseconds) * 1000;
+                    currentTimeoutMicroSeconds = (timeout - stopwatch!.ElapsedMilliseconds) * 1000;
 
                     if (currentTimeoutMicroSeconds < 0)
                     {
@@ -110,10 +134,10 @@ namespace NetMQ
                     else
                     {
                         if (pollItem.Event.HasIn())
-                            m_checkRead.Add(pollItem.FileDescriptor);
+                            m_checkRead.Add(pollItem.FileDescriptor!);
 
                         if (pollItem.Event.HasOut())
-                            m_checkWrite.Add(pollItem.FileDescriptor);
+                            m_checkWrite.Add(pollItem.FileDescriptor!);
                     }
                 }
 
@@ -153,10 +177,10 @@ namespace NetMQ
                     }
                     else
                     {
-                        if (m_checkRead.Contains(selectItem.FileDescriptor))
+                        if (m_checkRead.Contains(selectItem.FileDescriptor!))
                             selectItem.ResultEvent |= PollEvents.PollIn;
 
-                        if (m_checkWrite.Contains(selectItem.FileDescriptor))
+                        if (m_checkWrite.Contains(selectItem.FileDescriptor!))
                             selectItem.ResultEvent |= PollEvents.PollOut;
                     }
 
@@ -186,7 +210,7 @@ namespace NetMQ
                 }
 
                 // Check also equality as it might frequently occur on 1000Hz clock
-                if (stopwatch.ElapsedMilliseconds >= timeout)
+                if (stopwatch!.ElapsedMilliseconds >= timeout)
                     break;
             }
 

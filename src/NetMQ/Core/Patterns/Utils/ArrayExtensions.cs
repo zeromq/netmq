@@ -1,6 +1,5 @@
 ﻿using System;
 using System.Collections.Generic;
-using JetBrains.Annotations;
 
 namespace NetMQ.Core.Patterns.Utils
 {
@@ -14,8 +13,7 @@ namespace NetMQ.Core.Patterns.Utils
         /// <param name="size">New size of array.</param>
         /// <param name="ended">If grow/shrink operation should be applied to the end of array.</param>
         /// <returns>Resized array.</returns>
-        [NotNull]
-        public static T[] Resize<T>([NotNull] this T[] src, int size, bool ended)
+        public static T[] Resize<T>(this T[] src, int size, bool ended)
         {
             T[] dest;
 
@@ -43,7 +41,7 @@ namespace NetMQ.Core.Patterns.Utils
             return dest;
         }
 
-        public static void Swap<T>([NotNull] this List<T> items, int index1, int index2) where T : class
+        public static void Swap<T>(this List<T> items, int index1, int index2) where T : class
         {
             if (index1 == index2) 
                 return;

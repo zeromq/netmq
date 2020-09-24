@@ -1,14 +1,16 @@
 ﻿using System;
-using JetBrains.Annotations;
 using NetMQ.Core;
 
 namespace NetMQ
 {
+    /// <summary>
+    /// Global configuration class for NetMQ
+    /// </summary>
     public static class NetMQConfig
     {
         private static TimeSpan s_linger;
 
-        [CanBeNull] private static Ctx s_ctx;
+        private static Ctx? s_ctx;
         private static int s_threadPoolSize = Ctx.DefaultIOThreads;
         private static int s_maxSockets = Ctx.DefaultMaxSockets;
         private static readonly object s_sync;
@@ -31,14 +33,11 @@ namespace NetMQ
                 lock (s_sync)
                 {
                     // Check again whether it's null now that we have the lock
-                    if (s_ctx == null)
+                    return s_ctx ??= new Ctx
                     {
-                        s_ctx = new Ctx();
-                        s_ctx.IOThreadCount = s_threadPoolSize;
-                        s_ctx.MaxSockets = s_maxSockets;
-                    }
-
-                    return s_ctx;
+                        IOThreadCount = s_threadPoolSize,
+                        MaxSockets = s_maxSockets
+                    };
                 }
             }
         }

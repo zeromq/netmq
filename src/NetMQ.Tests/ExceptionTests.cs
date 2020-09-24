@@ -1,5 +1,3 @@
-#if !NETCOREAPP1_0
-
 using System.IO;
 using System.Runtime.Serialization.Formatters.Binary;
 using Xunit;
@@ -105,7 +103,7 @@ namespace NetMQ.Tests
             Assert.Equal(before.Message, after.Message);
         }
 
-        private static T Clone<T>(T source)
+        private static T Clone<T>(T source) where T : class
         {
             return Deserialise<T>(Serialise(source));
         }
@@ -128,5 +126,3 @@ namespace NetMQ.Tests
         #endregion
     }
 }
-
-#endif

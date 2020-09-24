@@ -2,7 +2,6 @@
 using System;
 using System.Reflection;
 using System.Runtime.InteropServices;
-using JetBrains.Annotations;
 
 namespace NetMQ.Core.Utils
 {
@@ -70,7 +69,7 @@ namespace NetMQ.Core.Utils
             Type syscall = currentAssembly.GetType("Mono.Unix.Native.Syscall");
             Type utsname = currentAssembly.GetType("Mono.Unix.Native.Utsname");
             MethodInfo uname = syscall.GetMethod("uname");
-            object[] parameters = { null };
+            object?[] parameters = { null };
 
             var invokeResult = (int)uname.Invoke(null, parameters);
 
@@ -108,8 +107,7 @@ namespace NetMQ.Core.Utils
         [UnmanagedFunctionPointer(CallingConvention.StdCall)]
         public delegate ulong RdtscDelegate();
 
-        [CanBeNull]
-        public static RdtscDelegate Rdtsc { get; private set; }
+        public static RdtscDelegate? Rdtsc { get; private set; }
 
         // unsigned __int64 __stdcall rdtsc() {
         //   return __rdtsc();

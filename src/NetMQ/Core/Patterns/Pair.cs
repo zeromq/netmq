@@ -20,22 +20,14 @@
 */
 
 using System.Diagnostics;
-using JetBrains.Annotations;
 
 namespace NetMQ.Core.Patterns
 {
     internal sealed class Pair : SocketBase
     {
-        public class PairSession : SessionBase
-        {
-            public PairSession([NotNull] IOThread ioThread, bool connect, [NotNull] SocketBase socket, [NotNull] Options options, [NotNull] Address addr)
-                : base(ioThread, connect, socket, options, addr)
-            {}
-        }
+        private Pipe? m_pipe;
 
-        private Pipe m_pipe;
-
-        public Pair([NotNull] Ctx parent, int threadId, int socketId)
+        public Pair(Ctx parent, int threadId, int socketId)
             : base(parent, threadId, socketId)
         {
             m_options.SocketType = ZmqSocketType.Pair;
@@ -48,7 +40,7 @@ namespace NetMQ.Core.Patterns
         /// <param name="icanhasall">not used</param>
         protected override void XAttachPipe(Pipe pipe, bool icanhasall)
         {
-            Debug.Assert(pipe != null);
+            Assumes.NotNull(pipe);
 
             // ZMQ_PAIR socket can only be connected to a single peer.
             // The socket rejects any further connection requests.

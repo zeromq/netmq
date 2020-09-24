@@ -22,7 +22,7 @@
 
 using System.Collections.Generic;
 using System.Diagnostics;
-using JetBrains.Annotations;
+using System.Diagnostics.CodeAnalysis;
 
 namespace NetMQ.Core.Patterns.Utils
 {
@@ -54,7 +54,7 @@ namespace NetMQ.Core.Patterns.Utils
         /// </summary>
         private bool m_dropping;
 
-        public void Attach([NotNull] Pipe pipe)
+        public void Attach(Pipe pipe)
         {
             m_pipes.Add(pipe);
             Activated(pipe);
@@ -64,7 +64,7 @@ namespace NetMQ.Core.Patterns.Utils
         /// This gets called by ProcessPipeTermAck or XTerminated to respond to the termination of the given pipe.
         /// </summary>
         /// <param name="pipe">the pipe that was terminated</param>
-        public void Terminated([NotNull] Pipe pipe)
+        public void Terminated(Pipe pipe)
         {
             int index = m_pipes.IndexOf(pipe);
 
@@ -85,7 +85,7 @@ namespace NetMQ.Core.Patterns.Utils
             m_pipes.Remove(pipe);
         }
 
-        public void Activated([NotNull] Pipe pipe)
+        public void Activated(Pipe pipe)
         {
             // Move the pipe to the list of active pipes.
             m_pipes.Swap(m_pipes.IndexOf(pipe), m_active);
@@ -94,6 +94,13 @@ namespace NetMQ.Core.Patterns.Utils
 
         public bool Send(ref Msg msg)
         {
+            return SendPipe(ref msg, out Pipe _);
+        }
+
+        public bool SendPipe(ref Msg msg, out Pipe? pipe)
+        {
+            pipe = null;
+
             // Drop the message if required. If we are at the end of the message
             // switch back to non-dropping mode.
             if (m_dropping)
@@ -109,9 +116,23 @@ namespace NetMQ.Core.Patterns.Utils
             while (m_active > 0)
             {
                 if (m_pipes[m_current].Write(ref msg))
+                {
+                    pipe = m_pipes[m_current];
                     break;
+                }
+
+                // handles a send failure for a multipart message.
+                if (m_more)
+                {
+                    m_pipes[m_current].Rollback();
+                    m_dropping = msg.HasMore;
+                    m_more = false;
+                    // the native C code sets EGAIN and returns -2 here.
+                    return false;
+                }
 
                 Debug.Assert(!m_more);
+
                 m_active--;
                 if (m_current < m_active)
                     m_pipes.Swap(m_current, m_active);
@@ -126,11 +147,12 @@ namespace NetMQ.Core.Patterns.Utils
             }
 
             // If it's part of the message we can flush it downstream and
-            // continue round-robinning (load balance).
+            // continue round-robining (load balance).
             m_more = msg.HasMore;
             if (!m_more)
             {
                 m_pipes[m_current].Flush();
+                // warning: the logic here is slightly different than what is done in lb.cpp; zmq reference implementation.
                 if (m_active > 1)
                     m_current = (m_current + 1) % m_active;
             }

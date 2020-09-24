@@ -20,26 +20,18 @@
 */
 
 using System.Diagnostics;
-using JetBrains.Annotations;
 using NetMQ.Core.Patterns.Utils;
 
 namespace NetMQ.Core.Patterns
 {
     internal sealed class Pull : SocketBase
     {
-        public class PullSession : SessionBase
-        {
-            public PullSession([NotNull] IOThread ioThread, bool connect, [NotNull] SocketBase socket, [NotNull] Options options, [NotNull] Address addr)
-                : base(ioThread, connect, socket, options, addr)
-            {}
-        }
-
         /// <summary>
         /// Fair queueing object for inbound pipes.
         /// </summary>
         private readonly FairQueueing m_fairQueueing;
 
-        public Pull([NotNull] Ctx parent, int threadId, int socketId)
+        public Pull(Ctx parent, int threadId, int socketId)
             : base(parent, threadId, socketId)
         {
             m_options.SocketType = ZmqSocketType.Pull;
@@ -54,7 +46,7 @@ namespace NetMQ.Core.Patterns
         /// <param name="icanhasall">not used</param>
         protected override void XAttachPipe(Pipe pipe, bool icanhasall)
         {
-            Debug.Assert(pipe != null);
+            Assumes.NotNull(pipe);
             m_fairQueueing.Attach(pipe);
         }
 

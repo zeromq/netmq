@@ -1,0 +1,39 @@
+name: CI
+on: [push, pull_request]
+
+jobs:
+  ununtu:
+    runs-on: ubuntu-latest
+    steps:
+    - uses: actions/checkout@v2
+    - run: dotnet restore src/NetMQ.sln
+    - name: build 
+      run: dotnet build src/NetMQ.sln /p:Configuration=Release /verbosity:minimal
+    - name: test netcoreapp3.1
+      run: dotnet test -v n -p:ParallelizeTestCollections=false --configuration Release --no-build -f netcoreapp3.1 src/NetMQ.Tests/NetMQ.Tests.csproj
+    - name: test netcoreapp2.1
+      run: dotnet test -v n -p:ParallelizeTestCollections=false --configuration Release --no-build -f netcoreapp2.1 src/NetMQ.Tests/NetMQ.Tests.csproj
+  windows:
+    runs-on: windows-latest
+    steps:
+    - uses: actions/checkout@v2
+    - name: Install codecov
+      run: |
+        choco install opencover.portable 
+        choco install codecov
+    - run: dotnet restore src/NetMQ.sln
+    - name: build 
+      run: dotnet build src/NetMQ.sln /p:Configuration=Release /verbosity:minimal
+    - name: test netcoreapp2.1
+      run: dotnet test -v n -p:ParallelizeTestCollections=false --configuration Release --no-build -f netcoreapp2.1 src\NetMQ.Tests\NetMQ.Tests.csproj
+    - name: test netcoreapp3.1
+      run: dotnet test -v n -p:ParallelizeTestCollections=false --configuration Release --no-build -f netcoreapp3.1 src\NetMQ.Tests\NetMQ.Tests.csproj
+    - name: test net47
+      run: dotnet test -v n -p:ParallelizeTestCollections=false --configuration Release --no-build -f net47 src\NetMQ.Tests\NetMQ.Tests.csproj
+    - name: coverage
+      run: |
+        OpenCover.Console.exe -register:user -target:"C:\Program Files\dotnet\dotnet.exe" -targetargs:"test --no-build --configuration Release -f netcoreapp2.1 --logger:trx;LogFileName=results.trx /p:DebugType=full src\NetMQ.Tests\NetMQ.Tests.csproj" -filter:"+[NetMQ*]* -[NetMQ.Tests*]*" -output:".\NetMQ_coverage.xml" -oldStyle
+        codecov -f "NetMQ_coverage.xml"
+       
+       
+

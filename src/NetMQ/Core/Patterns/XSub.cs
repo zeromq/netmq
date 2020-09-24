@@ -19,24 +19,14 @@
     along with this program.  If not, see <http://www.gnu.org/licenses/>.
 */
 
+using System;
 using System.Diagnostics;
-using JetBrains.Annotations;
 using NetMQ.Core.Patterns.Utils;
 
 namespace NetMQ.Core.Patterns
 {
     internal class XSub : SocketBase
     {
-        /// <summary>
-        /// An XSubSession is a subclass of SessionBase that provides nothing more.
-        /// </summary>
-        public class XSubSession : SessionBase
-        {
-            public XSubSession([NotNull] IOThread ioThread, bool connect, [NotNull] SocketBase socket, [NotNull] Options options, [NotNull] Address addr)
-                : base(ioThread, connect, socket, options, addr)
-            {}
-        }
-
         /// <summary>
         /// Fair queueing object for inbound pipes.
         /// </summary>
@@ -93,7 +83,7 @@ namespace NetMQ.Core.Patterns
             };
         }
 
-        public XSub([NotNull] Ctx parent, int threadId, int socketId)
+        public XSub(Ctx parent, int threadId, int socketId)
             : base(parent, threadId, socketId)
         {
             m_options.SocketType = ZmqSocketType.Xsub;
@@ -122,7 +112,7 @@ namespace NetMQ.Core.Patterns
         /// <param name="icanhasall">not used</param>
         protected override void XAttachPipe(Pipe pipe, bool icanhasall)
         {
-            Debug.Assert(pipe != null);
+            Assumes.NotNull(pipe);
             m_fairQueueing.Attach(pipe);
             m_distribution.Attach(pipe);
 
@@ -181,7 +171,7 @@ namespace NetMQ.Core.Patterns
                 if (!m_moreOut && size > 0 && msg[0] == 1)
                 {
                     // Process the subscription.
-                    if (m_subscriptions.Add(msg.Data, msg.Offset + 1, size - 1))
+                    if (m_subscriptions.Add(size == 1 ? new Span<byte>() : msg.Slice(1)))
                     {
                         m_distribution.SendToAll(ref msg);
                         return true;
@@ -189,7 +179,7 @@ namespace NetMQ.Core.Patterns
                 }
                 else if (!m_moreOut && size > 0 && msg[0] == 0)
                 {
-                    if (m_subscriptions.Remove(msg.Data, msg.Offset + 1, size - 1))
+                    if (m_subscriptions.Remove(size == 1 ?new Span<byte>() : msg.Slice(1)))
                     {
                         m_distribution.SendToAll(ref msg);
                         return true;
@@ -321,7 +311,7 @@ namespace NetMQ.Core.Patterns
 
         private bool Match(Msg msg)
         {
-            return m_subscriptions.Check(msg.Data, msg.Offset, msg.Size);
+            return m_subscriptions.Check(msg);
         }
     }
 }

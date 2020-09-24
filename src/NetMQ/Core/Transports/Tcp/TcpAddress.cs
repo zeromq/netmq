@@ -39,10 +39,10 @@ namespace NetMQ.Core.Transports.Tcp
         /// <returns>a string in the form Protocol://[AddressFamily]:Port</returns>
         public override string ToString()
         {
-            if (Address == null)
+            if (this.Address == null)
                 return string.Empty;
 
-            var endpoint = Address;
+            var endpoint = this.Address;
 
             return endpoint.AddressFamily == AddressFamily.InterNetworkV6
                 ? Protocol + "://[" + endpoint.AddressFamily + "]:" + endpoint.Port
@@ -116,14 +116,14 @@ namespace NetMQ.Core.Transports.Tcp
                     throw new InvalidException($"TcpAddress.Resolve, unable to find an IP address for {name}");
             }
 
-            Address = new IPEndPoint(ipAddress, port);
+            this.Address = new IPEndPoint(ipAddress, port);
         }
 
         /// <summary>
         /// Get the Address implementation - which here is an IPEndPoint,
         /// which contains Address, AddressFamily, and Port properties.
         /// </summary>
-        public IPEndPoint Address { get; private set; }
+        public IPEndPoint? Address { get; private set; }
 
         /// <summary>
         /// Get the textual-representation of the communication protocol implied by this TcpAddress,

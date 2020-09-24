@@ -13,7 +13,7 @@ namespace NetMQ.Tests
         [Fact]
         public void RequestResponseMultipartMessageWithRetrySucceedsFirstTry()
         {
-            const string address = "tcp://127.0.0.1:50001";
+            const string address = "tcp://127.0.0.1:51001";
             const string pubAddress = "tcp://127.0.0.1:60001";
             const int numTries = 5;
             var requestTimeout = TimeSpan.FromMilliseconds(100);
@@ -42,7 +42,7 @@ namespace NetMQ.Tests
                     var responseMessage = RequestSocket.RequestResponseMultipartMessageWithRetry(address,
                         requestMessage, numTries, requestTimeout, progressPublisher);
                     Assert.NotNull(responseMessage);
-                    Assert.Equal(1, responseMessage.FrameCount);
+                    Assert.Equal(1, responseMessage!.FrameCount);
                     var responseString = responseMessage.First.ConvertToString();
                     Assert.Equal("Hi", responseString);
                 }
@@ -52,7 +52,7 @@ namespace NetMQ.Tests
         [Fact]
         public void RequestResponseMultipartMessageWithRetryFails()
         {
-            const string address = "tcp://127.0.0.1:50002";
+            const string address = "tcp://127.0.0.1:51002";
             const string pubAddress = "tcp://127.0.0.1:60002";
             const int numTries = 5;
             var requestTimeout = TimeSpan.FromMilliseconds(100);
@@ -86,8 +86,8 @@ namespace NetMQ.Tests
         [Fact]
         public void RequestResponseMultipartMessageWithRetrySucceedsNotOnFirstTry()
         {
-            const string address = "tcp://127.0.0.1:50001";
-            const string pubAddress = "tcp://127.0.0.1:60001";
+            const string address = "tcp://127.0.0.1:51003";
+            const string pubAddress = "tcp://127.0.0.1:60003";
             const int numTries = 5;
             var requestTimeout = TimeSpan.FromMilliseconds(100);
             var requestMessage = new NetMQMessage(1);
@@ -123,7 +123,7 @@ namespace NetMQ.Tests
                     var responseMessage = RequestSocket.RequestResponseMultipartMessageWithRetry(address,
                         requestMessage, numTries, requestTimeout, progressPublisher);
                     Assert.NotNull(responseMessage);
-                    Assert.Equal(1, responseMessage.FrameCount);
+                    Assert.Equal(1, responseMessage!.FrameCount);
                     var responseString = responseMessage.First.ConvertToString();
                     Assert.Equal("Hi", responseString);
                 }
@@ -133,8 +133,8 @@ namespace NetMQ.Tests
         [Fact]
         public void RequestResponseStringWithRetryFails()
         {
-            const string address = "tcp://127.0.0.1:50002";
-            const string pubAddress = "tcp://127.0.0.1:60002";
+            const string address = "tcp://127.0.0.1:51004";
+            const string pubAddress = "tcp://127.0.0.1:60004";
             const int numTries = 5;
             var requestTimeout = TimeSpan.FromMilliseconds(100);
 
@@ -165,8 +165,8 @@ namespace NetMQ.Tests
         [Fact]
         public void RequestResponseStringWithRetrySucceedsNotOnFirstTry()
         {
-            const string address = "tcp://127.0.0.1:50001";
-            const string pubAddress = "tcp://127.0.0.1:60001";
+            const string address = "tcp://127.0.0.1:51005";
+            const string pubAddress = "tcp://127.0.0.1:60005";
             const int numTries = 5;
             var requestTimeout = TimeSpan.FromMilliseconds(100);
 

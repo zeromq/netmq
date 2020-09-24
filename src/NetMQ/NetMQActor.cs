@@ -1,6 +1,5 @@
 ﻿using System;
 using System.Threading;
-using JetBrains.Annotations;
 using NetMQ.Sockets;
 
 namespace NetMQ
@@ -16,7 +15,7 @@ namespace NetMQ
         /// Execute whatever action this <c>IShimHandler</c> represents against the given shim.
         /// </summary>
         /// <param name="shim"></param>
-        void Run([NotNull] PairSocket shim);
+        void Run(PairSocket shim);
     }
 
     #endregion
@@ -32,7 +31,7 @@ namespace NetMQ
         /// Create a new NetMQActorEventArgs with the given NetMQActor.
         /// </summary>
         /// <param name="actor">the NetMQActor for this exception to reference</param>
-        public NetMQActorEventArgs([NotNull] NetMQActor actor)
+        public NetMQActorEventArgs(NetMQActor actor)
         {
             Actor = actor;
         }
@@ -40,7 +39,6 @@ namespace NetMQ
         /// <summary>
         /// Get the NetMQActor that this exception references.
         /// </summary>
-        [NotNull]
         public NetMQActor Actor { get; }
     }
 
@@ -90,7 +88,7 @@ namespace NetMQ
             /// </summary>
             /// <param name="action">a ShimAction of type T that comprises the action to perform</param>
             /// <param name="state">the state-information</param>
-            public ActionShimHandler([NotNull] ShimAction<T> action, T state)
+            public ActionShimHandler(ShimAction<T> action, T state)
             {
                 m_action = action;
                 m_state = state;
@@ -114,7 +112,7 @@ namespace NetMQ
             /// Create a new ActionShimHandler with a given action to operate upon that type.
             /// </summary>
             /// <param name="action">a ShimAction that comprises the action to perform</param>
-            public ActionShimHandler([NotNull] ShimAction action)
+            public ActionShimHandler(ShimAction action)
             {
                 m_action = action;
             }
@@ -144,7 +142,7 @@ namespace NetMQ
 
         #region Creating Actor
 
-        private NetMQActor(PairSocket self, PairSocket shim, [NotNull] IShimHandler shimHandler)
+        private NetMQActor(PairSocket self, PairSocket shim, IShimHandler shimHandler)
         {
             m_shimHandler = shimHandler;
 
@@ -198,8 +196,7 @@ namespace NetMQ
         /// </summary>
         /// <param name="shimHandler">an <c>IShimHandler</c> that provides the Run method</param>
         /// <returns>the newly-created <c>NetMQActor</c></returns>
-        [NotNull]
-        public static NetMQActor Create([NotNull] IShimHandler shimHandler)
+        public static NetMQActor Create(IShimHandler shimHandler)
         {
             return new NetMQActor(new PairSocket(), new PairSocket(), shimHandler);
         }
@@ -210,8 +207,7 @@ namespace NetMQ
         /// <param name="action">a <c>ShimAction</c> - delegate for the action to perform</param>
         /// <param name="state">the state-information - of the generic type T</param>
         /// <returns>the newly-created <c>NetMQActor</c></returns>
-        [NotNull]
-        public static NetMQActor Create<T>([NotNull] ShimAction<T> action, T state)
+        public static NetMQActor Create<T>(ShimAction<T> action, T state)
         {
             return new NetMQActor(new PairSocket(), new PairSocket(), new ActionShimHandler<T>(action, state));
         }
@@ -221,8 +217,7 @@ namespace NetMQ
         /// </summary>
         /// <param name="action">a <c>ShimAction</c> - delegate for the action to perform</param>
         /// <returns>the newly-created <c>NetMQActor</c></returns>
-        [NotNull]
-        public static NetMQActor Create([NotNull] ShimAction action)
+        public static NetMQActor Create(ShimAction action)
         {
             return new NetMQActor(new PairSocket(), new PairSocket(), new ActionShimHandler(action));
         }

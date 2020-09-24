@@ -1,5 +1,4 @@
 ﻿using System;
-using JetBrains.Annotations;
 using NetMQ.Core;
 
 namespace NetMQ.Sockets
@@ -15,8 +14,8 @@ namespace NetMQ.Sockets
         /// </summary>
         /// <param name="connectionString">List of NetMQ endpoints, separated by commas and prefixed by '@' (to bind the socket) or '>' (to connect the socket).
         /// Default action is connect (if endpoint doesn't start with '@' or '>')</param>
-        /// <example><code>var socket = new RequestSocket(">tcp://127.0.0.1:5555,@127.0.0.1:55556");</code></example>
-        public RequestSocket(string connectionString = null) : base(ZmqSocketType.Req, connectionString, DefaultAction.Connect)
+        /// <example><code>var socket = new RequestSocket(">tcp://127.0.0.1:5555,@tcp://127.0.0.1:55556");</code></example>
+        public RequestSocket(string? connectionString = null) : base(ZmqSocketType.Req, connectionString, DefaultAction.Connect)
         {
         }
 
@@ -29,7 +28,7 @@ namespace NetMQ.Sockets
         {
         }
 
-        public enum ProgressTopic
+        private enum ProgressTopic
         {
             Send,
             Retry,
@@ -46,8 +45,8 @@ namespace NetMQ.Sockets
         /// <param name="requestTimeout">The timeout for each request</param>
         /// <param name="progressPublisher">Report topics: Failure, Retry, Send, Success</param>
         /// <returns>the response message, or null if not successful</returns>
-        public static NetMQMessage RequestResponseMultipartMessageWithRetry([NotNull] string address, [NotNull] NetMQMessage requestMessage,
-            int numTries, TimeSpan requestTimeout, PublisherSocket progressPublisher = null)
+        public static NetMQMessage? RequestResponseMultipartMessageWithRetry(string address, NetMQMessage requestMessage,
+            int numTries, TimeSpan requestTimeout, PublisherSocket? progressPublisher = null)
         {
             var responseMessage = new NetMQMessage();
 
@@ -84,8 +83,8 @@ namespace NetMQ.Sockets
         /// <param name="requestTimeout">The timeout for each request</param>
         /// <param name="progressPublisher">Report topics: Failure, Retry, Send, Success</param>
         /// <returns>the response message, or null if not successful</returns>
-        public static string RequestResponseStringWithRetry([NotNull] string address, [NotNull] string requestString,
-            int numTries, TimeSpan requestTimeout, PublisherSocket progressPublisher = null)
+        public static string? RequestResponseStringWithRetry(string address, string requestString,
+            int numTries, TimeSpan requestTimeout, PublisherSocket? progressPublisher = null)
         {
             while (numTries-- > 0)
             {
@@ -95,7 +94,7 @@ namespace NetMQ.Sockets
 
                     requestSocket.SendFrame(requestString);
 
-                    if (requestSocket.TryReceiveFrameString(requestTimeout, out string frameString))
+                    if (requestSocket.TryReceiveFrameString(requestTimeout, out string? frameString))
                     {
                         progressPublisher?.SendFrame(ProgressTopic.Success.ToString());
 

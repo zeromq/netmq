@@ -22,7 +22,6 @@
 using System.Diagnostics;
 using System.Net.Sockets;
 using AsyncIO;
-using JetBrains.Annotations;
 
 namespace NetMQ.Core
 {
@@ -33,16 +32,14 @@ namespace NetMQ.Core
     /// </summary>
     internal class IOObject : IProactorEvents
     {
-        [CanBeNull]
-        private IOThread m_ioThread;
-        [CanBeNull]
-        private IProactorEvents m_handler;
+        private IOThread? m_ioThread;
+        private IProactorEvents? m_handler;
 
         /// <summary>
         /// Create a new IOObject object and plug it into the given IOThread.
         /// </summary>
         /// <param name="ioThread">the IOThread to plug this new IOObject into.</param>
-        public IOObject([CanBeNull] IOThread ioThread)
+        public IOObject(IOThread? ioThread)
         {
             if (ioThread != null)
                 Plug(ioThread);
@@ -56,7 +53,7 @@ namespace NetMQ.Core
         /// When migrating an object from one I/O thread to another, first
         /// unplug it, then migrate it, then plug it to the new thread.
         /// </remarks>
-        public void Plug([NotNull] IOThread ioThread)
+        public void Plug(IOThread ioThread)
         {
             Debug.Assert(ioThread != null);
 
@@ -72,7 +69,7 @@ namespace NetMQ.Core
         /// </remarks>
         public void Unplug()
         {
-            Debug.Assert(m_ioThread != null);
+            Assumes.NotNull(m_ioThread);
 
             // Forget about old poller in preparation to be migrated
             // to a different I/O thread.
@@ -84,8 +81,9 @@ namespace NetMQ.Core
         /// Add the given socket to the Proactor.
         /// </summary>
         /// <param name="socket">the AsyncSocket to add</param>
-        public void AddSocket([NotNull] AsyncSocket socket)
+        public void AddSocket(AsyncSocket socket)
         {
+            Assumes.NotNull(m_ioThread);
             m_ioThread.Proactor.AddSocket(socket, this);
         }
 
@@ -93,8 +91,9 @@ namespace NetMQ.Core
         /// Remove the given socket from the Proactor.
         /// </summary>
         /// <param name="socket">the AsyncSocket to remove</param>
-        public void RemoveSocket([NotNull] AsyncSocket socket)
+        public void RemoveSocket(AsyncSocket socket)
         {
+            Assumes.NotNull(m_ioThread);
             m_ioThread.Proactor.RemoveSocket(socket);
         }
 
@@ -105,6 +104,7 @@ namespace NetMQ.Core
         /// <param name="bytesTransferred">the number of bytes that were transferred</param>
         public virtual void InCompleted(SocketError socketError, int bytesTransferred)
         {
+            Assumes.NotNull(m_handler);
             m_handler.InCompleted(socketError, bytesTransferred);
         }
 
@@ -115,6 +115,7 @@ namespace NetMQ.Core
         /// <param name="bytesTransferred">the number of bytes that were transferred</param>
         public virtual void OutCompleted(SocketError socketError, int bytesTransferred)
         {
+            Assumes.NotNull(m_handler);
             m_handler.OutCompleted(socketError, bytesTransferred);
         }
 
@@ -124,21 +125,24 @@ namespace NetMQ.Core
         /// <param name="id">an integer used to identify the timer</param>
         public virtual void TimerEvent(int id)
         {
+            Assumes.NotNull(m_handler);
             m_handler.TimerEvent(id);
         }
 
         public void AddTimer(long timeout, int id)
         {
+            Assumes.NotNull(m_ioThread);
             m_ioThread.Proactor.AddTimer(timeout, this, id);
         }
 
-        public void SetHandler([NotNull] IProactorEvents handler)
+        public void SetHandler(IProactorEvents handler)
         {
             m_handler = handler;
         }
 
         public void CancelTimer(int id)
         {
+            Assumes.NotNull(m_ioThread);
             m_ioThread.Proactor.CancelTimer(this, id);
         }
     }

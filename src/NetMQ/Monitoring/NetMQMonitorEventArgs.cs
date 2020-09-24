@@ -1,6 +1,5 @@
 ﻿using System;
 using AsyncIO;
-using JetBrains.Annotations;
 
 namespace NetMQ.Monitoring
 {
@@ -15,7 +14,7 @@ namespace NetMQ.Monitoring
         /// <param name="monitor">The <see cref="NetMQMonitor"/> that raised this event.</param>
         /// <param name="address">The address of the event.</param>
         /// <param name="socketEvent">The type of socket event that occurred.</param>
-        protected NetMQMonitorEventArgs([NotNull] NetMQMonitor monitor, [NotNull] string address, SocketEvents socketEvent)
+        protected NetMQMonitorEventArgs(NetMQMonitor monitor, string address, SocketEvents socketEvent)
         {
             Monitor = monitor;
             Address = address;
@@ -25,13 +24,11 @@ namespace NetMQ.Monitoring
         /// <summary>
         /// Gets the <see cref="NetMQMonitor"/> that raised this event.
         /// </summary>
-        [NotNull]
         public NetMQMonitor Monitor { get; }
 
         /// <summary>
         /// Gets the address of the event.
         /// </summary>
-        [NotNull]
         public string Address { get; }
 
         /// <summary>
@@ -52,7 +49,7 @@ namespace NetMQ.Monitoring
         /// <param name="address">The address of the event.</param>
         /// <param name="socketEvent">The type of socket event that occurred.</param>
         /// <param name="socket">The socket upon which this event occurred.</param>
-        public NetMQMonitorSocketEventArgs([NotNull] NetMQMonitor monitor, [NotNull] string address, [NotNull] AsyncSocket socket, SocketEvents socketEvent)
+        public NetMQMonitorSocketEventArgs(NetMQMonitor monitor, string address, AsyncSocket socket, SocketEvents socketEvent)
             : base(monitor, address, socketEvent)
         {
             Socket = socket;
@@ -61,7 +58,6 @@ namespace NetMQ.Monitoring
         /// <summary>
         /// Gets the socket upon which this event occurred.
         /// </summary>
-        [NotNull]
         public AsyncSocket Socket { get; }
     }
 
@@ -77,7 +73,7 @@ namespace NetMQ.Monitoring
         /// <param name="address">The address of the event.</param>
         /// <param name="socketEvent">The type of socket event that occurred.</param>
         /// <param name="errorCode">The error code associated with this event.</param>
-        public NetMQMonitorErrorEventArgs([NotNull] NetMQMonitor monitor, [NotNull] string address, ErrorCode errorCode, SocketEvents socketEvent)
+        public NetMQMonitorErrorEventArgs(NetMQMonitor monitor, string address, ErrorCode errorCode, SocketEvents socketEvent)
             : base(monitor, address, socketEvent)
         {
             ErrorCode = errorCode;
@@ -101,7 +97,7 @@ namespace NetMQ.Monitoring
         /// <param name="address">The a string denoting the address</param>
         /// <param name="interval">The interval, in milliseconds.</param>
         /// <param name="socketEvent">The type of socket event that occurred.</param>
-        public NetMQMonitorIntervalEventArgs([NotNull] NetMQMonitor monitor, [NotNull] string address, int interval, SocketEvents socketEvent)
+        public NetMQMonitorIntervalEventArgs(NetMQMonitor monitor, string address, int interval, SocketEvents socketEvent)
             : base(monitor, address, socketEvent)
         {
             Interval = interval;

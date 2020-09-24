@@ -18,13 +18,14 @@
     along with this program.  If not, see <http://www.gnu.org/licenses/>.
 */
 
+using System.Diagnostics.CodeAnalysis;
 using System.Net;
 
 namespace NetMQ.Core.Transports.Ipc
 {
     internal class IpcAddress : Address.IZAddress
     {
-        private string m_name;
+        private string? m_name;
 
         public override string ToString()
         {
@@ -44,10 +45,11 @@ namespace NetMQ.Core.Transports.Ipc
             hash = hash%55536;
             hash += 10000;
 
-            Address = new IPEndPoint(IPAddress.Loopback, hash);
+            this.Address = new IPEndPoint(IPAddress.Loopback, hash);
         }
 
-        public IPEndPoint Address { get; private set; }
+        [DisallowNull]
+        public IPEndPoint? Address { get; private set; }
 
         public string Protocol => Core.Address.IpcProtocol;
     }

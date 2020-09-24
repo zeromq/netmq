@@ -24,7 +24,6 @@ using System;
 using System.Collections.Generic;
 using System.Diagnostics;
 using System.Threading;
-using JetBrains.Annotations;
 using NetMQ.Core.Patterns.Utils;
 using NetMQ.Core.Utils;
 
@@ -37,25 +36,17 @@ namespace NetMQ.Core.Patterns
     {
         private static readonly Random s_random = new Random();
 
-        public class PeerSession : SessionBase
-        {
-            public PeerSession([NotNull] IOThread ioThread, bool connect, [NotNull] SocketBase socket, [NotNull] Options options, [NotNull] Address addr)
-                : base(ioThread, connect, socket, options, addr)
-            { }
-        }
-
         /// <summary>
         /// An instance of class Outpipe contains a Pipe and a boolean property Active.
         /// </summary>
         private class Outpipe
         {
-            public Outpipe([NotNull] Pipe pipe, bool active)
+            public Outpipe(Pipe pipe, bool active)
             {
                 Pipe = pipe;
                 Active = active;
             }
 
-            [NotNull]
             public Pipe Pipe { get; }
 
             public bool Active;
@@ -80,12 +71,12 @@ namespace NetMQ.Core.Patterns
         /// <summary>
         /// Outbound pipes indexed by the peer IDs.
         /// </summary>
-        private readonly Dictionary<byte[], Outpipe> m_outpipes;
+        private readonly Dictionary<uint, Outpipe> m_outpipes;
 
         /// <summary>
         /// The pipe we are currently writing to.
         /// </summary>
-        private Pipe m_currentOut;  
+        private Pipe? m_currentOut;  
              
         /// <summary>
         /// State of the recv operation
@@ -101,7 +92,7 @@ namespace NetMQ.Core.Patterns
         /// Peer ID are generated. It's a simple increment and wrap-over
         /// algorithm. This value is the next ID to use (if not used already).
         /// </summary>
-        private int m_nextPeerId;
+        private uint m_nextPeerId;
         
         /// <summary>
         /// Create a new Router instance with the given parent-Ctx, thread-id, and socket-id.
@@ -109,15 +100,16 @@ namespace NetMQ.Core.Patterns
         /// <param name="parent">the Ctx that will contain this Router</param>
         /// <param name="threadId">the integer thread-id value</param>
         /// <param name="socketId">the integer socket-id value</param>
-        public Peer([NotNull] Ctx parent, int threadId, int socketId)
+        public Peer(Ctx parent, int threadId, int socketId)
             : base(parent, threadId, socketId)
         {
-            m_nextPeerId = s_random.Next();
+            m_nextPeerId = (uint) s_random.Next();
             m_options.SocketType = ZmqSocketType.Peer;
+            m_options.CanSendHelloMsg = true;
             m_fairQueueing = new FairQueueing();      
             m_prefetchedMsg = new Msg();
             m_prefetchedMsg.InitEmpty();            
-            m_outpipes = new Dictionary<byte[], Outpipe>(new ByteArrayEqualityComparer());
+            m_outpipes = new Dictionary<uint, Outpipe>();
             m_sendingState = State.RoutingId;
             m_receivingState = State.RoutingId;            
         }
@@ -135,9 +127,9 @@ namespace NetMQ.Core.Patterns
         /// <param name="icanhasall">not used</param>
         protected override void XAttachPipe(Pipe pipe, bool icanhasall)
         {
-            Debug.Assert(pipe != null);
+            Assumes.NotNull(pipe);
 
-            byte[] routingId = BitConverter.GetBytes(m_nextPeerId);
+            uint routingId = m_nextPeerId;
                         
             pipe.RoutingId = routingId;
             m_outpipes.Add(routingId, new Outpipe(pipe, true));
@@ -181,20 +173,17 @@ namespace NetMQ.Core.Patterns
         /// <param name="pipe">the <c>Pipe</c> that is now becoming available for writing</param>
         protected override void XWriteActivated(Pipe pipe)
         {
-            Outpipe outpipe = null;
-
             foreach (var it in m_outpipes)
             {
                 if (it.Value.Pipe == pipe)
                 {
                     Debug.Assert(!it.Value.Active);
                     it.Value.Active = true;
-                    outpipe = it.Value;
-                    break;
+                    return;
                 }
             }
 
-            Debug.Assert(outpipe != null);
+            Debug.Fail("Pipe not found");
         }
 
         /// <summary>
@@ -216,9 +205,7 @@ namespace NetMQ.Core.Patterns
                 if (msg.HasMore)
                 {                                       
                     // Find the pipe associated with the routingId stored in the prefix.                    
-                    var routingId = msg.Size == msg.Data.Length
-                        ? msg.Data
-                        : msg.CloneData();
+                    var routingId = BitConverter.ToUInt32(msg.UnsafeToArray(), 0);
 
                     if (m_outpipes.TryGetValue(routingId, out Outpipe op))
                     {
@@ -289,34 +276,32 @@ namespace NetMQ.Core.Patterns
                 return true;
             }
 
-            var pipe = new Pipe[1];
-
-            bool isMessageAvailable = m_fairQueueing.RecvPipe(pipe, ref msg);
+            bool isMessageAvailable = m_fairQueueing.RecvPipe(ref msg, out Pipe? pipe);
 
             // Drop any messages with more flag
             while (isMessageAvailable && msg.HasMore)
             {
                 // drop all frames of the current multi-frame message
-                isMessageAvailable = m_fairQueueing.RecvPipe(pipe, ref msg);
+                isMessageAvailable = m_fairQueueing.RecvPipe(ref msg, out pipe);
 
                 while (isMessageAvailable && msg.HasMore)
-                    isMessageAvailable = m_fairQueueing.RecvPipe(pipe, ref msg);
+                    isMessageAvailable = m_fairQueueing.RecvPipe(ref msg, out pipe);
                 
                 // get the new message
-                isMessageAvailable = m_fairQueueing.RecvPipe(pipe, ref msg);
+                isMessageAvailable = m_fairQueueing.RecvPipe(ref msg, out pipe);
             }
 
             if (!isMessageAvailable)            
-                return false;            
+                return false;
 
-            Debug.Assert(pipe[0] != null);
-           
+            Assumes.NotNull(pipe);
+
             // We are at the beginning of a message.
             // Keep the message part we have in the prefetch buffer
             // and return the ID of the peer instead.
             m_prefetchedMsg.Move(ref msg);
             
-            byte[] routingId = pipe[0].RoutingId;
+            byte[] routingId = BitConverter.GetBytes(pipe.RoutingId);
             msg.InitPool(routingId.Length);
             msg.Put(routingId, 0, routingId.Length);
             msg.SetFlags(MsgFlags.More);

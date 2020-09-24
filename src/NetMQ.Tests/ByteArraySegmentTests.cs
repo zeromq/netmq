@@ -12,7 +12,7 @@ namespace NetMQ.Tests
 
             byteArraySegment.PutLong(Endianness.Little, 1, 0);
 
-            Assert.Equal(byteArraySegment[0], 1);
+            Assert.Equal(1, byteArraySegment[0]);
             Assert.Equal(0, byteArraySegment[7]);
 
             long num = byteArraySegment.GetLong(Endianness.Little, 0);
@@ -36,7 +36,7 @@ namespace NetMQ.Tests
 
             byteArraySegment.PutLong(Endianness.Big, 1, 0);
 
-            Assert.Equal(byteArraySegment[7], 1);
+            Assert.Equal(1, byteArraySegment[7]);
             Assert.Equal(0, byteArraySegment[0]);
 
             long num = byteArraySegment.GetLong(Endianness.Big, 0);

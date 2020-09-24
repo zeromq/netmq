@@ -1,7 +1,6 @@
 ﻿using System;
 using System.Diagnostics;
 using System.Threading;
-using JetBrains.Annotations;
 using NetMQ.Sockets;
 
 namespace NetMQ.SimpleTests
@@ -12,7 +11,7 @@ namespace NetMQ.SimpleTests
 
         protected const int MsgCount = 1000000;
 
-        public string TestName { get; protected set; }
+        public string? TestName { get; protected set; }
 
         public void RunTest()
         {
@@ -64,11 +63,11 @@ namespace NetMQ.SimpleTests
             }
         }
 
-        [NotNull] protected abstract PushSocket CreateProducerSocket();
-        [NotNull] protected abstract PullSocket CreateConsumerSocket();
+        protected abstract PushSocket CreateProducerSocket();
+        protected abstract PullSocket CreateConsumerSocket();
 
-        protected abstract void Produce([NotNull] PushSocket socket, int messageSize);
-        protected abstract void Consume([NotNull] PullSocket socket, int messageSize);
+        protected abstract void Produce(PushSocket socket, int messageSize);
+        protected abstract void Consume(PullSocket socket, int messageSize);
     }
 
     internal class ThroughputBenchmark : ThroughputBenchmarkBase
@@ -132,7 +131,7 @@ namespace NetMQ.SimpleTests
             for (int i = 0; i < MsgCount; i++)
             {
                 msg.InitGC(new byte[messageSize], messageSize);
-                msg.Data[messageSize / 2] = 0x42;
+                msg.Slice()[messageSize / 2] = 0x42;
 
                 socket.Send(ref msg, more: false);
 
@@ -148,8 +147,8 @@ namespace NetMQ.SimpleTests
             for (int i = 0; i < MsgCount; i++)
             {
                 socket.Receive(ref msg);
-                Debug.Assert(msg.Data.Length == messageSize, "Message length was different from expected size.");
-                Debug.Assert(msg.Data[msg.Size/2] == 0x42, "Message did not contain verification data.");
+                Debug.Assert(msg.Slice().Length == messageSize, "Message length was different from expected size.");
+                Debug.Assert(msg.Slice()[msg.Size/2] == 0x42, "Message did not contain verification data.");
             }
         }
     }

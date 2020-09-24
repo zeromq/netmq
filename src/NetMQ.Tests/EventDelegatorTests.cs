@@ -11,12 +11,12 @@ namespace NetMQ.Tests
             public T Value { get; }
         }
 
-        private event EventHandler<Args<int>> Source;
+        private event EventHandler<Args<int>>? Source;
 
         [Fact]
         public void Basics()
         {
-            EventHandler<Args<int>> sourceHandler = null;
+            EventHandler<Args<int>>? sourceHandler = null;
 
             var delegator = new EventDelegator<Args<double>>(
                 () => Source += sourceHandler,
@@ -29,7 +29,7 @@ namespace NetMQ.Tests
             var value = 0.0;
             var callCount = 0;
 
-            void DelegatorHandler(object sender, Args<double> args)
+            void DelegatorHandler(object? sender, Args<double> args)
             {
                 value = args.Value;
                 callCount++;
@@ -38,6 +38,7 @@ namespace NetMQ.Tests
             delegator.Event += DelegatorHandler;
 
             Assert.NotNull(Source);
+            Assumes.NotNull(Source);
 
             Assert.Equal(0, callCount);
 

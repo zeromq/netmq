@@ -22,7 +22,6 @@ using System.Collections.Generic;
 using System.Diagnostics;
 using System.Linq;
 using System.Threading;
-using JetBrains.Annotations;
 
 namespace NetMQ.Core.Utils
 {
@@ -48,7 +47,7 @@ namespace NetMQ.Core.Utils
             /// </summary>
             /// <param name="sink">an ITimerEvent that acts as a sink for when the timer expires</param>
             /// <param name="id">an integer id that identifies this timer</param>
-            public TimerInfo([NotNull] ITimerEvent sink, int id)
+            public TimerInfo(ITimerEvent sink, int id)
             {
                 Sink = sink;
                 Id = id;
@@ -57,7 +56,6 @@ namespace NetMQ.Core.Utils
             /// <summary>
             /// Get the ITimerEvent that serves as the event-sink.
             /// </summary>
-            [NotNull]
             public ITimerEvent Sink { get; }
 
             /// <summary>
@@ -116,7 +114,7 @@ namespace NetMQ.Core.Utils
         /// <param name="timeout">the timeout-period in milliseconds of the new timer</param>
         /// <param name="sink">the IProactorEvents to add for the sink of the new timer</param>
         /// <param name="id">the Id to assign to the new TimerInfo</param>
-        public void AddTimer(long timeout, [NotNull] IProactorEvents sink, int id)
+        public void AddTimer(long timeout, IProactorEvents sink, int id)
         {
             long expiration = Clock.NowMs() + timeout;
             var info = new TimerInfo(sink, id);
@@ -135,43 +133,22 @@ namespace NetMQ.Core.Utils
         /// <remarks>
         /// The complexity of this operation is O(n). We assume it is rarely used.
         /// </remarks>
-        public void CancelTimer([NotNull] ITimerEvent sink, int id)
+        public void CancelTimer(ITimerEvent sink, int id)
         {
-            var foundTimers = new Dictionary<long, TimerInfo>();
+            bool removed = false;
 
             foreach (var pair in m_timers)
             {
                 var timer = pair.Value.FirstOrDefault(x => x.Id == id && x.Sink == sink);
-
-                if (timer == null)
-                    continue;
-
-                if (!foundTimers.ContainsKey(pair.Key))
+                
+                if (timer != null)
                 {
-                    foundTimers[pair.Key] = timer;
+                    removed = pair.Value.Remove(timer);
                     break;
                 }
             }
-
-            if (foundTimers.Count > 0)
-            {
-                foreach (var foundTimer in foundTimers)
-                {
-                    if (m_timers[foundTimer.Key].Count == 1)
-                    {
-                        m_timers.Remove(foundTimer.Key);
-                    }
-                    else
-                    {
-                        m_timers[foundTimer.Key].Remove(foundTimer.Value);
-                    }
-                }
-            }
-            else
-            {
-                // Timer not found.
-                Debug.Assert(false);
-            }
+            
+            Debug.Assert(removed);
         }
 
         /// <summary>
@@ -192,9 +169,9 @@ namespace NetMQ.Core.Utils
 
             // Iterate through all of the timers..
             var keys = m_timers.Keys;
-            for (int i = 0; i < keys.Count; i++)
+            while (keys.Any())
             {
-                var key = keys[i];
+                var key = keys.First();
 
                 // If we have to wait to execute the item, same will be true about
                 // all the following items (multimap is sorted). Thus we can stop
@@ -207,18 +184,19 @@ namespace NetMQ.Core.Utils
 
                 // We DONT have to wait for this timeout-period, so get the list of timers that correspond to this key.
                 var timers = m_timers[key];
-
+                
                 // Trigger the timers.
-                foreach (var timer in timers)
+                while (timers.Any())
                 {
+                    var timer = timers.First();
+                    timers.RemoveAt(0);
+                    
                     // "Trigger" each timer by calling it's TimerEvent method with this timer's id.
                     timer.Sink.TimerEvent(timer.Id);
                 }
-
+                
                 // Remove it from the list of active timers.
-                timers.Clear();
                 m_timers.Remove(key);
-                i--;
             }
 
             // There are no more timers.

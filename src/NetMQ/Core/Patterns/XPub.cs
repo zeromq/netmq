@@ -19,23 +19,16 @@
     along with this program.  If not, see <http://www.gnu.org/licenses/>.
 */
 
+using System;
 using System.Collections.Generic;
 using System.Diagnostics;
 using System.Text;
-using JetBrains.Annotations;
 using NetMQ.Core.Patterns.Utils;
 
 namespace NetMQ.Core.Patterns
 {
     internal class XPub : SocketBase
     {
-        public class XPubSession : SessionBase
-        {
-            public XPubSession([NotNull] IOThread ioThread, bool connect, [NotNull] SocketBase socket, [NotNull] Options options, [NotNull] Address addr)
-                : base(ioThread, connect, socket, options, addr)
-            {}
-        }
-
         /// <summary>
         /// List of all subscriptions mapped to corresponding pipes.
         /// </summary>
@@ -60,7 +53,7 @@ namespace NetMQ.Core.Patterns
 
         private bool m_broadcastEnabled;
 
-        private Pipe m_lastPipe;
+        private Pipe? m_lastPipe;
         private bool m_lastPipeIsBroadcast;
 
         private Msg m_welcomeMessage;
@@ -115,7 +108,7 @@ namespace NetMQ.Core.Patterns
             };
         }
 
-        public XPub([NotNull] Ctx parent, int threadId, int socketId)
+        public XPub(Ctx parent, int threadId, int socketId)
             : base(parent, threadId, socketId)
         {
             m_options.SocketType = ZmqSocketType.Xpub;
@@ -135,13 +128,13 @@ namespace NetMQ.Core.Patterns
         /// <param name="icanhasall">if true - subscribe to all data on the pipe</param>
         protected override void XAttachPipe(Pipe pipe, bool icanhasall)
         {
-            Debug.Assert(pipe != null);
+            Assumes.NotNull(pipe);
             m_distribution.Attach(pipe);
 
             // If icanhasall is specified, the caller would like to subscribe
             // to all data on this pipe, implicitly.
             if (icanhasall)
-                m_subscriptions.Add(null, 0, 0, pipe);
+                m_subscriptions.Add(Span<byte>.Empty, pipe);
 
             // if welcome message was set, write one to the pipe.
             if (m_welcomeMessage.Size > 0)
@@ -183,8 +176,8 @@ namespace NetMQ.Core.Patterns
                     else
                     {
                         var unique = sub[0] == 0
-                            ? m_subscriptions.Remove(sub.Data, sub.Offset + 1, size - 1, pipe)
-                            : m_subscriptions.Add(sub.Data, sub.Offset + 1, size - 1, pipe);
+                            ? m_subscriptions.Remove(size == 1 ? new Span<byte>(): sub.Slice(1), pipe)
+                            : m_subscriptions.Add(size == 1 ? new Span<byte>() : sub.Slice(1), pipe);
 
                         // If the subscription is not a duplicate, store it so that it can be
                         // passed to used on next recv call.
@@ -228,23 +221,25 @@ namespace NetMQ.Core.Patterns
         /// <param name="optionValue">the value to set the option to</param>
         /// <returns><c>true</c> if successful</returns>
         /// <exception cref="InvalidException">optionValue must be a byte-array.</exception>
-        protected override bool XSetSocketOption(ZmqSocketOption option, object optionValue)
+        protected override bool XSetSocketOption(ZmqSocketOption option, object? optionValue)
         {
+            T Get<T>() => optionValue is T v ? v : throw new ArgumentException($"Option {option} value must be of type {typeof(T).Name}.");
+
             switch (option)
             {
                 case ZmqSocketOption.XpubVerbose:
                 {
-                    m_verbose = (bool)optionValue;
+                    m_verbose = Get<bool>();
                     return true;
                 }
                 case ZmqSocketOption.XPublisherManual:
                 {
-                    m_manual = (bool)optionValue;
+                    m_manual = Get<bool>();
                     return true;
                 }
                 case ZmqSocketOption.XPublisherBroadcast:
                 {
-                    m_broadcastEnabled = (bool)optionValue;
+                    m_broadcastEnabled = Get<bool>();
                     return true;
                 }
                 case ZmqSocketOption.Identity:
@@ -272,8 +267,8 @@ namespace NetMQ.Core.Patterns
                 {
                     if (m_manual && m_lastPipe != null)
                     {
-                        var subscription = optionValue as byte[] ?? Encoding.ASCII.GetBytes((string)optionValue);
-                        m_subscriptions.Add(subscription, 0, subscription.Length, m_lastPipe);
+                        var subscription = optionValue as byte[] ?? Encoding.ASCII.GetBytes(Get<string>());
+                        m_subscriptions.Add(subscription, m_lastPipe);
                         m_lastPipe = null;
                         return true;
                     }
@@ -283,8 +278,8 @@ namespace NetMQ.Core.Patterns
                 {
                     if (m_manual && m_lastPipe != null)
                     {
-                        var subscription = optionValue as byte[] ?? Encoding.ASCII.GetBytes((string)optionValue);
-                        m_subscriptions.Remove(subscription, 0, subscription.Length, m_lastPipe);
+                        var subscription = optionValue as byte[] ?? Encoding.ASCII.GetBytes(Get<string>());
+                        m_subscriptions.Remove(subscription, m_lastPipe);
                         m_lastPipe = null;
                         return true;
                     }
@@ -345,7 +340,7 @@ namespace NetMQ.Core.Patterns
             // For the first part of multipart message, find the matching pipes.
             if (!m_moreOut)
             {
-                m_subscriptions.Match(msg.Data, msg.Offset, msg.Size, s_markAsMatching, this);
+                m_subscriptions.Match(msg, s_markAsMatching, this);
             }
             // Send the message to all the pipes that were marked as matching
             // in the previous step.

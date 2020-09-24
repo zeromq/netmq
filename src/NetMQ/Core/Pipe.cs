@@ -21,7 +21,6 @@
 */
 
 using System.Diagnostics;
-using JetBrains.Annotations;
 
 namespace NetMQ.Core
 {
@@ -43,27 +42,27 @@ namespace NetMQ.Core
             /// When called upon an instance of SocketBase, this simply calls XReadActivated.
             /// </summary>
             /// <param name="pipe">the pipe to indicate is ready for reading</param>
-            void ReadActivated([NotNull] Pipe pipe);
+            void ReadActivated(Pipe pipe);
 
-            void WriteActivated([NotNull] Pipe pipe);
-            void Hiccuped([NotNull] Pipe pipe);
+            void WriteActivated(Pipe pipe);
+            void Hiccuped(Pipe pipe);
 
             /// <summary>
             /// This gets called by ProcessPipeTermAck or XTerminated to respond to the termination of the given pipe.
             /// </summary>
             /// <param name="pipe">the pipe that was terminated</param>
-            void Terminated([NotNull] Pipe pipe);
+            void Terminated(Pipe pipe);
         }
 
         /// <summary>
         /// The underlying pipe for reading from.
         /// </summary>
-        private YPipe<Msg> m_inboundPipe;
+        private YPipe<Msg>? m_inboundPipe;
 
         /// <summary>
         /// The underlying pipe for writing to.
         /// </summary>
-        private YPipe<Msg> m_outboundPipe;
+        private YPipe<Msg>? m_outboundPipe;
 
         /// <summary>
         /// This indicates whether this pipe can be read from.
@@ -104,12 +103,12 @@ namespace NetMQ.Core
         /// <summary>
         /// The pipe object on the other side of the pipe-pair.
         /// </summary>
-        private Pipe m_peer;
+        private Pipe? m_peer;
 
         /// <summary>
         /// Sink to send events to.
         /// </summary>
-        private IPipeEvents m_sink;
+        private IPipeEvents? m_sink;
 
         /// <summary>
         /// Specifies the state of the pipe endpoint.
@@ -150,8 +149,8 @@ namespace NetMQ.Core
         /// Constructor is private as pipe can only be created using <see cref="PipePair"/> method.
         /// </remarks>
         private Pipe(
-            [NotNull] ZObject parent, [NotNull] YPipe<Msg> inboundPipe, [NotNull] YPipe<Msg> outboundPipe,
-            int inHighWatermark, int outHighWatermark, int predefinedLowWatermark, bool delay)
+            ZObject parent, YPipe<Msg> inboundPipe, YPipe<Msg> outboundPipe,
+            int inHighWatermark, int outHighWatermark, int predefinedLowWatermark)
             : base(parent)
         {
             m_parent = parent;
@@ -167,7 +166,7 @@ namespace NetMQ.Core
             m_peer = null;
             m_sink = null;
             m_state = State.Active;
-            m_delay = delay;
+            m_delay = true;
         }
 
         /// <summary>
@@ -178,12 +177,8 @@ namespace NetMQ.Core
         /// Second HWM is for messages passed from second pipe to the first pipe.</param>
         /// <param name="lowWaterMarks">First LWM is for messages passed from first pipe to the second pipe.
         /// Second LWM is for messages passed from second pipe to the first pipe.</param>
-        /// <param name="delays">Delay specifies how the pipe behaves when the peer terminates. If true
-        /// pipe receives all the pending messages before terminating, otherwise it
-        /// terminates straight away.</param>
         /// <returns>A pipe pair for bi-directional transfer of messages. </returns>
-        [NotNull]
-        public static Pipe[] PipePair([NotNull] ZObject[] parents, [NotNull] int[] highWaterMarks, [NotNull] int[] lowWaterMarks, [NotNull] bool[] delays)
+        public static Pipe[] PipePair(ZObject[] parents, int[] highWaterMarks, int[] lowWaterMarks)
         {
             // Creates two pipe objects. These objects are connected by two ypipes,
             // each to pass messages in one direction.
@@ -193,8 +188,8 @@ namespace NetMQ.Core
 
             var pipes = new[]
             {
-                new Pipe(parents[0], upipe1, upipe2, highWaterMarks[1], highWaterMarks[0], lowWaterMarks[1], delays[0]),
-                new Pipe(parents[1], upipe2, upipe1, highWaterMarks[0], highWaterMarks[1], lowWaterMarks[0], delays[1])
+                new Pipe(parents[0], upipe1, upipe2, highWaterMarks[1], highWaterMarks[0], lowWaterMarks[1]),
+                new Pipe(parents[1], upipe2, upipe1, highWaterMarks[0], highWaterMarks[1], lowWaterMarks[0])
             };
 
             pipes[0].SetPeer(pipes[1]);
@@ -206,10 +201,18 @@ namespace NetMQ.Core
         public bool Active => m_state == State.Active;
 
         /// <summary>
+        /// Set the pipe to not delay termination, for sockets that don't process inbound messages, e.g PUSH, PUB
+        /// </summary>
+        public void SetNoDelay()
+        {
+            m_delay = false;
+        }
+
+        /// <summary>
         /// <see cref="PipePair"/> uses this function to let us know about the peer pipe object.
         /// </summary>
         /// <param name="peer">The peer to be assigned.</param>
-        private void SetPeer([NotNull] Pipe peer)
+        private void SetPeer(Pipe peer)
         {
             // Peer can be set once only.
             Debug.Assert(peer != null);
@@ -220,7 +223,7 @@ namespace NetMQ.Core
         /// Specifies the object to send events to.
         /// </summary>
         /// <param name="sink"> The receiver of the events. </param>
-        public void SetEventSink([NotNull] IPipeEvents sink)
+        public void SetEventSink(IPipeEvents sink)
         {
             Debug.Assert(m_sink == null);
             m_sink = sink;
@@ -229,14 +232,12 @@ namespace NetMQ.Core
         /// <summary>
         /// Get or set the byte-array that comprises the identity of this Pipe.
         /// </summary>
-        [CanBeNull]
-        public byte[] Identity { get; set; }
+        public byte[]? Identity { get; set; }
         
         /// <summary>
-        /// Get or set the byte-array that comprises the routing id of this Pipe.
+        /// Get or set the uint that comprises the routing id of this Pipe.
         /// </summary>
-        [CanBeNull]
-        public byte[] RoutingId { get; set; }
+        public uint RoutingId { get; set; }
 
         /// <summary>
         /// Checks if there is at least one message to read in the pipe.
@@ -246,6 +247,8 @@ namespace NetMQ.Core
         {
             if (!m_inActive || (m_state != State.Active && m_state != State.Pending))
                 return false;
+
+            Assumes.NotNull(m_inboundPipe);
 
             // Check if there's an item in the pipe.
             if (!m_inboundPipe.CheckRead())
@@ -277,6 +280,8 @@ namespace NetMQ.Core
             if (!m_inActive || (m_state != State.Active && m_state != State.Pending))
                 return false;
 
+            Assumes.NotNull(m_inboundPipe);
+
             if (!m_inboundPipe.TryRead(out msg))
             {
                 m_inActive = false;
@@ -293,8 +298,11 @@ namespace NetMQ.Core
             if (!msg.HasMore)
                 m_numberOfMessagesRead++;
 
-            if (m_lowWatermark > 0 && m_numberOfMessagesRead%m_lowWatermark == 0)
+            if (m_lowWatermark > 0 && m_numberOfMessagesRead % m_lowWatermark == 0)
+            {
+                Assumes.NotNull(m_peer);
                 SendActivateWrite(m_peer, m_numberOfMessagesRead);
+            }
 
             return true;
         }
@@ -329,6 +337,8 @@ namespace NetMQ.Core
         {
             if (!CheckWrite())
                 return false;
+
+            Assumes.NotNull(this.m_outboundPipe);
 
             bool more = msg.HasMore;
             m_outboundPipe.Write(ref msg, more);
@@ -366,7 +376,10 @@ namespace NetMQ.Core
                 return;
 
             if (m_outboundPipe != null && !m_outboundPipe.Flush())
+            {
+                Assumes.NotNull(m_peer);
                 SendActivateRead(m_peer);
+            }
         }
 
         protected override void ProcessActivateRead()
@@ -374,6 +387,7 @@ namespace NetMQ.Core
             if (m_inActive || (m_state != State.Active && m_state != State.Pending))
                 return;
             m_inActive = true;
+            Assumes.NotNull(m_sink);
             m_sink.ReadActivated(this);
         }
 
@@ -385,6 +399,7 @@ namespace NetMQ.Core
             if (m_outActive || m_state != State.Active)
                 return;
             m_outActive = true;
+            Assumes.NotNull(m_sink);
             m_sink.WriteActivated(this);
         }
 
@@ -400,7 +415,7 @@ namespace NetMQ.Core
         {
             // Destroy old out-pipe. Note that the read end of the pipe was already
             // migrated to this thread.
-            Debug.Assert(m_outboundPipe != null);
+            Assumes.NotNull(m_outboundPipe);
             m_outboundPipe.Flush();
             var msg = new Msg();
             while (m_outboundPipe.TryRead(out msg))
@@ -409,13 +424,16 @@ namespace NetMQ.Core
             }
 
             // Plug in the new out-pipe.
-            Debug.Assert(pipe != null);
+            Assumes.NotNull(pipe);
             m_outboundPipe = (YPipe<Msg>)pipe;
             m_outActive = true;
 
             // If appropriate, notify the user about the hiccup.
             if (m_state == State.Active)
+            {
+                Assumes.NotNull(m_sink);
                 m_sink.Hiccuped(this);
+            }
         }
 
         protected override void ProcessPipeTerm()
@@ -431,6 +449,7 @@ namespace NetMQ.Core
                 {
                     m_state = State.Terminating;
                     m_outboundPipe = null;
+                    Assumes.NotNull(m_peer);
                     SendPipeTermAck(m_peer);
                 }
                 else
@@ -444,6 +463,7 @@ namespace NetMQ.Core
             {
                 m_state = State.Terminating;
                 m_outboundPipe = null;
+                Assumes.NotNull(m_peer);
                 SendPipeTermAck(m_peer);
                 return;
             }
@@ -455,6 +475,7 @@ namespace NetMQ.Core
             {
                 m_state = State.DoubleTerminated;
                 m_outboundPipe = null;
+                Assumes.NotNull(m_peer);
                 SendPipeTermAck(m_peer);
                 return;
             }
@@ -469,7 +490,7 @@ namespace NetMQ.Core
         protected override void ProcessPipeTermAck()
         {
             // Notify the user that all the references to the pipe should be dropped.
-            Debug.Assert(m_sink != null);
+            Assumes.NotNull(m_sink);
             m_sink.Terminated(this);
 
             // In terminating and double_terminated states there's nothing to do.
@@ -479,10 +500,13 @@ namespace NetMQ.Core
             if (m_state == State.Terminated)
             {
                 m_outboundPipe = null;
+                Assumes.NotNull(m_peer);
                 SendPipeTermAck(m_peer);
             }
             else
                 Debug.Assert(m_state == State.Terminating || m_state == State.DoubleTerminated);
+
+            Assumes.NotNull(m_inboundPipe);
 
             // We'll deallocate the inbound pipe, the peer will deallocate the outbound
             // pipe (which is an inbound pipe from its point of view).
@@ -523,6 +547,7 @@ namespace NetMQ.Core
             {
                 // The simple sync termination case. Ask the peer to terminate and wait
                 // for the ack.
+                Assumes.NotNull(m_peer);
                 SendPipeTerm(m_peer);
                 m_state = State.Terminated;
             }
@@ -531,6 +556,7 @@ namespace NetMQ.Core
                 // There are still pending messages available, but the user calls
                 // 'terminate'. We can act as if all the pending messages were read.
                 m_outboundPipe = null;
+                Assumes.NotNull(m_peer);
                 SendPipeTermAck(m_peer);
                 m_state = State.Terminating;
             }
@@ -543,6 +569,7 @@ namespace NetMQ.Core
                 // We've already got delimiter, but not term command yet. We can ignore
                 // the delimiter and ack synchronously terminate as if we were in
                 // active state.
+                Assumes.NotNull(m_peer);
                 SendPipeTerm(m_peer);
                 m_state = State.Terminated;
             }
@@ -622,6 +649,7 @@ namespace NetMQ.Core
             if (m_state == State.Pending)
             {
                 m_outboundPipe = null;
+                Assumes.NotNull(m_peer);
                 SendPipeTermAck(m_peer);
                 m_state = State.Terminating;
                 return;
@@ -650,6 +678,7 @@ namespace NetMQ.Core
             m_inActive = true;
 
             // Notify the peer about the hiccup.
+                Assumes.NotNull(m_peer);
             SendHiccup(m_peer, m_inboundPipe);
         }
 

@@ -18,40 +18,39 @@ TCP is the most commonly used protocol. As such, most example code will use TCP.
 
 Here is another trivial example:
 
-    :::csharp
-    using (var server = new ResponseSocket())
-    using (var client = new RequestSocket())
-    {
-        server.Bind("tcp://*:5555");
-        client.Connect("tcp://localhost:5555");
-
-        Console.WriteLine("Sending Hello");
-        client.SendFrame("Hello");
-
-        var message = server.ReceiveFrameString();
-        Console.WriteLine("Received {0}", message);
-
-        Console.WriteLine("Sending World");
-        server.SendFrame("World");
-
-        message = client.ReceiveFrameString();
-        Console.WriteLine("Received {0}", message);
-    }
+``` csharp
+using (var server = new ResponseSocket())
+using (var client = new RequestSocket())
+{
+    server.Bind("tcp://*:5555");
+    client.Connect("tcp://localhost:5555");
+    Console.WriteLine("Sending Hello");
+    client.SendFrame("Hello");
+    var message = server.ReceiveFrameString();
+    Console.WriteLine("Received {0}", message);
+    Console.WriteLine("Sending World");
+    server.SendFrame("World");
+    message = client.ReceiveFrameString();
+    Console.WriteLine("Received {0}", message);
+}
+```
 
 This code outputs:
 
-    :::text
-    Sending Hello
-    Received Hello
-    Sending World
-    Received World
+``` text
+Sending Hello
+Received Hello
+Sending World
+Received World
+```
 
 ### Address format
 
 Notice the format of the address string passed to `Bind()` and `Connect()`. For TCP connections, it will resemble:
 
-    :::text
-    tcp://*:5555
+``` text
+tcp://*:5555
+```
 
 This is made up of three parts:
 
@@ -73,42 +72,44 @@ NetMQ comes with several components that use InProc, such the as [Actor model](a
 
 For now let's demonstrate a simple InProc arrangement by sending a string (for simplicity) between two threads.
 
-    :::csharp
-    using (var end1 = new PairSocket())
-    using (var end2 = new PairSocket())
+``` csharp
+using (var end1 = new PairSocket())
+using (var end2 = new PairSocket())
+{
+    end1.Bind("inproc://inproc-demo");
+    end2.Connect("inproc://inproc-demo");
+    var end1Task = Task.Run(() =>
     {
-        end1.Bind("inproc://inproc-demo");
-        end2.Connect("inproc://inproc-demo");
-
-        var end1Task = Task.Run(() =>
-        {
-            Console.WriteLine("ThreadId = {0}", Thread.CurrentThread.ManagedThreadId);
-            Console.WriteLine("Sending hello down the inproc pipeline");
-            end1.SendFrame("Hello");
-        });
-        var end2Task = Task.Run(() =>
-        {
-            Console.WriteLine("ThreadId = {0}", Thread.CurrentThread.ManagedThreadId);
-            var message = end2.ReceiveFrameString();
-            Console.WriteLine(message);
-        });
-        Task.WaitAll(new[] { end1Task, end2Task });
-    }
+        Console.WriteLine("ThreadId = {0}", Thread.CurrentThread.ManagedThreadId);
+        Console.WriteLine("Sending hello down the inproc pipeline");
+        end1.SendFrame("Hello");
+    });
+    var end2Task = Task.Run(() =>
+    {
+        Console.WriteLine("ThreadId = {0}", Thread.CurrentThread.ManagedThreadId);
+        var message = end2.ReceiveFrameString();
+        Console.WriteLine(message);
+    });
+    Task.WaitAll(new[] { end1Task, end2Task });
+}
+```
 
 This outputs something similar to:
 
-    :::text
-    ThreadId = 12
-    ThreadId = 6
-    Sending hello down the inproc pipeline
-    Hello
+``` text
+ThreadId = 12
+ThreadId = 6
+Sending hello down the inproc pipeline
+Hello
+```
 
 ### Address format
 
 Notice the format of the address string passed to `Bind()` and `Connect()`. For InProc connections, it will resemble:
 
-    :::text
-    inproc://inproc-demo
+``` text
+inproc://inproc-demo
+```
 
 This is made up of two parts:
 
@@ -139,49 +140,48 @@ To use PGM with NetMQ, we do not have to do too much. We just need to follow the
 
 Here is a small demo that use PGM, as well as `PublisherSocket` and `SubscriberSocket` and a few option values.
 
-    :::csharp
-    const int MegaBit = 1024;
-    const int MegaByte = 1024;
-    using (var pub = new PublisherSocket())
-    using (var sub1 = new SubscriberSocket())
-    using (var sub2 = new SubscriberSocket())
-    {
-        pub.Options.MulticastHops = 2;
-        pub.Options.MulticastRate = 40 * MegaBit; // 40 megabit
-        pub.Options.MulticastRecoveryInterval = TimeSpan.FromMinutes(10);
-        pub.Options.SendBuffer = MegaByte * 10; // 10 megabyte
-        pub.Connect("pgm://224.0.0.1:5555");
-
-        sub1.Options.ReceiveBuffer = MegaByte * 10;
-        sub1.Bind("pgm://224.0.0.1:5555");
-        sub1.Subscribe("");
-
-        sub2.Bind("pgm://224.0.0.1:5555");
-        sub2.Options.ReceiveBuffer = MegaByte * 10;
-        sub2.Subscribe("");
-
-        Console.WriteLine("Server sending 'Hi'");
-        pub.Send("Hi");
-
-        bool more;
-        Console.WriteLine("sub1 received = '{0}'", sub1.ReceiveString(out more));
-        Console.WriteLine("sub2 received = '{0}'", sub2.ReceiveString(out more));
-    }
+``` csharp
+const int MegaBit = 1024;
+const int MegaByte = 1024;
+using (var pub = new PublisherSocket())
+using (var sub1 = new SubscriberSocket())
+using (var sub2 = new SubscriberSocket())
+{
+    pub.Options.MulticastHops = 2;
+    pub.Options.MulticastRate = 40 * MegaBit; // 40 megabit
+    pub.Options.MulticastRecoveryInterval = TimeSpan.FromMinutes(10);
+    pub.Options.SendBuffer = MegaByte * 10; // 10 megabyte
+    pub.Connect("pgm://224.0.0.1:5555");
+    sub1.Options.ReceiveBuffer = MegaByte * 10;
+    sub1.Bind("pgm://224.0.0.1:5555");
+    sub1.Subscribe("");
+    sub2.Bind("pgm://224.0.0.1:5555");
+    sub2.Options.ReceiveBuffer = MegaByte * 10;
+    sub2.Subscribe("");
+    Console.WriteLine("Server sending 'Hi'");
+    pub.Send("Hi");
+    bool more;
+    Console.WriteLine("sub1 received = '{0}'", sub1.ReceiveString(out more));
+    Console.WriteLine("sub2 received = '{0}'", sub2.ReceiveString(out more));
+}
+```
 
 Which when run gives the following sort of output:
 
-    :::text
-    Server sending 'Hi'
-    sub1 received = 'Hi'
-    sub2 received = 'Hi'
+``` text
+Server sending 'Hi'
+sub1 received = 'Hi'
+sub2 received = 'Hi'
+```
 
 
 ### Address format
 
 Notice the format of the address string passed to `Bind()` and `Connect()`. For InProc connections, it will resemble:
 
-    :::text
-    pgm://224.0.0.1:5555
+``` text
+pgm://224.0.0.1:5555
+```
 
 This is made up of three parts:
 

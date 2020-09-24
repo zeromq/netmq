@@ -13,7 +13,7 @@ namespace NetMQ
         private readonly NetMQActor m_actor;
         private readonly NetMQSocket m_receiveSocket;
         private readonly Action<NetMQSocket, NetMQMessage> m_handler;
-        private NetMQPoller m_poller;
+        private NetMQPoller? m_poller;
 
         /// <summary>
         /// Create NetMQProactor and start dedicate thread to handle incoming messages.
@@ -50,6 +50,8 @@ namespace NetMQ
 
         private void OnShimReady(object sender, NetMQSocketEventArgs e)
         {
+            Assumes.NotNull(m_poller);
+
             string command = e.Socket.ReceiveFrameString();
             if (command == NetMQActor.EndShimMessage)
             {

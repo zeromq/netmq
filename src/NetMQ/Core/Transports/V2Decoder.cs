@@ -9,15 +9,13 @@ namespace NetMQ.Core.Transports
 
         private readonly ByteArraySegment m_tmpbuf;
         private Msg m_inProgress;
-        private IMsgSink m_msgSink;
         private readonly long m_maxmsgsize;
         private MsgFlags m_msgFlags;
 
-        public V2Decoder(int bufsize, long maxmsgsize, IMsgSink session, Endianness endian)
+        public V2Decoder(int bufsize, long maxmsgsize, Endianness endian)
             : base(bufsize, endian)
         {
             m_maxmsgsize = maxmsgsize;
-            m_msgSink = session;
 
             m_tmpbuf = new byte[8];
 
@@ -27,17 +25,8 @@ namespace NetMQ.Core.Transports
             m_inProgress = new Msg();
             m_inProgress.InitEmpty();
         }
-
-        /// <summary>
-        /// Set the receiver of decoded messages.
-        /// </summary>
-        public override void SetMsgSink(IMsgSink msgSink)
-        {
-            m_msgSink = msgSink;
-        }
-
-
-        protected override bool Next()
+        
+        protected override DecodeResult Next()
         {
             switch (State)
             {
@@ -50,71 +39,11 @@ namespace NetMQ.Core.Transports
                 case MessageReadyState:
                     return MessageReady();
                 default:
-                    return false;
+                    return DecodeResult.Error;
             }
         }
-
-        private bool OneByteSizeReady()
-        {
-            m_tmpbuf.Reset();
-
-            // Message size must not exceed the maximum allowed size.
-            if (m_maxmsgsize >= 0)
-                if (m_tmpbuf[0] > m_maxmsgsize)
-                {
-                    DecodingError();
-                    return false;
-                }
-
-            // in_progress is initialised at this point so in theory we should
-            // close it before calling zmq_msg_init_size, however, it's a 0-byte
-            // message and thus we can treat it as uninitialised...
-            m_inProgress.InitPool(m_tmpbuf[0]);
-
-            m_inProgress.SetFlags(m_msgFlags);
-            NextStep(new ByteArraySegment(m_inProgress.Data, m_inProgress.Offset),
-                m_inProgress.Size, MessageReadyState);
-
-            return true;
-        }
-
-        private bool EightByteSizeReady()
-        {
-            m_tmpbuf.Reset();
-
-            // The payload size is encoded as 64-bit unsigned integer.
-            // The most significant byte comes first.
-            ulong msg_size = m_tmpbuf.GetUnsignedLong(Endian, 0);
-
-            // Message size must not exceed the maximum allowed size.
-            if (m_maxmsgsize >= 0)
-                if (msg_size > (ulong)m_maxmsgsize)
-                {
-                    DecodingError();
-                    return false;
-                }
-
-            // TODO: move this constant to a good place (0x7FFFFFC7)
-            // Message size must fit within range of size_t data type.
-            if (msg_size > 0x7FFFFFC7)
-            {
-                DecodingError();
-                return false;
-            }
-
-            // in_progress is initialised at this point so in theory we should
-            // close it before calling init_size, however, it's a 0-byte
-            // message and thus we can treat it as uninitialised.
-            m_inProgress.InitPool((int)msg_size);
-
-            m_inProgress.SetFlags(m_msgFlags);
-            NextStep(new ByteArraySegment(m_inProgress.Data, m_inProgress.Offset),
-                m_inProgress.Size, MessageReadyState);
-
-            return true;
-        }
-
-        private bool FlagsReady()
+        
+        private DecodeResult FlagsReady()
         {
             m_tmpbuf.Reset();
 
@@ -123,6 +52,8 @@ namespace NetMQ.Core.Transports
             int first = m_tmpbuf[0];
             if ((first & V2Protocol.MoreFlag) > 0)
                 m_msgFlags |= MsgFlags.More;
+            if ((first & V2Protocol.CommandFlag) > 0)
+                m_msgFlags |= MsgFlags.Command;
 
             // The payload length is either one or eight bytes,
             // depending on whether the 'large' bit is set.
@@ -131,36 +62,74 @@ namespace NetMQ.Core.Transports
             else
                 NextStep(m_tmpbuf, 1, OneByteSizeReadyState);
 
-            return true;
+            return DecodeResult.Processing;
+        }
+        
+        private DecodeResult OneByteSizeReady()
+        {
+            m_tmpbuf.Reset();
 
+            // Message size must not exceed the maximum allowed size.
+            if (m_maxmsgsize >= 0 && m_tmpbuf[0] > m_maxmsgsize)
+                return DecodeResult.Error;
+
+            // in_progress is initialised at this point so in theory we should
+            // close it before calling zmq_msg_init_size, however, it's a 0-byte
+            // message and thus we can treat it as uninitialised...
+            m_inProgress.InitPool(m_tmpbuf[0]);
+
+            m_inProgress.SetFlags(m_msgFlags);
+
+            Assumes.NotNull(m_inProgress.UnsafeData);
+
+            NextStep(new ByteArraySegment(m_inProgress.UnsafeData, m_inProgress.UnsafeOffset),
+                m_inProgress.Size, MessageReadyState);
+
+            return DecodeResult.Processing;
         }
 
-        private bool MessageReady()
+        private DecodeResult EightByteSizeReady()
+        {
+            m_tmpbuf.Reset();
+
+            // The payload size is encoded as 64-bit unsigned integer.
+            // The most significant byte comes first.
+            ulong msgSize = m_tmpbuf.GetUnsignedLong(Endian, 0);
+
+            // Message size must not exceed the maximum allowed size.
+            if (m_maxmsgsize >= 0 && msgSize > (ulong)m_maxmsgsize)
+                return DecodeResult.Error;
+            
+            // TODO: move this constant to a good place (0x7FFFFFC7)
+            // Message size must fit within range of size_t data type.
+            if (msgSize > 0x7FFFFFC7)
+                return DecodeResult.Error;
+
+            // in_progress is initialised at this point so in theory we should
+            // close it before calling init_size, however, it's a 0-byte
+            // message and thus we can treat it as uninitialised.
+            m_inProgress.InitPool((int)msgSize);
+
+            m_inProgress.SetFlags(m_msgFlags);
+
+            Assumes.NotNull(m_inProgress.UnsafeData);
+
+            NextStep(new ByteArraySegment(m_inProgress.UnsafeData, m_inProgress.UnsafeOffset),
+                m_inProgress.Size, MessageReadyState);
+
+            return DecodeResult.Processing;
+        }
+        
+        private DecodeResult MessageReady()
         {
             m_tmpbuf.Reset();
 
             // Message is completely read. Push it further and start reading
             // new message. (in_progress is a 0-byte message after this point.)
-
-            if (m_msgSink == null)
-                return false;
-
-            try
-            {
-                bool isMessagedPushed = m_msgSink.PushMsg(ref m_inProgress);
-
-                if (isMessagedPushed)
-                {
-                    NextStep(m_tmpbuf, 1, FlagsReadyState);
-                }
-
-                return isMessagedPushed;
-            }
-            catch (NetMQException)
-            {
-                DecodingError();
-                return false;
-            }
+            NextStep(m_tmpbuf, 1, FlagsReadyState);
+            return DecodeResult.MessageReady;
         }
+
+        public override PushMsgResult PushMsg(ProcessMsgDelegate sink) => sink(ref m_inProgress);
     }
 }

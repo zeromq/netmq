@@ -1,6 +1,6 @@
 ﻿using System;
+using System.Diagnostics;
 using System.Threading;
-using JetBrains.Annotations;
 
 namespace NetMQ
 {
@@ -17,11 +17,11 @@ namespace NetMQ
     /// </remarks>
     public class Proxy
     {
-        [NotNull] private readonly NetMQSocket m_frontend;
-        [NotNull] private readonly NetMQSocket m_backend;
-        [CanBeNull] private readonly NetMQSocket m_controlIn;
-        [CanBeNull] private readonly NetMQSocket m_controlOut;
-        [CanBeNull] private INetMQPoller m_poller;
+        private readonly NetMQSocket m_frontend;
+        private readonly NetMQSocket m_backend;
+        private readonly NetMQSocket? m_controlIn;
+        private readonly NetMQSocket? m_controlOut;
+        private INetMQPoller? m_poller;
         private readonly bool m_externalPoller;
 
         private int m_state = StateStopped;
@@ -40,7 +40,7 @@ namespace NetMQ
         /// <param name="controlIn">this socket will have incoming messages also sent to it - you can set this to null if not needed</param>
         /// <param name="controlOut">this socket will have outgoing messages also sent to it - you can set this to null if not needed</param>
         /// <param name="poller">an optional external poller to use within this proxy</param>
-        public Proxy([NotNull] NetMQSocket frontend, [NotNull] NetMQSocket backend, [CanBeNull] NetMQSocket controlIn, [CanBeNull] NetMQSocket controlOut, [CanBeNull] INetMQPoller poller = null)
+        public Proxy(NetMQSocket frontend, NetMQSocket backend, NetMQSocket? controlIn, NetMQSocket? controlOut, INetMQPoller? poller = null)
         {
             if (poller != null)
             {
@@ -63,7 +63,7 @@ namespace NetMQ
         /// <param name="control">this socket will have messages also sent to it - you can set this to null if not needed</param>
         /// <param name="poller">an optional external poller to use within this proxy</param>
         /// <exception cref="InvalidOperationException"><paramref name="poller"/> is not <c>null</c> and either <paramref name="frontend"/> or <paramref name="backend"/> are not contained within it.</exception>
-        public Proxy([NotNull] NetMQSocket frontend, [NotNull] NetMQSocket backend, [CanBeNull] NetMQSocket control = null, [CanBeNull] INetMQPoller poller = null)
+        public Proxy(NetMQSocket frontend, NetMQSocket backend, NetMQSocket? control = null, INetMQPoller? poller = null)
             : this(frontend, backend, control, null, poller)
         {}
 
@@ -102,6 +102,7 @@ namespace NetMQ
 
             if (!m_externalPoller)
             {
+                Assumes.NotNull(m_poller);
                 m_poller.Stop();
                 m_poller.Dispose();
                 m_poller = null;
@@ -116,7 +117,7 @@ namespace NetMQ
         private void OnFrontendReady(object sender, NetMQSocketEventArgs e) => ProxyBetween(m_frontend, m_backend, m_controlIn);
         private void OnBackendReady (object sender, NetMQSocketEventArgs e) => ProxyBetween(m_backend, m_frontend, m_controlOut);
 
-        private static void ProxyBetween(IReceivingSocket from, IOutgoingSocket to, [CanBeNull] IOutgoingSocket control)
+        private static void ProxyBetween(IReceivingSocket from, IOutgoingSocket to, IOutgoingSocket? control)
         {
             var msg = new Msg();
             msg.InitEmpty();

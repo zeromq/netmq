@@ -1,14 +1,13 @@
 ﻿using System;
 using System.Net;
 using System.Net.Sockets;
-using JetBrains.Annotations;
 
 namespace NetMQ.Core.Transports.Pgm
 {
     internal sealed class PgmAddress : Address.IZAddress
     {
         /// <exception cref="InvalidException">Unable to parse the address's port number, or the IP address could not be parsed.</exception>
-        public PgmAddress([NotNull] string network)
+        public PgmAddress(string network)
         {
             Resolve(network, true);
         }
@@ -69,20 +68,19 @@ namespace NetMQ.Core.Transports.Pgm
             if (!IPAddress.TryParse(addrStr, out IPAddress ipAddress))
                 throw new InvalidException($"In PgmAddress.Resolve({name},{ip4Only}), addrStr ({addrStr}) must be a valid IPAddress.");
 
-            Address = new IPEndPoint(ipAddress, port);
+            this.Address = new IPEndPoint(ipAddress, port);
         }
 
-        [CanBeNull]
-        public IPAddress InterfaceAddress { get; private set; }
+        public IPAddress? InterfaceAddress { get; private set; }
 
-        public IPEndPoint Address { get; private set; }
+        public IPEndPoint? Address { get; private set; }
 
         public override string ToString()
         {
-            if (Address == null)
+            if (this.Address == null)
                 return string.Empty;
 
-            IPEndPoint endpoint = Address;
+            IPEndPoint endpoint = this.Address;
 
             return endpoint.AddressFamily == AddressFamily.InterNetworkV6
                 ? Protocol + "://[" + endpoint.AddressFamily + "]:" + endpoint.Port

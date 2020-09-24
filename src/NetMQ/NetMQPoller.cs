@@ -1,11 +1,10 @@
-﻿using System;
+using System;
 using System.Collections;
 using System.Collections.Generic;
 using System.Diagnostics;
 using System.Linq;
 using System.Net.Sockets;
 using System.Threading;
-using JetBrains.Annotations;
 using NetMQ.Core.Utils;
 #if !NET35
 using System.Threading.Tasks;
@@ -18,6 +17,9 @@ using Switch = NetMQ.Core.Utils.Switch;
 
 namespace NetMQ
 {
+    /// <summary>
+    /// Enable polling on multiple NetMQSockets
+    /// </summary>
     public sealed class NetMQPoller :
 #if !NET35
         TaskScheduler,
@@ -25,7 +27,9 @@ namespace NetMQ
 #if NET40
         ISynchronizeInvoke,
 #endif
+#pragma warning disable 618
         INetMQPoller, ISocketPollableCollection, IEnumerable, IDisposable
+#pragma warning restore 618
     {
         private readonly List<NetMQSocket> m_sockets = new List<NetMQSocket>();
         private readonly List<NetMQTimer> m_timers = new List<NetMQTimer>();
@@ -34,10 +38,10 @@ namespace NetMQ
         private readonly NetMQSelector m_netMqSelector = new NetMQSelector();
         private readonly StopSignaler m_stopSignaler = new StopSignaler();
 
-        private NetMQSelector.Item[] m_pollSet;
-        private NetMQSocket[] m_pollact;
+        private NetMQSelector.Item[]? m_pollSet;
+		private NetMQSocket[]? m_pollact;
 
-        private volatile bool m_isPollSetDirty = true;
+		private volatile bool m_isPollSetDirty = true;
         private int m_disposeState = (int)DisposeState.Undisposed;
 
 #if NET35
@@ -75,11 +79,13 @@ namespace NetMQ
         /// </example>
         public bool CanExecuteTaskInline => m_isSchedulerThread.Value;
 
+        /// <inheritdoc />
         protected override bool TryExecuteTaskInline(Task task, bool taskWasPreviouslyQueued)
         {
             if (task == null)
                 throw new ArgumentNullException(nameof(task));
-            CheckDisposed();
+            if (IsDisposed)
+                return false;
 
             return CanExecuteTaskInline && TryExecuteTask(task);
         }
@@ -99,12 +105,13 @@ namespace NetMQ
             throw new NotSupportedException();
         }
 
+        /// <inheritdoc />
         protected override void QueueTask(Task task)
         {
             if (task == null)
                 throw new ArgumentNullException(nameof(task));
             CheckDisposed();
-            
+
             // We are not allowing new tasks will disposing
             if (m_disposeState == (int)DisposeState.Disposing)
                 throw new ObjectDisposedException("NetMQPoller");
@@ -112,8 +119,12 @@ namespace NetMQ
             m_tasksQueue.Enqueue(task);
         }
 
-        public void Run([NotNull] Action action)
-        {            
+        /// <summary>
+        /// Run an action on the Poller thread
+        /// </summary>
+        /// <param name="action">The action to run</param>
+        public void Run(Action action)
+        {
             if (!IsRunning || CanExecuteTaskInline)
                 action();
             else
@@ -128,6 +139,9 @@ namespace NetMQ
 
         #endregion
 
+        /// <summary>
+        /// Create a new NetMQPoller
+        /// </summary>
         public NetMQPoller()
         {
             m_sockets.Add(((ISocketPollable)m_stopSignaler).Socket);
@@ -140,7 +154,7 @@ namespace NetMQ
                 Debug.Assert(IsRunning);
 
                 // Try to dequeue and execute all pending tasks
-                while (m_tasksQueue.TryDequeue(out Task task, TimeSpan.Zero))
+                while (m_tasksQueue.TryDequeue(out Task? task, TimeSpan.Zero))
                     TryExecuteTask(task);
             };
 
@@ -153,6 +167,11 @@ namespace NetMQ
         /// </summary>
         public bool IsRunning => m_switch.Status;
 
+        /// <summary>
+        /// Get whether this object is currently disposed
+        /// </summary>
+        public bool IsDisposed => m_disposeState == (int)DisposeState.Disposed;
+
 #if NET35
         private bool IsPollerThread => ReferenceEquals(m_pollerThread, Thread.CurrentThread);
 #else
@@ -161,6 +180,10 @@ namespace NetMQ
 
         #region Add / Remove
 
+        /// <summary>
+        /// Add a socket to the poller
+        /// </summary>
+        /// <param name="socket">Socket to add to the poller</param>
         public void Add(ISocketPollable socket)
         {
             if (socket == null)
@@ -190,7 +213,12 @@ namespace NetMQ
             });
         }
 
-        public void Add([NotNull] NetMQTimer timer)
+        /// <summary>
+        /// Add the timer to the Poller, the timer will be invoked on the poller thread when interval elapsed.
+        /// </summary>
+        /// <param name="timer">The timer to add to poller</param>
+        /// <exception cref="ArgumentNullException">If timer is null</exception>
+        public void Add(NetMQTimer timer)
         {
             if (timer == null)
                 throw new ArgumentNullException(nameof(timer));
@@ -199,7 +227,14 @@ namespace NetMQ
             Run(() => m_timers.Add(timer));
         }
 
-        public void Add([NotNull] Socket socket, [NotNull] Action<Socket> callback)
+        /// <summary>
+        /// Add a regular .Net Socket to the poller.
+        /// The callback will be invoked when the data is ready to be read from the socket
+        /// </summary>
+        /// <param name="socket">The socket to poll on</param>
+        /// <param name="callback">The callback to invoke when the socket is ready</param>
+        /// <exception cref="ArgumentNullException">If callback or socket are null</exception>
+        public void Add(Socket socket, Action<Socket> callback)
         {
             if (socket == null)
                 throw new ArgumentNullException(nameof(socket));
@@ -216,13 +251,20 @@ namespace NetMQ
             });
         }
 
+        /// <summary>
+        /// Remove a socket from the poller
+        /// </summary>
+        /// <param name="socket">The socket to be removed</param>
+        /// <exception cref="ArgumentNullException">If socket is null</exception>
+        /// <exception cref="ArgumentException">If socket is already disposed</exception>
+        /// <exception cref="InvalidOperationException">If socket is getting disposed during the operation</exception>
         public void Remove(ISocketPollable socket)
         {
             if (socket == null)
                 throw new ArgumentNullException(nameof(socket));
             if (socket.IsDisposed)
                 throw new ArgumentException("Must not be disposed.", nameof(socket));
-            CheckDisposed();            
+            CheckDisposed();
 
             Run(() =>
             {
@@ -241,6 +283,13 @@ namespace NetMQ
             });
         }
 
+        /// <summary>
+        /// Remove the socket from the poller and dispose the socket
+        /// </summary>
+        /// <param name="socket">The socket to be removed</param>
+        /// <exception cref="ArgumentNullException">If socket is null</exception>
+        /// <exception cref="ArgumentException">If socket is disposed</exception>
+        /// <exception cref="InvalidOperationException">If socket got disposed during the operation</exception>
         public void RemoveAndDispose<T>(T socket) where T : ISocketPollable, IDisposable
         {
             if (socket == null)
@@ -267,22 +316,32 @@ namespace NetMQ
             });
         }
 
-        public void Remove([NotNull] NetMQTimer timer)
+        /// <summary>
+        /// Remove a timer from the poller
+        /// </summary>
+        /// <param name="timer">The timer to remove</param>
+        /// <exception cref="ArgumentNullException">If poller is null</exception>
+        public void Remove(NetMQTimer timer)
         {
             if (timer == null)
                 throw new ArgumentNullException(nameof(timer));
-            CheckDisposed();            
+            CheckDisposed();
 
             timer.When = -1;
 
             Run(() => m_timers.Remove(timer));
         }
 
-        public void Remove([NotNull] Socket socket)
+        /// <summary>
+        /// Remove the .Net socket from the poller
+        /// </summary>
+        /// <param name="socket">The socket to remove</param>
+        /// <exception cref="ArgumentNullException">If socket is null</exception>
+        public void Remove(Socket socket)
         {
             if (socket == null)
                 throw new ArgumentNullException(nameof(socket));
-            CheckDisposed();            
+            CheckDisposed();
 
             Run(() =>
             {
@@ -295,7 +354,14 @@ namespace NetMQ
 
         #region Contains
 #if !NET35
-        public Task<bool> ContainsAsync([NotNull] ISocketPollable socket)
+
+        /// <summary>
+        /// Check if poller contains the socket asynchronously.
+        /// </summary>
+        /// <param name="socket"></param>
+        /// <returns>True if the poller contains the socket.</returns>
+        /// <exception cref="ArgumentNullException">Thrown if socket is null</exception>
+        public Task<bool> ContainsAsync(ISocketPollable socket)
         {
             if (socket == null)
                 throw new ArgumentNullException(nameof(socket));
@@ -306,7 +372,12 @@ namespace NetMQ
             return tcs.Task;
         }
 
-        public Task<bool> ContainsAsync([NotNull] NetMQTimer timer)
+        /// <summary>
+        /// Check if poller contains the timer asynchronously.
+        /// </summary>
+        /// <returns>True if the poller contains the timer.</returns>
+        /// <exception cref="ArgumentNullException">Thrown if timer is null</exception>
+        public Task<bool> ContainsAsync(NetMQTimer timer)
         {
             if (timer == null)
                 throw new ArgumentNullException(nameof(timer));
@@ -317,7 +388,13 @@ namespace NetMQ
             return tcs.Task;
         }
 
-        public Task<bool> ContainsAsync([NotNull] Socket socket)
+        /// <summary>
+        /// Check if poller contains the socket asynchronously.
+        /// </summary>
+        /// <param name="socket"></param>
+        /// <returns>True if the poller contains the socket.</returns>
+        /// <exception cref="ArgumentNullException">Thrown if socket is null</exception>
+        public Task<bool> ContainsAsync(Socket socket)
         {
             if (socket == null)
                 throw new ArgumentNullException(nameof(socket));
@@ -333,27 +410,42 @@ namespace NetMQ
         #region Start / Stop
 
         /// <summary>
-        /// Runs the poller in a background thread, returning once the poller has started.
+        /// Runs the poller in a foreground thread, returning once the poller has started.
         /// </summary>
         /// <remarks>
         /// The created thread is named <c>"NetMQPollerThread"</c>. Use <see cref="RunAsync(string)"/> to specify the thread name.
         /// </remarks>
         public void RunAsync()
         {
-            RunAsync("NetMQPollerThread");
+            RunAsync("NetMQPoller");
         }
 
         /// <summary>
-        /// Runs the poller in a background thread, returning once the poller has started.
+        /// Runs the poller in a foreground thread, returning once the poller has started.
         /// </summary>
         /// <param name="threadName">The thread name to use.</param>
         public void RunAsync(string threadName)
+        {
+            RunAsync(threadName, false);
+        }
+
+        /// <summary>
+        /// Runs the poller in a specified thread - background/foreground, returning once the poller has started.
+        /// </summary>
+        /// <param name="threadName">The thread name to use.</param>
+        /// <param name="isBackgroundThread">Allow the poller thread to be a long running 
+        /// poller (either foreground thread/background)</param>
+        public void RunAsync(string threadName, bool isBackgroundThread)
         {
             CheckDisposed();
             if (IsRunning)
                 throw new InvalidOperationException("NetMQPoller is already running");
 
-            var thread = new Thread(Run) { Name = threadName };
+            var thread = new Thread(Run)
+            {
+                Name = threadName,
+                IsBackground = isBackgroundThread
+            };
             thread.Start();
 
             m_switch.WaitForOn();
@@ -396,8 +488,8 @@ namespace NetMQ
         /// Runs the poller on the caller's thread. Only returns when <see cref="Stop" /> or <see cref="StopAsync" /> are called from another thread.
         /// </summary>
         /// <param name="syncContext">The synchronization context that will be used.</param>
-         public void Run(SynchronizationContext syncContext)
-         {
+        public void Run(SynchronizationContext syncContext)
+        {
             if (syncContext == null)
                 throw new ArgumentNullException("Must supply a Synchronization Context");
 
@@ -478,6 +570,8 @@ namespace NetMQ
 
                     var isItemAvailable = false;
 
+                    Assumes.NotNull(m_pollSet);
+
                     if (m_pollSet.Length != 0)
                     {
                         isItemAvailable = m_netMqSelector.Select(m_pollSet, m_pollSet.Length, timeout);
@@ -516,6 +610,8 @@ namespace NetMQ
 
                         if (item.Socket != null)
                         {
+                            Assumes.NotNull(m_pollact);
+
                             NetMQSocket socket = m_pollact[i];
 
                             if (item.ResultEvent.HasError())
@@ -536,15 +632,16 @@ namespace NetMQ
                         }
                         else if (item.ResultEvent.HasError() || item.ResultEvent.HasIn())
                         {
+                            Assumes.NotNull(item.FileDescriptor);
                             if (m_pollinSockets.TryGetValue(item.FileDescriptor, out Action<Socket> action))
                                 action(item.FileDescriptor);
                         }
                     }
                 }
-                                
-#if !NET35           
+
+#if !NET35
                 // Try to dequeue and execute all pending tasks before stopping poller
-                while (m_tasksQueue.TryDequeue(out Task task, TimeSpan.Zero))
+                while (m_tasksQueue.TryDequeue(out Task? task, TimeSpan.Zero))
                     TryExecuteTask(task);
 #endif
             }
@@ -565,8 +662,6 @@ namespace NetMQ
         public void Stop()
         {
             CheckDisposed();
-            if (!IsRunning)
-                throw new InvalidOperationException("NetMQPoller is not running");
 
             // Signal the poller to stop
             m_stopSignaler.RequestStop();
@@ -651,7 +746,7 @@ namespace NetMQ
 
         private void CheckDisposed()
         {
-            if (m_disposeState == (int)DisposeState.Disposed)
+            if (IsDisposed)
                 throw new ObjectDisposedException("NetMQPoller");
         }
 
@@ -682,8 +777,10 @@ namespace NetMQ
                 Debug.Assert(!IsRunning);
             }
 
+            m_sockets.Remove(((ISocketPollable)m_stopSignaler).Socket);
             m_stopSignaler.Dispose();
 #if !NET35
+            m_sockets.Remove(((ISocketPollable)m_tasksQueue).Socket);
             m_tasksQueue.Dispose();
 #endif
 
@@ -726,37 +823,6 @@ namespace NetMQ
         }
 
         bool ISynchronizeInvoke.InvokeRequired => !CanExecuteTaskInline;
-#endif
-
-        #endregion
-
-        #region Synchronisation context
-
-#if !NET35
-        private sealed class NetMQSynchronizationContext : SynchronizationContext
-        {
-            private readonly NetMQPoller m_poller;
-
-            public NetMQSynchronizationContext(NetMQPoller poller)
-            {
-                m_poller = poller;
-            }
-
-            /// <summary>Dispatches an asynchronous message to a synchronization context.</summary>
-            public override void Post(SendOrPostCallback d, object state)
-            {
-                var task = new Task(() => d(state));
-                task.Start(m_poller);
-            }
-
-            /// <summary>Dispatches a synchronous message to a synchronization context.</summary>
-            public override void Send(SendOrPostCallback d, object state)
-            {
-                var task = new Task(() => d(state));
-                task.Start(m_poller);
-                task.Wait();
-            }
-        }
 #endif
 
         #endregion

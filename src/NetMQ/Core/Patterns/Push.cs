@@ -20,26 +20,18 @@
 */
 
 using System.Diagnostics;
-using JetBrains.Annotations;
 using NetMQ.Core.Patterns.Utils;
 
 namespace NetMQ.Core.Patterns
 {
     internal sealed class Push : SocketBase
     {
-        public class PushSession : SessionBase
-        {
-            public PushSession([NotNull] IOThread ioThread, bool connect, [NotNull] SocketBase socket, [NotNull] Options options, [NotNull] Address addr)
-                : base(ioThread, connect, socket, options, addr)
-            {}
-        }
-
         /// <summary>
         /// Load balancer managing the outbound pipes.
         /// </summary>
         private readonly LoadBalancer m_loadBalancer;
 
-        public Push([NotNull] Ctx parent, int threadId, int socketId)
+        public Push(Ctx parent, int threadId, int socketId)
             : base(parent, threadId, socketId)
         {
             m_options.SocketType = ZmqSocketType.Push;
@@ -54,7 +46,12 @@ namespace NetMQ.Core.Patterns
         /// <param name="icanhasall">not used</param>
         protected override void XAttachPipe(Pipe pipe, bool icanhasall)
         {
-            Debug.Assert(pipe != null);
+            Assumes.NotNull(pipe);
+
+            // Don't delay pipe termination as there is no one
+            // to receive the delimiter.
+            pipe.SetNoDelay();
+            
             m_loadBalancer.Attach(pipe);
         }
 

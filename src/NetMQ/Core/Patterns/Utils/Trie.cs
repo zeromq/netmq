@@ -20,6 +20,8 @@
     along with this program.  If not, see <http://www.gnu.org/licenses/>.
 */
 
+#nullable disable
+
 using System;
 using System.Diagnostics;
 using JetBrains.Annotations;
@@ -43,19 +45,17 @@ namespace NetMQ.Core.Patterns.Utils
         /// rather than a duplicate.
         /// </summary>
         /// <param name="prefix"></param>
-        /// <param name="start"></param>
-        /// <param name="size"></param>
         /// <returns></returns>
-        public bool Add([NotNull] byte[] prefix, int start, int size)
+        public bool Add(Span<byte> prefix)
         {
             // We are at the node corresponding to the prefix. We are done.
-            if (size == 0)
+            if (prefix.Length == 0)
             {
                 ++m_referenceCount;
                 return m_referenceCount == 1;
             }
 
-            byte currentCharacter = prefix[start];
+            byte currentCharacter = prefix[0];
             if (currentCharacter < m_minCharacter || currentCharacter >= m_minCharacter + m_count)
             {
                 // The character is out of range of currently handled
@@ -100,7 +100,7 @@ namespace NetMQ.Core.Patterns.Utils
                     ++m_liveNodes;
                     //alloc_Debug.Assert(next.node);
                 }
-                return m_next[0].Add(prefix, start + 1, size - 1);
+                return m_next[0].Add(prefix.Slice(1));
             }
             else
             {
@@ -110,7 +110,7 @@ namespace NetMQ.Core.Patterns.Utils
                     ++m_liveNodes;
                     //alloc_Debug.Assert(next.table [c - min]);
                 }
-                return m_next[currentCharacter - m_minCharacter].Add(prefix, start + 1, size - 1);
+                return m_next[currentCharacter - m_minCharacter].Add(prefix.Slice(1));
             }
         }
 
@@ -120,12 +120,10 @@ namespace NetMQ.Core.Patterns.Utils
         /// removed from the trie.
         /// </summary>
         /// <param name="prefix"></param>
-        /// <param name="start"></param>
-        /// <param name="size"></param>
         /// <returns></returns>
-        public bool Remove([NotNull] byte[] prefix, int start, int size)
+        public bool Remove(Span<byte>prefix)
         {
-            if (size == 0)
+            if (prefix.Length == 0)
             {
                 if (m_referenceCount == 0)
                     return false;
@@ -133,7 +131,7 @@ namespace NetMQ.Core.Patterns.Utils
                 return m_referenceCount == 0;
             }
 
-            byte currentCharacter = prefix[start];
+            byte currentCharacter = prefix[0];
             if (m_count == 0 || currentCharacter < m_minCharacter || currentCharacter >= m_minCharacter + m_count)
                 return false;
 
@@ -142,7 +140,7 @@ namespace NetMQ.Core.Patterns.Utils
             if (nextNode == null)
                 return false;
 
-            bool wasRemoved = nextNode.Remove(prefix, start + 1, size - 1);
+            bool wasRemoved = nextNode.Remove(prefix.Slice(1));
 
             if (nextNode.IsRedundant())
             {
@@ -234,15 +232,14 @@ namespace NetMQ.Core.Patterns.Utils
         /// Check whether particular key is in the trie.
         /// </summary>
         /// <param name="data"></param>
-        /// <param name="offset"></param>
-        /// <param name="size"></param>
         /// <returns></returns>
-        public bool Check([NotNull] byte[] data, int offset, int size)
+        public bool Check(Span<byte> data)
         {
             // This function is on critical path. It deliberately doesn't use
             // recursion to get a bit better performance.
             Trie current = this;
-            int start = offset;
+            int start = 0;
+            int size = data.Length;
             while (true)
             {
                 // We've found a corresponding subscription!

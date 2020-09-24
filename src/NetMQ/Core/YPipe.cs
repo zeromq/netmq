@@ -20,6 +20,7 @@
 */
 
 using System.Diagnostics;
+using System.Diagnostics.CodeAnalysis;
 using System.Threading;
 using NetMQ.Core.Utils;
 
@@ -177,7 +178,7 @@ namespace NetMQ.Core
         /// Attempts to read an item from the pipe.
         /// </summary>
         /// <returns><c>true</c> if the read succeeded, otherwise <c>false</c>.</returns>
-        public bool TryRead(out T value)
+        public bool TryRead([MaybeNullWhen(returnValue: false)] out T value)
         {
             // Try to prefetch a value.
             if (!CheckRead())
