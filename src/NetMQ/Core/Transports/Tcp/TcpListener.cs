@@ -123,11 +123,12 @@ namespace NetMQ.Core.Transports.Tcp
             m_address.Resolve(addr, m_options.IPv4Only);
 
             Assumes.NotNull(m_address.Address);
-            Assumes.NotNull(m_handle);
 
             try
             {
                 m_handle = AsyncSocket.Create(m_address.Address.AddressFamily, SocketType.Stream, ProtocolType.Tcp);
+
+                Assumes.NotNull(m_handle);
 
                 if (!m_options.IPv4Only && m_address.Address.AddressFamily == AddressFamily.InterNetworkV6)
                 {
