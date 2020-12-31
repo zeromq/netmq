@@ -783,8 +783,8 @@ namespace NetMQ.Tests
 
             Assert.Equal(3, count);
 
-            Assert.True(Math.Abs(length1 - 30) <= 10.0);
-            Assert.True(Math.Abs(length2 - 60) <= 10.0);
+            Assert.InRange(Math.Abs(length1 - 30), 0, 10);
+            Assert.InRange(Math.Abs(length2 - 60), 0, 10);
         }
 
         [Fact]
