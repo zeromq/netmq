@@ -85,7 +85,7 @@ namespace NetMQ
             }
 
             TaskCompletionSource<(byte[], bool)> source = new TaskCompletionSource<(byte[], bool)>();
-            cancellationToken.Register(() => source.SetCanceled());
+            var registration = cancellationToken.Register(PropagateCancel);
 
             void Listener(object sender, NetMQSocketEventArgs args)
             {
@@ -96,8 +96,16 @@ namespace NetMQ
                     msg.Close();
 
                     socket.ReceiveReady -=  Listener;
-                    source.SetResult((data, more));
+                    registration.Dispose();
+                    source.TrySetResult((data, more));
                 }
+            }
+            
+            void PropagateCancel()
+            {
+                socket.ReceiveReady -= Listener;
+                registration.Dispose();
+                source.TrySetCanceled();
             }
 
             socket.ReceiveReady += Listener;
