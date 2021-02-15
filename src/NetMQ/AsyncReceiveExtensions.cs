@@ -20,7 +20,7 @@ namespace NetMQ
         static Task<bool> s_trueTask = Task.FromResult(true);
         static Task<bool> s_falseTask = Task.FromResult(false);
 
-        #region Receiving frames as a multipart message
+#region Receiving frames as a multipart message
 
         /// <summary>
         /// Receive a single frame from <paramref name="socket"/>, asynchronously.
@@ -52,9 +52,9 @@ namespace NetMQ
             return message;
         }
 
-        #endregion
+#endregion
 
-        #region Receiving a frame as a byte array
+#region Receiving a frame as a byte array
 
         /// <summary>
         /// Receive a single frame from <paramref name="socket"/>, asynchronously.
@@ -85,7 +85,12 @@ namespace NetMQ
             }
 
             TaskCompletionSource<(byte[], bool)> source = new TaskCompletionSource<(byte[], bool)>();
-            cancellationToken.Register(() => source.SetCanceled());
+
+            CancellationTokenRegistration? registration = null;
+            if (cancellationToken.CanBeCanceled) 
+            {
+                registration = cancellationToken.Register(PropagateCancel);
+            }
 
             void Listener(object sender, NetMQSocketEventArgs args)
             {
@@ -96,8 +101,16 @@ namespace NetMQ
                     msg.Close();
 
                     socket.ReceiveReady -=  Listener;
-                    source.SetResult((data, more));
+                    registration?.Dispose();
+                    source.TrySetResult((data, more));
                 }
+            }
+            
+            void PropagateCancel()
+            {
+                socket.ReceiveReady -= Listener;
+                registration?.Dispose();
+                source.TrySetCanceled();
             }
 
             socket.ReceiveReady += Listener;
@@ -105,9 +118,9 @@ namespace NetMQ
             return source.Task;
         }
 
-        #endregion
+#endregion
 
-        #region Receiving a frame as a string
+#region Receiving a frame as a string
 
         /// <summary>
         /// Receive a single frame from <paramref name="socket"/>, asynchronously, and decode as a string using <see cref="SendReceiveConstants.DefaultEncoding"/>.
@@ -155,7 +168,12 @@ namespace NetMQ
             }
 
             TaskCompletionSource<(string, bool)> source = new TaskCompletionSource<(string,bool)>();
-            cancellationToken.Register(() => source.SetCanceled());
+
+            CancellationTokenRegistration? registration = null;
+            if (cancellationToken.CanBeCanceled) 
+            {
+                registration = cancellationToken.Register(PropagateCancel);
+            }
 
             void Listener(object sender, NetMQSocketEventArgs args)
             {
@@ -165,11 +183,19 @@ namespace NetMQ
                         ? msg.GetString(encoding)
                         : string.Empty;
                     bool more = msg.HasMore;
-
                     msg.Close();
+
                     socket.ReceiveReady -=  Listener;
-                    source.SetResult((str, more));
+                    registration?.Dispose();
+                    source.TrySetResult((str, more));
                 }
+            }
+
+            void PropagateCancel()
+            {
+                socket.ReceiveReady -= Listener;
+                registration?.Dispose();
+                source.TrySetCanceled();
             }
 
             socket.ReceiveReady += Listener;
@@ -177,16 +203,20 @@ namespace NetMQ
             return source.Task;
         }
 
-        #endregion
+#endregion
 
-        #region Skipping a message
+#region Skipping a message
 
         /// <summary>
         /// Receive a single frame from <paramref name="socket"/>, asynchronously, then ignore its content.
         /// </summary>
         /// <param name="socket">The socket to receive from.</param>
+        /// <param name="cancellationToken">The token used to propagate notification that this operation should be canceled.</param>
         /// <returns>Boolean indicate if another frame of the same message follows</returns>
-        public static Task<bool> SkipFrameAsync(this NetMQSocket socket)
+        public static Task<bool> SkipFrameAsync(
+            this NetMQSocket socket, 
+            CancellationToken cancellationToken = default(CancellationToken)
+        )
         {
             if (NetMQRuntime.Current == null)
                 throw new InvalidOperationException("NetMQRuntime must be created before calling async functions");
@@ -206,15 +236,30 @@ namespace NetMQ
 
             TaskCompletionSource<bool> source = new TaskCompletionSource<bool>();
 
+            CancellationTokenRegistration? registration = null;
+            if (cancellationToken.CanBeCanceled) 
+            {
+                registration = cancellationToken.Register(PropagateCancel);
+            }
+
             void Listener(object sender, NetMQSocketEventArgs args)
             {
                 if (socket.TryReceive(ref msg, TimeSpan.Zero))
                 {
                     bool more = msg.HasMore;
                     msg.Close();
+
                     socket.ReceiveReady -=  Listener;
-                    source.SetResult(more);
+                    registration?.Dispose();
+                    source.TrySetResult(more);
                 }
+            }
+
+            void PropagateCancel()
+            {
+                socket.ReceiveReady -= Listener;
+                registration?.Dispose();
+                source.TrySetCanceled();
             }
 
             socket.ReceiveReady += Listener;
@@ -223,9 +268,9 @@ namespace NetMQ
         }
 
 
-        #endregion
+#endregion
 
-        #region Skipping all frames of a multipart message
+#region Skipping all frames of a multipart message
 
         /// <summary>
         /// Receive all frames of the next message from <paramref name="socket"/>, asynchronously, then ignore their contents.
@@ -242,9 +287,9 @@ namespace NetMQ
         }
 
 
-        #endregion
+#endregion
 
-        #region Receiving a routing key
+#region Receiving a routing key
 
         /// <summary>
         /// Receive a routing-key from <paramref name="socket"/>, blocking until one arrives.
@@ -259,7 +304,7 @@ namespace NetMQ
             return (new RoutingKey(bytes), more);
         }
 
-        #endregion
+#endregion
     }
 }
 
