@@ -54,7 +54,7 @@ namespace NetMQ
         /// </summary>
         /// <param name="message">a string containing the message-data of the frame</param>
         public NetMQFrame(string message)
-            : this(Encoding.ASCII.GetBytes(message))
+            : this(Encoding.UTF8.GetBytes(message))
         {}
 
         /// <summary>
@@ -142,12 +142,12 @@ namespace NetMQ
         }
 
         /// <summary>
-        /// Return this frame's data-buffer converted into a string, using the default ASCII encoding.
+        /// Return this frame's data-buffer converted into a string, using the default UTF-8 encoding.
         /// </summary>
         /// <returns>the data buffer converted to a string</returns>
         public string ConvertToString()
         {
-            return Encoding.ASCII.GetString(Buffer, 0, MessageSize);
+            return Encoding.UTF8.GetString(Buffer, 0, MessageSize);
         }
 
         /// <summary>
