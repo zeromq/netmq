@@ -294,7 +294,7 @@ namespace NetMQ
                 }
                 catch(SocketException ex)
 				{
-                    if (ex.SocketErrorCode != SocketError.NoBufferSpaceAvailable) { throw; }
+                    if (ex.SocketErrorCode != SocketError.MessageSize) { throw; }
                 }
                 peerName = peer.ToString();
 
