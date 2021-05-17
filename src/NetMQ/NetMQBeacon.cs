@@ -293,7 +293,7 @@ namespace NetMQ
                     bytesRead = m_udpSocket.ReceiveFrom(buffer, ref peer);
                 }
                 catch(SocketException ex)
-				{
+                {
                     if (ex.SocketErrorCode != SocketError.MessageSize) { throw; }
                 }
                 peerName = peer.ToString();
