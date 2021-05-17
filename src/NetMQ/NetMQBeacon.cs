@@ -287,7 +287,15 @@ namespace NetMQ
                 var buffer = new byte[UdpFrameMax];
                 EndPoint peer = new IPEndPoint(IPAddress.Any, 0);
 
-                var bytesRead = m_udpSocket.ReceiveFrom(buffer, ref peer);
+                int bytesRead = 0;
+                try
+                {
+                    bytesRead = m_udpSocket.ReceiveFrom(buffer, ref peer);
+                }
+                catch(SocketException ex)
+				{
+                    if (ex.SocketErrorCode != SocketError.NoBufferSpaceAvailable) { throw; }
+                }
                 peerName = peer.ToString();
 
                 return new NetMQFrame(buffer, bytesRead);
