@@ -199,7 +199,7 @@ namespace NetMQ
             {
                 Assumes.NotNull(m_pipe);
 
-                if (!ReceiveUdpFrame(out NetMQFrame frame, out string peerName)) return;
+                if (!TryReceiveUdpFrame(out NetMQFrame frame, out string peerName)) return;
 
                 // If filter is set, check that beacon matches it
                 var isValid = frame.MessageSize >= m_filter?.MessageSize && Compare(frame, m_filter, m_filter.MessageSize);
@@ -280,7 +280,7 @@ namespace NetMQ
                 }
             }
 
-            private bool ReceiveUdpFrame(out NetMQFrame frame, out string peerName)
+            private bool TryReceiveUdpFrame(out NetMQFrame frame, out string peerName)
             {
                 Assumes.NotNull(m_udpSocket);
 
