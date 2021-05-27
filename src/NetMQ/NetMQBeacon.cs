@@ -199,7 +199,8 @@ namespace NetMQ
             {
                 Assumes.NotNull(m_pipe);
 
-                if (!TryReceiveUdpFrame(out NetMQFrame frame, out string peerName)) return;
+                if (!TryReceiveUdpFrame(out NetMQFrame frame, out string peerName))
+		    return;
 
                 // If filter is set, check that beacon matches it
                 var isValid = frame.MessageSize >= m_filter?.MessageSize && Compare(frame, m_filter, m_filter.MessageSize);
@@ -269,10 +270,8 @@ namespace NetMQ
                 {
                     m_udpSocket.SendTo(frame.Buffer, 0, frame.MessageSize, SocketFlags.None, m_broadcastAddress);
                 }
-                catch (SocketException ex)
+                catch (SocketException ex) when (ex.SocketErrorCode == SocketError.AddressNotAvailable)
                 {
-                    if (ex.SocketErrorCode != SocketError.AddressNotAvailable) { throw; }
-
                     // Initiate Creation of new Udp here to solve issue related to 'sudden' network change.
                     // On windows (7 OR 10) incorrect/previous ip address might still exist instead of new Ip
                     // due to network change which causes crash (if no try/catch and keep trying to send to incorrect/not available address.
@@ -292,16 +291,15 @@ namespace NetMQ
                 {
                     bytesRead = m_udpSocket.ReceiveFrom(buffer, ref peer);
                 }
-                catch(SocketException ex)
+                catch (SocketException ex) when (ex.SocketErrorCode == SocketError.MessageSize)
                 {
-                    if (ex.SocketErrorCode != SocketError.MessageSize) { throw; }
-                    frame = new NetMQFrame("");
-                    peerName = "";
+                    frame = default;
+                    peerName = null;
                     return false;
                 }
+
                 peerName = peer.ToString();
                 frame = new NetMQFrame(buffer, bytesRead);
-
                 return true;
             }
         }
