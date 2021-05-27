@@ -57,7 +57,7 @@ namespace NetMQ.Core.Transports
         /// <summary>
         /// Get the number of bytes within the buffer that is past the Offset (ie, buffer-length minus offset).
         /// </summary>
-        public int Size => m_innerBuffer.Length - Offset;
+        public int Size => m_innerBuffer == null ? 0 : m_innerBuffer.Length - Offset;
 
         /// <summary>
         /// Add the given value to the offset.
