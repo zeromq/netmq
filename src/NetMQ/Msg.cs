@@ -265,6 +265,18 @@ namespace NetMQ
             
             return new Span<byte>(m_data, m_offset, Size);  
         }
+        
+        /// <summary>
+        /// Return the internal buffer as Memory
+        /// </summary>
+        /// <returns>The memory</returns>
+        public Memory<byte> SliceAsMemory()
+        {
+            if (m_data == null)
+                return Memory<byte>.Empty;
+            
+            return new Memory<byte>(m_data, m_offset, Size);  
+        }
 
         /// <summary>
         /// Returns a slice of the internal buffer.
