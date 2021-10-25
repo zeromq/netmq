@@ -685,5 +685,88 @@ namespace NetMQ
         }
 
         #endregion
+
+        #region Sending Routing Keys
+
+        /// <summary>
+        /// Send empty list of routing keys over <paramref name="socket"/>, append an empty message at the end of the keys.
+        /// </summary>
+        /// <param name="socket">the IOutgoingSocket to transmit on</param>
+        public static IOutgoingSocket SendEmptyRoutingKeys(this IOutgoingSocket socket) 
+        {
+            return socket.SendMoreFrameEmpty();
+        } 
+
+        /// <summary>
+        /// Send a single routing key over <paramref name="socket"/>, append an empty message afterwards.
+        /// </summary>
+        /// <param name="socket">the IOutgoingSocket to transmit on</param>
+        public static IOutgoingSocket SendRoutingKeys(this IOutgoingSocket socket, params RoutingKey[] routingKeys)
+        {
+            foreach(var routingKey in routingKeys)            
+                socket.SendMoreFrame(routingKey);
+
+            socket.SendMoreFrameEmpty();            
+
+            return socket;
+        }
+
+        /// <summary>
+        /// Send routing keys over <paramref name="socket"/>, append an empty message at the end of the keys.
+        /// </summary>
+        /// <param name="socket">the IOutgoingSocket to transmit on</param>
+        /// <param name="routingKeys">the routing keys to send</param>
+        public static IOutgoingSocket SendRoutingKeys(this IOutgoingSocket socket, IEnumerable<RoutingKey> routingKeys)
+        {
+            foreach(var routingKey in routingKeys)            
+                socket.SendMoreFrame(routingKey);
+
+            socket.SendMoreFrameEmpty();            
+
+            return socket;
+        }
+
+        /// <summary>
+        /// Attempt to transmit routing keys over <paramref name="socket"/>.
+        /// If message cannot be sent immediately, return <c>false</c>.
+        /// Routing is always sent as more frame.
+        /// </summary>
+        /// <param name="socket">the IOutgoingSocket to transmit on</param>
+        /// <param name="routingKeys">the routing keys to send</param>
+        /// <returns><c>true</c> if a message was available, otherwise <c>false</c>.</returns>
+        public static bool TrySendRoutingKeys(this IOutgoingSocket socket, IEnumerable<RoutingKey> routingKeys)
+        {
+           return socket.TrySendRoutingKeys(TimeSpan.Zero, routingKeys);
+        }
+
+        /// <summary>
+        /// Attempt to transmit routing key over <paramref name="socket"/>.
+        /// If message cannot be sent within <paramref name="timeout"/>, return <c>false</c>.
+        /// Routing is always sent as more frame.
+        /// </summary>
+        /// <param name="socket">the IOutgoingSocket to transmit on</param>
+        /// <param name="timeout">The maximum period of time to try to send a message.</param>
+        /// <param name="routingKeys">the routing keys to send</param>
+        /// <returns><c>true</c> if a message was available, otherwise <c>false</c>.</returns>
+        public static bool TrySendRoutingKeys(this IOutgoingSocket socket, TimeSpan timeout, IEnumerable<RoutingKey> routingKeys)
+        {
+            var enumerator = routingKeys.GetEnumerator();
+            
+            // Empty collection, just trying to send the empty message
+            if (!enumerator.MoveNext())            
+                return socket.TrySendFrameEmpty(timeout, true);            
+
+            if (!socket.TrySendFrame(enumerator.Current))
+                return false;
+
+            while (enumerator.MoveNext())             
+                socket.SendMoreFrame(enumerator.Current);
+
+            socket.SendMoreFrameEmpty();                                                 
+
+            return true;
+        }
+
+        #endregion
     }
 }

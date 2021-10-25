@@ -316,7 +316,7 @@ namespace NetMQ
             }
             finally
             {
-                msg.Close();    
+                msg.Close();
             }
         }
 
@@ -449,7 +449,7 @@ namespace NetMQ
                 }
                 finally
                 {
-                    msg.Close();    
+                    msg.Close();
                 }
             }
 
@@ -1107,6 +1107,89 @@ namespace NetMQ
                 return true;
             }
 
+            return false;
+        }
+
+        #endregion
+
+        #region Receiving a routing keys
+
+        /// <summary>
+        /// Receive routing keys from <paramref name="socket"/> until a bottom message arrives (empty message), blocking until one arrives.
+        /// </summary>
+        /// <param name="socket">The socket to receive from.</param>
+        /// <returns>The routing keys.</returns>
+        public static IEnumerable<RoutingKey> ReceiveRoutingKeys(this IReceivingSocket socket)
+        {
+            List<RoutingKey> keys = new List<RoutingKey>();
+
+            while (true)
+            {
+                var routingKey = socket.ReceiveRoutingKey(out bool more);
+                if (!more)
+                    throw new InvalidException("Malformed multipart message, empty message expected");
+
+                if (routingKey.Bytes.Length == 0)
+                    break;
+
+                keys.Add(routingKey);
+            }
+
+            return keys;
+        }
+
+        /// <summary>
+        /// Attempt to receive routing-keys from <paramref name="socket"/>, an empty message expected at the end of routing keys.
+        /// If no message is immediately available, return <c>false</c>.
+        /// </summary>
+        /// <param name="socket">The socket to receive from.</param>
+        /// <param name="routingKeys">The routing-keys of the received message.</param>
+        /// <returns><c>true</c> if a message was available, otherwise <c>false</c>.</returns>
+        public static bool TryReceiveRoutingKeys(this IReceivingSocket socket, [NotNullWhen(returnValue: true)] out IEnumerable<RoutingKey>? routingKeys)
+        {
+           return TryReceiveRoutingKeys(socket, TimeSpan.Zero, out routingKeys);
+        }
+
+        /// <summary>
+        /// Attempt to receive a routing-keys from <paramref name="socket"/>.
+        /// If no message is available within <paramref name="timeout"/>, return <c>false</c>.
+        /// </summary>
+        /// <param name="socket">The socket to receive from.</param>
+        /// <param name="timeout">The maximum period of time to wait for a message to become available.</param>
+        /// <param name="routingKeys">The routing-keys of the received message.</param>
+        /// <returns><c>true</c> if a message was available, otherwise <c>false</c>.</returns>
+        public static bool TryReceiveRoutingKeys(this IReceivingSocket socket, TimeSpan timeout, [NotNullWhen(returnValue: true)] out IEnumerable<RoutingKey>? routingKeys)
+        {
+            RoutingKey first = new RoutingKey();
+
+            if (socket.TryReceiveRoutingKey(timeout, ref first, out bool more))
+            {
+                if (!more)
+                    throw new InvalidException("Malformed multipart message, empty message expected");
+
+                List<RoutingKey> keys = new List<RoutingKey>();
+                routingKeys = keys;
+
+                if (first.Bytes.Length == 0) 
+                    return true;                
+
+                keys.Add(first);
+                while (true)
+                {
+                    var routingKey = socket.ReceiveRoutingKey(out more);
+                    if (!more)
+                        throw new InvalidException("Malformed multipart message, empty message expected");
+
+                    if (routingKey.Bytes.Length == 0)
+                        break;
+
+                    keys.Add(routingKey);
+                }
+
+                return true;
+            }
+
+            routingKeys = null;
             return false;
         }
 

@@ -25,7 +25,7 @@ This repository is for version 4, for version 3 go to: https://github.com/NetMQ/
 
 ## Using / Documentation
 
-Before using NetMQ, make sure to read the [ZeroMQ Guide](http://zguide.zeromq.org/page:all).
+Before using NetMQ, make sure to read the [ZeroMQ Guide](http://zguide.zeromq.org/).
 
 The NetMQ documentation can be found at [netmq.readthedocs.org](http://netmq.readthedocs.org/en/latest/). Thanks to [Sacha Barber](http://www.codeproject.com/Members/Sacha-Barber) who agreed to do the documentation.
 
