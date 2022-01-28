@@ -6,7 +6,6 @@
     <SignAssembly>true</SignAssembly>
     <PublicSign Condition=" '$(OS)' != 'Windows_NT' ">true</PublicSign>
     <GenerateRuntimeConfigurationFiles>true</GenerateRuntimeConfigurationFiles>
-    <PackageTargetFallback Condition=" '$(TargetFramework)' == 'netcoreapp1.0' ">$(PackageTargetFallback);netcoreapp1.0;portable-net45+win8</PackageTargetFallback>
     <IsTestProject>true</IsTestProject>
     <TargetFrameworks>net6.0;netcoreapp3.1;net47</TargetFrameworks>
   </PropertyGroup>
