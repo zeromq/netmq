@@ -8,7 +8,7 @@
     <GenerateRuntimeConfigurationFiles>true</GenerateRuntimeConfigurationFiles>
     <PackageTargetFallback Condition=" '$(TargetFramework)' == 'netcoreapp1.0' ">$(PackageTargetFallback);netcoreapp1.0;portable-net45+win8</PackageTargetFallback>
     <IsTestProject>true</IsTestProject>
-    <TargetFrameworks>netcoreapp3.1;netcoreapp2.1;net47</TargetFrameworks>
+    <TargetFrameworks>net6.0;netcoreapp3.1;net47</TargetFrameworks>
   </PropertyGroup>
 
   <PropertyGroup>
