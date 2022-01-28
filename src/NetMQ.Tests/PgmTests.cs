@@ -82,7 +82,7 @@ namespace NetMQ.Tests
         {
             var hostEntry = Dns.GetHostEntry(Dns.GetHostName());
 
-            string ip = hostEntry.AddressList
+            string? ip = hostEntry.AddressList
                 .Where(addr => addr.AddressFamily == AddressFamily.InterNetwork)
                 .Select(addr => addr.ToString())
                 .FirstOrDefault();
