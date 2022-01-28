@@ -63,7 +63,6 @@ namespace NetMQ
         /// <exception cref="ArgumentException">If key in invalid</exception>
         byte[] Z85Decode(string key)
         {
-            UInt32 byte_nbr = 0;
             UInt32 char_nbr = 0;
             UInt32 value = 0;
             var dest_ = new List<byte>();
