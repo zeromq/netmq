@@ -61,7 +61,7 @@ namespace NetMQ
         /// </summary>
         /// <param name="key">key in Z85 format</param>
         /// <exception cref="ArgumentException">If key in invalid</exception>
-        byte[] Z85Decode(string key)
+        private byte[] Z85Decode(string key)
         {
             UInt32 char_nbr = 0;
             UInt32 value = 0;
@@ -252,7 +252,7 @@ namespace NetMQ
 
 
         /// <summary>
-        /// Curve Public key 
+        /// Curve Secret key, encoded.
         /// </summary>
         public string? SecretKeyZ85 => SecretKey != null ? Z85Encode(SecretKey) : null;
 
@@ -263,16 +263,13 @@ namespace NetMQ
         public bool HasSecretKey => SecretKey != null;
         
         /// <summary>
-        /// Curve Public key 
+        /// Curve Public key.
         /// </summary>
         public byte[] PublicKey { get; private set; }
 
         /// <summary>
-        /// Curve Public key 
+        /// Curve Public key, encoded.
         /// </summary>
-        public string PublicKeyZ85 
-        {
-            get => Z85Encode(PublicKey);
-        }
+        public string PublicKeyZ85 => Z85Encode(PublicKey);
     }
 }
