@@ -36,7 +36,7 @@ namespace NetMQ
         {
             byte byte_nbr = 0;
             UInt32 value = 0;
-            string dest = null;
+            string? dest = null;
             while (byte_nbr<data.Length) 
             {
                 //  Accumulate value in base 256 (binary)
@@ -53,7 +53,7 @@ namespace NetMQ
                     value = 0;
                 }
             }
-            return dest;
+            return dest ?? "";
         }
 
         /// <summary>
@@ -255,7 +255,7 @@ namespace NetMQ
         /// <summary>
         /// Curve Public key 
         /// </summary>
-        public string SecretKeyZ85 => SecretKey != null ? Z85Encode(SecretKey) : null;
+        public string? SecretKeyZ85 => SecretKey != null ? Z85Encode(SecretKey) : null;
 
 
         /// <summary>

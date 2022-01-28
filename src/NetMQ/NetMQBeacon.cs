@@ -1,10 +1,11 @@
 ﻿using System;
+using System.Diagnostics.CodeAnalysis;
 using System.Net;
 using System.Net.Sockets;
+using System.Runtime.InteropServices;
 using System.Text;
 using System.Threading;
 using NetMQ.Sockets;
-using System.Runtime.InteropServices;
 
 namespace NetMQ
 {
@@ -199,7 +200,7 @@ namespace NetMQ
             {
                 Assumes.NotNull(m_pipe);
 
-                if (!TryReceiveUdpFrame(out NetMQFrame frame, out string peerName))
+                if (!TryReceiveUdpFrame(out NetMQFrame? frame, out string? peerName))
 		    return;
 
                 // If filter is set, check that beacon matches it
@@ -279,7 +280,7 @@ namespace NetMQ
                 }
             }
 
-            private bool TryReceiveUdpFrame(out NetMQFrame frame, out string peerName)
+            private bool TryReceiveUdpFrame([NotNullWhen(returnValue: true)] out NetMQFrame? frame, [NotNullWhen(returnValue: true)] out string? peerName)
             {
                 Assumes.NotNull(m_udpSocket);
 
@@ -321,7 +322,7 @@ namespace NetMQ
         {
             m_actor = NetMQActor.Create(new Shim());
 
-            void OnReceive(object sender, NetMQActorEventArgs e) => m_receiveEvent.Fire(this, new NetMQBeaconEventArgs(this));
+            void OnReceive(object sender, NetMQActorEventArgs e) => m_receiveEvent!.Fire(this, new NetMQBeaconEventArgs(this));
 
             m_receiveEvent = new EventDelegator<NetMQBeaconEventArgs>(
                 () => m_actor.ReceiveReady += OnReceive,
