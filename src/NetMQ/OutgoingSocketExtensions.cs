@@ -695,12 +695,13 @@ namespace NetMQ
         public static IOutgoingSocket SendEmptyRoutingKeys(this IOutgoingSocket socket) 
         {
             return socket.SendMoreFrameEmpty();
-        } 
+        }
 
         /// <summary>
         /// Send a single routing key over <paramref name="socket"/>, append an empty message afterwards.
         /// </summary>
         /// <param name="socket">the IOutgoingSocket to transmit on</param>
+        /// <param name="routingKeys">the routing keys to send</param>
         public static IOutgoingSocket SendRoutingKeys(this IOutgoingSocket socket, params RoutingKey[] routingKeys)
         {
             foreach(var routingKey in routingKeys)            

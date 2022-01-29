@@ -149,8 +149,10 @@ namespace NetMQ
             m_self = self;
             m_shim = shim;
 
-            void OnReceive(object sender, NetMQSocketEventArgs e) => m_receiveEvent.Fire(this, new NetMQActorEventArgs(this));
-            void OnSend   (object sender, NetMQSocketEventArgs e) => m_sendEvent   .Fire(this, new NetMQActorEventArgs(this));
+            var args = new NetMQActorEventArgs(this);
+
+            void OnReceive(object sender, NetMQSocketEventArgs e) => m_receiveEvent!.Fire(this, args);
+            void OnSend   (object sender, NetMQSocketEventArgs e) => m_sendEvent   !.Fire(this, args);
 
             m_receiveEvent = new EventDelegator<NetMQActorEventArgs>(
                 () => m_self.ReceiveReady += OnReceive,
