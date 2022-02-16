@@ -260,10 +260,7 @@ namespace NetMQ
         /// <returns>The span</returns>
         public Span<byte> Slice()
         {
-            if (m_data == null)
-                return Span<byte>.Empty;
-            
-            return new Span<byte>(m_data, m_offset, Size);  
+            return m_data == null ? Span<byte>.Empty : new Span<byte>(m_data, m_offset, Size);
         }
         
         /// <summary>
@@ -272,10 +269,7 @@ namespace NetMQ
         /// <returns>The memory</returns>
         public Memory<byte> SliceAsMemory()
         {
-            if (m_data == null)
-                return Memory<byte>.Empty;
-            
-            return new Memory<byte>(m_data, m_offset, Size);  
+            return m_data == null ? Memory<byte>.Empty : new Memory<byte>(m_data, m_offset, Size);
         }
 
         /// <summary>
