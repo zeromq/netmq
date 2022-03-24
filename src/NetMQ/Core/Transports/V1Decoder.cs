@@ -121,18 +121,19 @@ namespace NetMQ.Core.Transports
 
             //  8-byte payload length is read. Allocate the buffer
             // for message body and read the message data into it.
-            long payloadLength = m_tmpbuf.GetLong(Endian, 0);
+            ulong payloadLength = m_tmpbuf.GetUnsignedLong(Endian, 0);
 
             // There has to be at least one byte (the flags) in the message).
             if (payloadLength == 0)
                 return DecodeResult.Error;
 
             // Message size must not exceed the maximum allowed size.
-            if (m_maxMessageSize >= 0 && payloadLength - 1 > m_maxMessageSize)
+            if (m_maxMessageSize >= 0 && payloadLength - 1 > (ulong)m_maxMessageSize)
                 return DecodeResult.Error;
 
+            // TODO: move this constant to a good place (0x7FFFFFC7)
             // Message size must fit within range of size_t data type.
-            if (payloadLength - 1 > int.MaxValue)
+            if (payloadLength - 1 > 0x7FFFFFC7)
                 return DecodeResult.Error;
 
             int msgSize = (int)(payloadLength - 1);
