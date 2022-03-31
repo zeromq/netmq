@@ -117,10 +117,10 @@ This is covered in much more detail in the [Message](message.md) documentation p
 
 ZeroMQ (and therefore NetMQ) is all about patterns and building blocks. The <a href="http://zguide.zeromq.org/page:all" target="_blank">ZeroMQ guide</a> covers everything you need to know to help you with these patterns. You should make sure you read the following sections before you attempt to start work with NetMQ.
 
-+ <a href="http://zguide.zeromq.org/page:all#Chapter-Sockets-and-Patterns" target="_blank">Chapter 2 - Sockets and Patterns</a>
-+ <a href="http://zguide.zeromq.org/page:all#Chapter-Advanced-Request-Reply-Patterns" target="_blank">Chapter 3 - Advanced Request-Reply Patterns</a>
-+ <a href="http://zguide.zeromq.org/page:all#Chapter-Reliable-Request-Reply-Patterns" target="_blank">Chapter 4 - Reliable Request-Reply Patterns</a>
-+ <a href="http://zguide.zeromq.org/page:all#Chapter-Advanced-Pub-Sub-Patterns" target="_blank">Chapter 5 - Advanced Pub-Sub Patterns</a>
++ <a href="https://zguide.zeromq.org/docs/chapter2/" target="_blank">Chapter 2 - Sockets and Patterns</a>
++ <a href="https://zguide.zeromq.org/docs/chapter3/" target="_blank">Chapter 3 - Advanced Request-Reply Patterns</a>
++ <a href="https://zguide.zeromq.org/docs/chapter4/" target="_blank">Chapter 4 - Reliable Request-Reply Patterns</a>
++ <a href="https://zguide.zeromq.org/docs/chapter5/" target="_blank">Chapter 5 - Advanced Pub-Sub Patterns</a>
 
 
 NetMQ also has some examples of a few of these patterns written using the NetMQ APIs. Should you find the pattern you are looking for in the <a href="http://zguide.zeromq.org/page:all" target="_blank">ZeroMQ guide</a> it should be fairly easy to translate that into NetMQ usage.
@@ -132,7 +132,7 @@ Here are some links to the patterns that are available within the NetMQ codebase
 + <a href="https://github.com/NetMQ/Samples/blob/master/src/Pirate%20Pattern/Lazy%20Pirate" target="_blank">Lazy Pirate Pattern</a>
 + <a href="https://github.com/NetMQ/Samples/blob/master/src/Pirate%20Pattern/Simple%20Pirate" target="_blank">Simple Pirate Pattern</a>
 
-For other patterns, the <a href="http://zguide.zeromq.org/page:all" target="_blank">ZeroMQ guide</a>
+For other patterns, the <a href="https://zguide.zeromq.org/" target="_blank">ZeroMQ guide</a>
 will be your first port of call
 
 ZeroMQ patterns are implemented by pairs of sockets of particular types. In other words, to understand ZeroMQ patterns you need to understand socket types and how they work together. Mostly, this just takes study; there is little that is obvious at this level.
