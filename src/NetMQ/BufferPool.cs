@@ -1,5 +1,7 @@
 using System;
+#if ! FLAVOR_MINIMAL
 using System.ServiceModel.Channels;
+#endif
 using System.Threading;
 using System.Buffers;
 
@@ -25,6 +27,10 @@ namespace NetMQ
         void Return(byte[] buffer);
     }
 
+    /// <summary>
+    /// This implementation of <see cref="IBufferPool"/> uses System.Buffer's ArrayPool
+    /// class to manage a pool of buffers.
+    /// </summary>
     public class ArrayBufferPool : IBufferPool
     {
         private readonly ArrayPool<byte> m_arrayPool;
@@ -84,6 +90,8 @@ namespace NetMQ
             // We don't have a means of clearing ArrayPool like BufferManager does.
         }
     }
+
+#if ! FLAVOR_MINIMAL
     /// <summary>
     /// This implementation of <see cref="IBufferPool"/> uses WCF's <see cref="BufferManager"/>
     /// class to manage a pool of buffers.
@@ -148,6 +156,7 @@ namespace NetMQ
             m_bufferManager.Clear();
         }
     }
+#endif
 
     /// <summary>
     /// This simple implementation of <see cref="IBufferPool"/> does no buffer pooling. Instead, it uses regular
@@ -194,6 +203,7 @@ namespace NetMQ
         }
     }
 
+
     /// <summary>
     /// Contains a singleton instance of <see cref="IBufferPool"/> used for allocating byte arrays
     /// for <see cref="Msg"/> instances with type <see cref="MsgType.Pool"/>.
@@ -204,7 +214,7 @@ namespace NetMQ
     /// <para/>
     /// The default implementation is <see cref="GCBufferPool"/>.
     /// <list type="bullet">
-    /// <item>Call <see cref="SetBufferManagerBufferPool"/> to replace it with a <see cref="BufferManagerBufferPool"/>.</item>
+    /// <item>Call <see cref="SetBufferManagerBufferPool"/> to replace it with a pooling implementation.</item>
     /// <item>Call <see cref="SetGCBufferPool"/> to reinstate the default <see cref="GCBufferPool"/>.</item>
     /// <item>Call <see cref="SetCustomBufferPool"/> to substitute a custom implementation for the allocation and
     /// deallocation of message buffers.</item>
@@ -223,7 +233,7 @@ namespace NetMQ
         }
 
         /// <summary>
-        /// Set BufferPool to use the <see cref="BufferManagerBufferPool"/> to manage the buffer-pool.
+        /// Set BufferPool to use a buffer pooling implementation to manage the buffer-pool.
         /// </summary>
         /// <param name="maxBufferPoolSize">the maximum size to allow for the buffer pool</param>
         /// <param name="maxBufferSize">the maximum size to allow for each individual buffer in the pool</param>
@@ -231,7 +241,11 @@ namespace NetMQ
         /// <exception cref="ArgumentOutOfRangeException">Either maxBufferPoolSize or maxBufferSize was less than zero.</exception>
         public static void SetBufferManagerBufferPool(long maxBufferPoolSize, int maxBufferSize)
         {
+#if FLAVOR_MINIMAL
+            SetCustomBufferPool(new ArrayBufferPool(maxBufferPoolSize, maxBufferSize));
+#else
             SetCustomBufferPool(new BufferManagerBufferPool(maxBufferPoolSize, maxBufferSize));
+#endif
         }
 
         /// <summary>
