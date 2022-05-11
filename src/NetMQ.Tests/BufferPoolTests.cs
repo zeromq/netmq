@@ -10,7 +10,10 @@ namespace NetMQ.Tests
     {
         protected int maxBufferSize = 2;
         protected long maxBufferPoolSize = 100L;
+        // Silence the non-nullable warning.
+#pragma warning disable 8618
         protected IBufferPool pool;
+#pragma warning restore 8618
 
         [Theory]
         [InlineData(500)]
