@@ -2,6 +2,7 @@ using System;
 #if ! FLAVOR_MINIMAL
 using System.ServiceModel.Channels;
 #endif
+using System.Collections.Generic;
 using System.Threading;
 using System.Buffers;
 
@@ -34,6 +35,7 @@ namespace NetMQ
     public class ArrayBufferPool : IBufferPool
     {
         private readonly ArrayPool<byte> m_arrayPool;
+        private readonly HashSet<byte[]> m_onLoan;
 
         /// <summary>
         /// Create a new ArrayBufferPool with the specified maximum buffer pool size
@@ -45,7 +47,8 @@ namespace NetMQ
         /// <exception cref="ArgumentOutOfRangeException">Either maxBufferPoolSize or maxBufferSize was less than zero.</exception>
         public ArrayBufferPool(long maxBufferPoolSize, int maxBufferSize)
         {
-          m_arrayPool = ArrayPool<byte>.Create(maxBufferSize, (int) maxBufferPoolSize);
+            m_arrayPool = ArrayPool<byte>.Create(maxBufferSize, (int) maxBufferPoolSize);
+            m_onLoan = new HashSet<byte[]>();
         }
 
         /// <summary>
@@ -56,7 +59,9 @@ namespace NetMQ
         /// <exception cref="ArgumentOutOfRangeException">size cannot be less than zero</exception>
         public byte[] Take(int size)
         {
-            return m_arrayPool.Rent(size);
+            var loaner = m_arrayPool.Rent(size);
+            m_onLoan.Add(loaner);
+            return loaner;
         }
 
         /// <summary>
@@ -67,7 +72,11 @@ namespace NetMQ
         /// <exception cref="ArgumentNullException">the buffer reference cannot be null</exception>
         public void Return(byte[] buffer)
         {
-            m_arrayPool.Return(buffer);
+            if (m_onLoan.Remove(buffer))
+                m_arrayPool.Return(buffer);
+            else
+                throw new ArgumentException("Buffer returned to pool was not rented.",
+                                            nameof(buffer));
         }
 
         /// <summary>
@@ -87,7 +96,9 @@ namespace NetMQ
         {
             if (!disposing)
                 return;
-            // We don't have a means of clearing ArrayPool like BufferManager does.
+            foreach (var loaner in m_onLoan)
+                Return(loaner);
+            m_onLoan.Clear();
         }
     }
 
