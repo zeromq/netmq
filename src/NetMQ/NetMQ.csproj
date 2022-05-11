@@ -22,21 +22,8 @@
     <IncludeSymbols>true</IncludeSymbols>
     <SymbolPackageFormat>snupkg</SymbolPackageFormat>
     <GenerateDocumentationFile>true</GenerateDocumentationFile>
-
-    <Flavor>Standard</Flavor>
-    <!-- Set flavor to minimal to exclude dependencies where possible. Found to
-         useful when building for use with Unity3D. Can change here in .csproj
-         or by using the following command argument when building:
-
-         $ dotnet build -p:Flavor=Minimal
-    -->
-    <!-- <Flavor>Minimal</Flavor> -->
   </PropertyGroup>
 
-  <PropertyGroup Condition="'$(Flavor)'=='Minimal'">
-    <DefineConstants>$(DefineConstants);FLAVOR_MINIMAL</DefineConstants>
-  </PropertyGroup>
-  
   <PropertyGroup Condition=" '$(TargetFramework)' != 'netstandard2.1' ">
     <AllowUnsafeBlocks>true</AllowUnsafeBlocks>
   </PropertyGroup>
