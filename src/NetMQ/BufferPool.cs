@@ -1,5 +1,10 @@
+// USE_SERVICE_MODEL requires the System.ServiceModel.Primitives package.
+// It has been substituted by the System.Buffers package. This define remains
+// merely to be able to exercise tests against both IBufferPool implementations.
+
+// #define USE_SERVICE_MODEL
 using System;
-#if ! FLAVOR_MINIMAL
+#if USE_SERVICE_MODEL
 using System.ServiceModel.Channels;
 #endif
 using System.Collections.Generic;
@@ -102,7 +107,7 @@ namespace NetMQ
         }
     }
 
-#if ! FLAVOR_MINIMAL
+#if USE_SERVICE_MODEL
     /// <summary>
     /// This implementation of <see cref="IBufferPool"/> uses WCF's <see cref="BufferManager"/>
     /// class to manage a pool of buffers.
@@ -252,10 +257,10 @@ namespace NetMQ
         /// <exception cref="ArgumentOutOfRangeException">Either maxBufferPoolSize or maxBufferSize was less than zero.</exception>
         public static void SetBufferManagerBufferPool(long maxBufferPoolSize, int maxBufferSize)
         {
-#if FLAVOR_MINIMAL
-            SetCustomBufferPool(new ArrayBufferPool(maxBufferPoolSize, maxBufferSize));
-#else
+#if USE_SERVICE_MODEL
             SetCustomBufferPool(new BufferManagerBufferPool(maxBufferPoolSize, maxBufferSize));
+#else
+            SetCustomBufferPool(new ArrayBufferPool(maxBufferPoolSize, maxBufferSize));
 #endif
         }
 
