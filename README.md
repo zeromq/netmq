@@ -7,7 +7,7 @@ NetMQ is a 100% native C# port of the lightweight messaging library ZeroMQ.
 
 NetMQ extends the
 standard socket interfaces with features traditionally provided by
-specialised messaging middleware products. NetMQ sockets provide an
+specialized messaging middleware products. NetMQ sockets provide an
 abstraction of asynchronous message queues, multiple messaging patterns,
 message filtering (subscriptions), seamless access to multiple transport
 protocols, and more.
