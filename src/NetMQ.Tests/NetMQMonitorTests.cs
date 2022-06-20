@@ -2,6 +2,8 @@
 using System.Linq;
 using System.Threading;
 using System.Threading.Tasks;
+using AsyncIO;
+using NetMQ.Core;
 using NetMQ.Monitoring;
 using NetMQ.Sockets;
 using Xunit;
@@ -156,6 +158,32 @@ namespace NetMQ.Tests
                 Assert.True(completed);
             }
             // NOTE If this test fails, it will hang because context.Dispose will block
+        }
+
+        [Fact]
+        public void ConvertArgDoesNotThrowForNullSocket()
+        {
+            AsyncSocket? socket = null;
+            MonitorEvent monitorEvent = new MonitorEvent(SocketEvents.All, addr: "", arg: socket!);
+            Assert.Null(monitorEvent.ConvertArg<AsyncSocket>());
+        }
+
+        [Fact]
+        public void ConvertArgDoesNotThrowForNonNullSocket()
+        {
+            using (AsyncSocket socket = AsyncSocket.CreateIPv4Tcp())
+            {
+                MonitorEvent monitorEvent = new MonitorEvent(SocketEvents.All, addr: "", arg: socket);
+                Assert.Equal(socket, monitorEvent.ConvertArg<AsyncSocket>());
+            }
+        }
+
+        [Fact]
+        public void ConvertArgThrowsForInvalidType()
+        {
+            AsyncSocket? socket = null;
+            MonitorEvent monitorEvent = new MonitorEvent(SocketEvents.All, addr: "", arg: socket!);
+            Assert.Throws<ArgumentException>(() => monitorEvent.ConvertArg<int>());
         }
     }
 }
