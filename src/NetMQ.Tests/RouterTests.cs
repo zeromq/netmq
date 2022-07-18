@@ -130,5 +130,26 @@ namespace NetMQ.Tests
                 }
             }
         }
+
+        [Fact]
+        public void RoutingKeys() 
+        {
+            using var router = new RouterSocket("inproc://routing-keys");
+            using var dealer = new DealerSocket("inproc://routing-keys");
+
+            dealer.SendRoutingKeys(new RoutingKey(1)).SendFrame("Hello");
+            
+            var keys = router.ReceiveRoutingKeys();
+            var message = router.ReceiveFrameString();
+
+            Assert.Equal("Hello", message);
+
+            router.SendRoutingKeys(keys).SendFrame("World");
+
+            dealer.ReceiveRoutingKeys();
+            var reply = dealer.ReceiveFrameString();
+
+            Assert.Equal("World", reply);
+        }
     }
 }

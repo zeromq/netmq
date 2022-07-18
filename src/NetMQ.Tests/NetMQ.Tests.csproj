@@ -6,9 +6,8 @@
     <SignAssembly>true</SignAssembly>
     <PublicSign Condition=" '$(OS)' != 'Windows_NT' ">true</PublicSign>
     <GenerateRuntimeConfigurationFiles>true</GenerateRuntimeConfigurationFiles>
-    <PackageTargetFallback Condition=" '$(TargetFramework)' == 'netcoreapp1.0' ">$(PackageTargetFallback);netcoreapp1.0;portable-net45+win8</PackageTargetFallback>
     <IsTestProject>true</IsTestProject>
-    <TargetFrameworks>netcoreapp3.1;netcoreapp2.1;net47</TargetFrameworks>
+    <TargetFrameworks>net6.0;netcoreapp3.1;net47</TargetFrameworks>
   </PropertyGroup>
 
   <PropertyGroup>
@@ -41,9 +40,9 @@
 
   <ItemGroup>
     <PackageReference Include="Microsoft.NET.Test.Sdk" Version="15.5.0" />
-    <PackageReference Include="Newtonsoft.Json" Version="10.0.3" />
-    <PackageReference Include="xunit" Version="2.4.1" />
-    <PackageReference Include="xunit.runner.visualstudio" Version="2.4.1" />
+    <PackageReference Include="Newtonsoft.Json" Version="13.0.1" />
+    <PackageReference Include="xunit" Version="2.4.2-pre.13" />
+    <PackageReference Include="xunit.runner.visualstudio" Version="2.4.3" />
   </ItemGroup>
   
   <ItemGroup Condition=" '$(TargetFramework)' == 'net47' ">

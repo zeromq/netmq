@@ -31,6 +31,15 @@ namespace NetMQ
             bytes = Convert.FromBase64String(b64);
         }
 
+        /// <summary>
+        /// Create a new routing key out of a Int64
+        /// </summary>
+        /// <param name="value"></param>
+        public RoutingKey(long value)
+        {
+            bytes = NetworkOrderBitsConverter.GetBytes(value);
+        }
+
         internal byte[] Bytes
         {
             get { return bytes; }

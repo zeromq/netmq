@@ -49,7 +49,7 @@ namespace NetMQ.Monitoring
         /// <param name="address">The address of the event.</param>
         /// <param name="socketEvent">The type of socket event that occurred.</param>
         /// <param name="socket">The socket upon which this event occurred.</param>
-        public NetMQMonitorSocketEventArgs(NetMQMonitor monitor, string address, AsyncSocket socket, SocketEvents socketEvent)
+        public NetMQMonitorSocketEventArgs(NetMQMonitor monitor, string address, AsyncSocket? socket, SocketEvents socketEvent)
             : base(monitor, address, socketEvent)
         {
             Socket = socket;
@@ -58,7 +58,7 @@ namespace NetMQ.Monitoring
         /// <summary>
         /// Gets the socket upon which this event occurred.
         /// </summary>
-        public AsyncSocket Socket { get; }
+        public AsyncSocket? Socket { get; }
     }
 
     /// <summary>

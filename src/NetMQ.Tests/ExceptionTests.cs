@@ -108,6 +108,7 @@ namespace NetMQ.Tests
             return Deserialise<T>(Serialise(source));
         }
 
+#pragma warning disable SYSLIB0011 // BinaryFormatter is obsolete
         private static Stream Serialise(object source)
         {
             var formatter = new BinaryFormatter();
@@ -122,6 +123,7 @@ namespace NetMQ.Tests
             stream.Position = 0;
             return (T)formatter.Deserialize(stream);
         }
+#pragma warning restore SYSLIB0011 // BinaryFormatter is obsolete
 
         #endregion
     }
