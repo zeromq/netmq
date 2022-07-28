@@ -66,7 +66,7 @@ InProc (in-process) allows you to connect sockets running with the same process.
 + To do away with shared state/locks. When you send data down the wire (socket) there is no shared state to worry about. Each end of the socket will have its own copy.
 + Being able to communicate between very disparate parts of a system.
 
-NetMQ comes with several components that use InProc, such the as [Actor model](actor.md) and [Devices](devices.md), which are discussed in their relevant documentation pages.
+NetMQ comes with several components that use InProc, such the as [Actor model](actor.md) and[Devices, which are discussed in their relevant documentation pages.
 
 ### Example
 
