@@ -350,12 +350,10 @@ namespace NetMQ.Core.Mechanisms
         
         protected bool IsCommand(string command, ref Msg msg)
         {
-            if (msg.Size >= command.Length + 1)
+            if (msg.Size >= command.Length + 1 && msg[0] == command.Length)
             {
-                string msgCommand = msg.GetString(Encoding.ASCII, 1, msg[0]);
-                return msgCommand == command && msg[0] == command.Length;
+                return msg.GetString(Encoding.ASCII, 1, msg[0]) == command;
             }
-
             return false;
         }
     }
