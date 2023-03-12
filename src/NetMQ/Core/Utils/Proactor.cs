@@ -86,6 +86,7 @@ namespace NetMQ.Core.Utils
             item.Cancelled = true;
         }
 
+        /// <exception cref="ArgumentOutOfRangeException">The completionStatuses item must have a valid OperationType.</exception>
         private void Loop()
         {
             var completions = new CompletionStatus[CompletionStatusArraySize];
@@ -131,13 +132,12 @@ namespace NetMQ.Core.Utils
                                             completion.BytesTransferred);
                                         break;
                                     default:
-                                        // invalid completion (this would previously throw an ArgumentOutOfRangeException, terminate the loop and exit the process)
-                                        break;
+                                        throw new ArgumentOutOfRangeException();
                                 }
                             }
                         }
                     }
-                    catch //(TerminatingException)
+                    catch (TerminatingException)
                     { }
                 }
             }
