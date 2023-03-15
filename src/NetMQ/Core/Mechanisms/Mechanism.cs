@@ -348,7 +348,7 @@ namespace NetMQ.Core.Mechanisms
             return true;
         }
         
-        protected bool IsCommand(string command, ref Msg msg)
+        internal protected bool IsCommand(string command, ref Msg msg)
         {
             if (msg.Size >= command.Length + 1 && msg[0] == command.Length)
             {
