@@ -25,7 +25,7 @@ namespace NetMQ.Tests
         [Fact]
         public void IsCommandShouldReturnTrueForValidCommand()
         {
-            var mechanism = new NullMechanism(null, null);
+            var mechanism = new NullMechanism(null!, null!);
             var msg = CreateMsg("READY", 0);
             Assert.True(mechanism.IsCommand("READY", ref msg));
         }
@@ -33,7 +33,7 @@ namespace NetMQ.Tests
         [Fact]
         public void IsCommandShouldReturnFalseForInvalidCommand()
         {
-            var mechanism = new NullMechanism(null, null);
+            var mechanism = new NullMechanism(null!, null!);
             var msg = CreateMsg("READY", -1);
             Assert.False(mechanism.IsCommand("READY", ref msg));
             msg = CreateMsg("READY", 1);
