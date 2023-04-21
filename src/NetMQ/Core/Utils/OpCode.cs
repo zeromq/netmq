@@ -1,5 +1,4 @@
-﻿#if !NETSTANDARD1_6
-using System;
+﻿using System;
 using System.Reflection;
 using System.Runtime.InteropServices;
 
@@ -174,4 +173,3 @@ namespace NetMQ.Core.Utils
         }
     }
 }
-#endif

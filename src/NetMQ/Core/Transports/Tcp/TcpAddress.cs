@@ -102,11 +102,7 @@ namespace NetMQ.Core.Transports.Tcp
             }
             else if (!IPAddress.TryParse(addrStr, out ipAddress))
             {
-#if NETSTANDARD1_6
-                var availableAddresses = Dns.GetHostEntryAsync(addrStr).Result.AddressList;
-#else
                 var availableAddresses = Dns.GetHostEntry(addrStr).AddressList;
-#endif
 
                 ipAddress = ip4Only
                     ? availableAddresses.FirstOrDefault(ip => ip.AddressFamily == AddressFamily.InterNetwork)

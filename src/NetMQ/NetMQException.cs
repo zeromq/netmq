@@ -1,11 +1,7 @@
 using System;
 using System.Net.Sockets;
 using System.Runtime.Serialization;
-
-#if !NETSTANDARD1_6
 using System.Security.Permissions;
-#endif
-
 using NetMQ.Core;
 
 namespace NetMQ
@@ -13,9 +9,7 @@ namespace NetMQ
     /// <summary>
     /// Base class for custom exceptions within the NetMQ library.
     /// </summary>
-#if !NETSTANDARD1_6
     [Serializable]
-#endif
     public class NetMQException : Exception
     {
         /// <summary>
@@ -50,8 +44,6 @@ namespace NetMQ
             : base(message, innerException)
         {}
 
-#if !NETSTANDARD1_6
-
         /// <summary>Constructor for serialisation.</summary>
         protected NetMQException(SerializationInfo info, StreamingContext context)
             : base(info, context)
@@ -66,8 +58,6 @@ namespace NetMQ
             info.AddValue("ErrorCode", ErrorCode);
             base.GetObjectData(info, context);
         }
-
-#endif
 
         #endregion
 
@@ -182,9 +172,7 @@ namespace NetMQ
     /// <summary>
     /// AddressAlreadyInUseException is a NetMQException that is used within SocketBase.Bind to signal an address-conflict.
     /// </summary>
-#if !NETSTANDARD1_6
     [Serializable]
-#endif
     public class AddressAlreadyInUseException : NetMQException
     {
         /// <summary>
@@ -206,21 +194,17 @@ namespace NetMQ
         {
         }
 
-#if !NETSTANDARD1_6
         /// <summary>Constructor for serialisation.</summary>
         protected AddressAlreadyInUseException(SerializationInfo info, StreamingContext context)
             : base(info, context)
         {
         }
-#endif
     }
 
     /// <summary>
     /// EndpointNotFoundException is a NetMQException that is used within Ctx.FindEndpoint to signal a failure to find a specified address.
     /// </summary>
-#if !NETSTANDARD1_6
     [Serializable]
-#endif
     public class EndpointNotFoundException : NetMQException
     {
         /// <summary>
@@ -250,22 +234,18 @@ namespace NetMQ
         {
         }
 
-#if !NETSTANDARD1_6
         /// <summary>Constructor for serialisation.</summary>
         protected EndpointNotFoundException(SerializationInfo info, StreamingContext context)
             : base(info, context)
         {
         }
-#endif
     }
 
     /// <summary>
     /// TerminatingException is a NetMQException that is used within SocketBase and Ctx to signal
     /// that you're making the mistake of trying to do further work after terminating the message-queueing system.
     /// </summary>
-#if !NETSTANDARD1_6
     [Serializable]
-#endif
     public class TerminatingException : NetMQException
     {
         /// <summary>
@@ -294,21 +274,18 @@ namespace NetMQ
             : this(null, null)
         {
         }
-#if !NETSTANDARD1_6
+
         /// <summary>Constructor for serialisation.</summary>
         protected TerminatingException(SerializationInfo info, StreamingContext context)
             : base(info, context)
         {
         }
-#endif
     }
 
     /// <summary>
     /// InvalidException is a NetMQException that is used within the message-queueing system to signal invalid value errors.
     /// </summary>
-#if !NETSTANDARD1_6
     [Serializable]
-#endif
     public class InvalidException : NetMQException
     {
         /// <summary>
@@ -337,21 +314,18 @@ namespace NetMQ
             : this(null, null)
         {
         }
-#if !NETSTANDARD1_6
+
         /// <summary>Constructor for serialisation.</summary>
         protected InvalidException(SerializationInfo info, StreamingContext context)
             : base(info, context)
         {
         }
-#endif
     }
 
     /// <summary>
     /// FaultException is a NetMQException that is used within the message-queueing system to signal general fault conditions.
     /// </summary>
-#if !NETSTANDARD1_6
     [Serializable]
-#endif
     public class FaultException : NetMQException
     {
         /// <summary>
@@ -380,22 +354,19 @@ namespace NetMQ
             : this(null, null)
         {
         }
-#if !NETSTANDARD1_6
+
         /// <summary>Constructor for serialisation.</summary>
         protected FaultException(SerializationInfo info, StreamingContext context)
             : base(info, context)
         {
         }
-#endif
     }
 
     /// <summary>
     /// ProtocolNotSupportedException is a NetMQException that is used within the message-queueing system to signal
     /// mistakes in properly utilizing the communications protocols.
     /// </summary>
-#if !NETSTANDARD1_6
     [Serializable]
-#endif
     public class ProtocolNotSupportedException : NetMQException
     {
         /// <summary>
@@ -424,22 +395,19 @@ namespace NetMQ
             : this(null, null)
         {
         }
-#if !NETSTANDARD1_6
+
         /// <summary>Constructor for serialisation.</summary>
         protected ProtocolNotSupportedException(SerializationInfo info, StreamingContext context)
             : base(info, context)
         {
         }
-#endif
     }
 
     /// <summary>
     /// HostUnreachableException is an Exception that is used within the message-queueing system
     /// to signal failures to communicate with a host.
     /// </summary>
-#if !NETSTANDARD1_6
     [Serializable]
-#endif
     public class HostUnreachableException : NetMQException
     {
         /// <summary>
@@ -468,22 +436,19 @@ namespace NetMQ
             : this(null, null)
         {
         }
-#if !NETSTANDARD1_6
+
         /// <summary>Constructor for serialisation.</summary>
         protected HostUnreachableException(SerializationInfo info, StreamingContext context)
             : base(info, context)
         {
         }
-#endif
     }
 
     /// <summary>
     /// FiniteStateMachineException is an Exception that is used within the message-queueing system
     /// to signal errors in the send/receive order with request/response sockets.
     /// </summary>
-#if !NETSTANDARD1_6
     [Serializable]
-#endif
     public class FiniteStateMachineException : NetMQException
     {
         /// <summary>
@@ -512,12 +477,11 @@ namespace NetMQ
             : this(null, null)
         {
         }
-#if !NETSTANDARD1_6
+
         /// <summary>Constructor for serialisation.</summary>
         protected FiniteStateMachineException(SerializationInfo info, StreamingContext context)
             : base(info, context)
         {
         }
-#endif
     }
 }
