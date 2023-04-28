@@ -360,11 +360,7 @@ namespace NetMQ
 
                 try
                 {
-#if NETSTANDARD1_6
-                    return m_hostName = Dns.GetHostEntryAsync(boundTo).Result.HostName;
-#else
                     return m_hostName = Dns.GetHostEntry(boundTo).HostName;
-#endif
                 }
                 catch
                 {
