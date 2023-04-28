@@ -96,7 +96,7 @@ namespace NetMQ.Core.Patterns.Utils
 
         public bool Recv(ref Msg msg)
         {
-            return RecvPipe(ref msg, out Pipe _);
+            return RecvPipe(ref msg, out _);
         }
 
         public bool RecvPipe(ref Msg msg, [NotNullWhen(returnValue: true)] out Pipe? pipe)

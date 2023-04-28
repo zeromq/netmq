@@ -472,12 +472,11 @@ namespace NetMQ
         /// <returns>an object of the given type, that is the value of that option</returns>
         /// <exception cref="TerminatingException">The socket has been stopped.</exception>
         /// <exception cref="ObjectDisposedException">This object is already disposed.</exception>
-        [return: MaybeNull]
-        internal T GetSocketOptionX<T>(ZmqSocketOption option)
+        internal T? GetSocketOptionX<T>(ZmqSocketOption option)
         {
             m_socketHandle.CheckDisposed();
 
-            return (T)m_socketHandle.GetSocketOptionX(option);
+            return (T?)m_socketHandle.GetSocketOptionX(option);
         }
 
         /// <summary>
