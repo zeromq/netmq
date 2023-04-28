@@ -94,7 +94,7 @@ namespace NetMQ.Core.Patterns.Utils
 
         public bool Send(ref Msg msg)
         {
-            return SendPipe(ref msg, out Pipe _);
+            return SendPipe(ref msg, out _);
         }
 
         public bool SendPipe(ref Msg msg, out Pipe? pipe)

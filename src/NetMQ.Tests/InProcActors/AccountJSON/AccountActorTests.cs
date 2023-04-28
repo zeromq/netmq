@@ -19,6 +19,8 @@ namespace NetMQ.Tests.InProcActors.AccountJSON
 
                 var updatedAccount = JsonConvert.DeserializeObject<Account>(actor.ReceiveFrameString());
 
+                Assert.NotNull(updatedAccount);
+
                 Assert.Equal(10.0m, updatedAccount.Balance);
             }
         }
