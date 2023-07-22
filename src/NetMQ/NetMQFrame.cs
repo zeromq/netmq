@@ -337,5 +337,14 @@ namespace NetMQ
 
             return byteArray;
         }
+
+        /// <summary>
+        /// Return an readonly span of bytes that carries the content of this NetMQFrames Buffer.
+        /// </summary>
+        /// <returns>the Buffer as a readonly span</returns>
+        public ReadOnlySpan<byte> AsSpan()
+        {
+            return new ReadOnlySpan<byte>(Buffer, 0, MessageSize);
+        }
     }
 }
