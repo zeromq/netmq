@@ -11,6 +11,8 @@ namespace NetMQ.Core.Utils
 
         public static bool Open()
         {
+            if (SocketOptions.DoNotUseRDTSC)
+                return false;
 #if NETSTANDARD1_1_OR_GREATER || NET471_OR_GREATER
             if (RuntimeInformation.ProcessArchitecture != Architecture.X86 &&
                 RuntimeInformation.ProcessArchitecture != Architecture.X64)
