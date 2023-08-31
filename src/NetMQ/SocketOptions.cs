@@ -13,6 +13,16 @@ namespace NetMQ
     public class SocketOptions
     {
         /// <summary>
+        /// If set, the time stamp counter is not read directly through opcode injection,
+        /// rather <see cref="System.Diagnostics.Stopwatch.GetTimestamp"/> is used.
+        /// When false, the time stamp counter is read by allocating a few bytes on the heap with
+        /// read/write/execute privilege. OpCode is copied to this allocated memory and invoked to read
+        /// the time stamp counter, (which is a register available on most modern CPUs). While this is
+        /// an accurate way to read the time stamp counter, because it injects code onto the heap, this
+        /// can be detected as a malware technique by some anti-virus defenders.
+        /// </summary>
+        public static bool DoNotUseRDTSC;
+        /// <summary>
         /// The NetMQSocket that this SocketOptions is referencing.
         /// </summary>
         private readonly NetMQSocket m_socket;
