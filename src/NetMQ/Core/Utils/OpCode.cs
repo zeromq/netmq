@@ -11,7 +11,7 @@ namespace NetMQ.Core.Utils
 
         public static bool Open()
         {
-            //Look for an environment variable: "NETQM_SUPPRESS_RDTSC" with any value
+            // Look for an environment variable: "NETQM_SUPPRESS_RDTSC" with any value.
             // The application can set this environment variable when this code is running in a system where
             // it is not desirable to read the processor's time stamp counter.
             // While this is supported in modern CPUs, the technique used for allocating executable memory, copying OP Code
