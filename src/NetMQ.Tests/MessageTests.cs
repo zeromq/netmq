@@ -128,7 +128,7 @@ namespace NetMQ.Tests
 
                 var msg = router.ReceiveMultipartMessage();
                 Assert.Equal(3, msg.FrameCount);
-                Assert.Equal(msg[2].ConvertToString(), testmessage);
+                Assert.Equal(testmessage, msg[2].ConvertToString());
             }
         }
 
