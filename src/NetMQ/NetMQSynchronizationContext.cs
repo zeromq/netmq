@@ -1,7 +1,6 @@
 using System.Threading;
 using System.Threading.Tasks;
 
-#if !NET35
 namespace NetMQ
 {
     internal sealed class NetMQSynchronizationContext : SynchronizationContext
@@ -29,4 +28,3 @@ namespace NetMQ
         }
     }
 }
-#endif

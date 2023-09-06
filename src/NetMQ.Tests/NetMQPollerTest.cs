@@ -1,4 +1,5 @@
 ﻿using System;
+using System.Collections.Concurrent;
 using System.Diagnostics;
 using System.Net;
 using System.Net.Sockets;
@@ -7,10 +8,6 @@ using System.Threading.Tasks;
 using NetMQ.Monitoring;
 using NetMQ.Sockets;
 using Xunit;
-
-#if !NET35
-using System.Collections.Concurrent;
-#endif
 
 // ReSharper disable AccessToDisposedClosure
 
@@ -863,7 +860,6 @@ namespace NetMQ.Tests
 
         #region TaskScheduler tests
 
-#if !NET35
         [Fact]
         public void OneTask()
         {
@@ -990,13 +986,11 @@ namespace NetMQ.Tests
                 Assert.Equal(100, count2);
             }
         }
-#endif
 
         #endregion
 
         #region ISynchronizeInvoke tests
 
-#if NET451
         [Fact]
         public void ISynchronizeInvokeWorks()
         {
@@ -1018,8 +1012,7 @@ namespace NetMQ.Tests
                 Assert.True(isCorrectThread);
             }
         }
-#endif
 
-#endregion
+        #endregion
     }
 }

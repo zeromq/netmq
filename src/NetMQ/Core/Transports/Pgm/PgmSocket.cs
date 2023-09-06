@@ -97,7 +97,7 @@ namespace NetMQ.Core.Transports.Pgm
                 Debug.WriteLine(xMsg);
 
                 // If running on Microsoft Windows, suggest to the developer that he may need to install MSMQ in order to get PGM socket support.
-#if NETSTANDARD1_1_OR_GREATER
+#if NETSTANDARD2_0_OR_GREATER
                 bool isWindows = RuntimeInformation.IsOSPlatform(OSPlatform.Windows);
 #else
                 bool isWindows = true;

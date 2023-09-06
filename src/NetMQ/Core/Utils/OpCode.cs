@@ -11,7 +11,7 @@ namespace NetMQ.Core.Utils
 
         public static bool Open()
         {
-#if NETSTANDARD1_1_OR_GREATER || NET471_OR_GREATER
+#if NETSTANDARD || NET471_OR_GREATER
             if (RuntimeInformation.ProcessArchitecture != Architecture.X86 &&
                 RuntimeInformation.ProcessArchitecture != Architecture.X64)
             {

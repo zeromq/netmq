@@ -1,5 +1,4 @@
-﻿#if !NET35
-using System;
+﻿using System;
 using System.Diagnostics;
 using NetMQ.Sockets;
 using Xunit;
@@ -205,4 +204,3 @@ namespace NetMQ.Tests
         }
     }
 }
-#endif
