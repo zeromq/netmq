@@ -35,14 +35,13 @@ namespace Ventilator
             // Sends batch of tasks to workers via that socket
             Console.WriteLine("====== VENTILATOR ======");
             using (var sender = new PushSocket("@tcp://*:5557"))
-            using (var sink = new PullSocket(">tcp://localhost:5558"))
             {
                 Console.WriteLine("Press enter when worker are ready");
                 Console.ReadLine();
                 //the first message it "0" and signals start of batch
                 //see the Sink.csproj Program.cs file for where this is used
                 Console.WriteLine("Sending start of batch to Sink");
-                sink.SendFrame("0");
+                sender.SendFrame("0");
                 Console.WriteLine("Sending tasks to workers");
                 //initialise random number generator
                 Random rand = new Random(0);
