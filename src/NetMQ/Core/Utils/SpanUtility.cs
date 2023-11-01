@@ -7,7 +7,7 @@ namespace NetMQ.Core.Utils
     {
         public static string ToAscii(Span<byte> bytes)
         {
-#if NETSTANDARD2_1
+#if NETSTANDARD2_1_OR_GREATER
             return Encoding.ASCII.GetString(bytes);
 #else
             return Encoding.ASCII.GetString(bytes.ToArray());

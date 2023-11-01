@@ -1,11 +1,7 @@
 ﻿using System;
-using System.Diagnostics.CodeAnalysis;
 using System.Linq;
 using System.Threading;
 using NetMQ.Core;
-#if NET40
-using NetMQ.Core.Utils;
-#endif
 
 namespace NetMQ
 {
@@ -25,9 +21,9 @@ namespace NetMQ
         private EventHandler<NetMQSocketEventArgs>? m_sendReady;
         private int m_isClosed;
 
-        #if NETSTANDARD2_0 || NETSTANDARD2_1 || NET47
+#if NETSTANDARD2_0_OR_GREATER || NET47_OR_GREATER
         private NetMQRuntime? m_runtime;
-        #endif
+#endif
 
         internal enum DefaultAction
         {
@@ -249,13 +245,13 @@ namespace NetMQ
         /// <summary>Closes this socket, rendering it unusable. Equivalent to calling <see cref="Dispose()"/>.</summary>
         public void Close()
         {
-            #if NETSTANDARD2_0 || NETSTANDARD2_1 || NET47
+#if NETSTANDARD2_0_OR_GREATER || NET47_OR_GREATER
             if (m_runtime != null)
             {
                 m_runtime.Remove(this);
                 m_runtime  = null;
             }
-            #endif
+#endif
 
             if (Interlocked.CompareExchange(ref m_isClosed, 1, 0) != 0)
                 return;
@@ -391,7 +387,7 @@ namespace NetMQ
 
         #endregion
 
-        #if NETSTANDARD2_0 || NETSTANDARD2_1 || NET47
+#if NETSTANDARD2_0_OR_GREATER || NET47_OR_GREATER
 
         internal void AttachToRuntime()
         {
@@ -409,7 +405,7 @@ namespace NetMQ
             m_runtime = null;
         }
 
-        #endif
+#endif
 
         /// <summary>
         /// Listen to the given endpoint for SocketEvent events.

@@ -2,7 +2,7 @@ using System.Text;
 using NetMQ.Sockets;
 using Xunit;
 
-#if NET47
+#if NETFRAMEWORK
 using ZeroMQ;
 #endif
 
@@ -38,8 +38,8 @@ namespace NetMQ.Tests
             
             
         }
-        
-#if NET47
+
+#if NETFRAMEWORK
         [Fact]
         public void WithLibzmqClient()
         {

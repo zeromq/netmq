@@ -82,7 +82,7 @@ namespace NetMQ.Tests
             await Assert.ThrowsAnyAsync<OperationCanceledException>(async () => await server.ReceiveStringAsync(source.Token));
         }
 
-#if NETCOREAPP3_1
+#if NET
 
         [Fact(Timeout = 120)]
         public async void AsyncEnumerableCanceled()

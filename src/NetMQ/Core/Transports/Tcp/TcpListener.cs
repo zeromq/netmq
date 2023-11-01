@@ -22,7 +22,7 @@
 using System;
 using System.Diagnostics;
 using System.Net.Sockets;
-#if NETSTANDARD2_0 || NETSTANDARD2_1
+#if NETSTANDARD2_0_OR_GREATER
 using System.Runtime.InteropServices;
 #endif
 using AsyncIO;
@@ -123,7 +123,7 @@ namespace NetMQ.Core.Transports.Tcp
             m_address.Resolve(addr, m_options.IPv4Only);
 
             Assumes.NotNull(m_address.Address);
-            Assumes.NotNull(m_handle);
+            Assumes.Null(m_handle);
 
             try
             {
@@ -141,7 +141,7 @@ namespace NetMQ.Core.Transports.Tcp
                     }
                 }
 
-#if NETSTANDARD2_0 || NETSTANDARD2_1
+#if NETSTANDARD2_0_OR_GREATER
                 // This command is failing on linux
                 if (RuntimeInformation.IsOSPlatform(OSPlatform.Windows))
                     m_handle.ExclusiveAddressUse = false;

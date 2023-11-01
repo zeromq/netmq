@@ -372,7 +372,7 @@ namespace NetMQ
         
         #region AsyncEnumerable
 
-#if NETSTANDARD2_1
+#if NETSTANDARD2_1_OR_GREATER
         
         /// <summary>
         /// Provides a consuming IAsyncEnumerable for receiving messages from the socket.
@@ -564,7 +564,7 @@ namespace NetMQ
         
         #region AsyncEnumerable
 
-#if NETSTANDARD2_1
+#if NETSTANDARD2_1_OR_GREATER
         
         /// <summary>
         /// Provides a consuming IAsyncEnumerable for receiving messages from the socket.

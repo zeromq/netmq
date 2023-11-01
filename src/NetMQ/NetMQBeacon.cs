@@ -76,11 +76,7 @@ namespace NetMQ
                 {
                     m_poller.Remove(m_udpSocket);
 
-#if NET35
-                    m_udpSocket.Close();
-#else
                     m_udpSocket.Dispose();
-#endif
                 }
 
                 m_udpPort = port;
@@ -120,24 +116,24 @@ namespace NetMQ
                     {
                         if (interfaceAddress == null || @interface.Address.Equals(interfaceAddress))
                         {
-							// because windows and unix differ in how they handle broadcast addressing this needs to be platform specific
-							// on windows any interface can receive broadcast by requesting to enable broadcast on the socket
-							// on linux to receive broadcast you must bind to the broadcast address specifically
-							//bindTo = @interface.Address;
-							sendTo = @interface.BroadcastAddress;
-#if NET45 || NET47
-							if (Environment.OSVersion.Platform==PlatformID.Unix)
+                            // because windows and unix differ in how they handle broadcast addressing this needs to be platform specific
+                            // on windows any interface can receive broadcast by requesting to enable broadcast on the socket
+                            // on linux to receive broadcast you must bind to the broadcast address specifically
+                            //bindTo = @interface.Address;
+                            sendTo = @interface.BroadcastAddress;
+#if NETFRAMEWORK
+                            if (Environment.OSVersion.Platform == PlatformID.Unix)
 #else
-							if (RuntimeInformation.IsOSPlatform(OSPlatform.Linux))
+                            if (RuntimeInformation.IsOSPlatform(OSPlatform.Linux))
 #endif
-							{
-								bindTo = @interface.BroadcastAddress;
-							}
-							else
-							{
-								bindTo = @interface.Address;
-							}
-							sendTo = @interface.BroadcastAddress;
+                            {
+                                bindTo = @interface.BroadcastAddress;
+                            }
+                            else
+                            {
+                                bindTo = @interface.Address;
+                            }
+                            sendTo = @interface.BroadcastAddress;
 
                             break;
                         }
@@ -182,11 +178,7 @@ namespace NetMQ
                 }
 
                 // the beacon might never been configured
-#if NET35
-                m_udpSocket?.Close();
-#else
                 m_udpSocket?.Dispose();
-#endif
             }
 
             private void PingElapsed(object sender, NetMQTimerEventArgs e)
@@ -201,7 +193,7 @@ namespace NetMQ
                 Assumes.NotNull(m_pipe);
 
                 if (!TryReceiveUdpFrame(out NetMQFrame? frame, out string? peerName))
-		    return;
+            return;
 
                 // If filter is set, check that beacon matches it
                 var isValid = frame.MessageSize >= m_filter?.MessageSize && Compare(frame, m_filter, m_filter.MessageSize);

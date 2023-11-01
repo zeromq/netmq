@@ -57,7 +57,6 @@ namespace NetMQ.Tests
             }
         }
 
-#if !NET35
         [Fact]
         public void StartAsync()
         {
@@ -71,7 +70,6 @@ namespace NetMQ.Tests
                 Assert.True(task.Wait(TimeSpan.FromMilliseconds(1000)));
             }
         }
-#endif
 
         [Fact]
         public void NoHangWhenMonitoringUnboundInprocAddress()

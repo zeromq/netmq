@@ -157,7 +157,7 @@ namespace NetMQ.Core.Mechanisms
             //  8-byte prefix plus 16-byte random nonce
             CookieNoncePrefix.CopyTo(cookieNonce);
             using var rng = RandomNumberGenerator.Create();
-#if NETSTANDARD2_1
+#if NETSTANDARD2_1_OR_GREATER
             rng.GetBytes(cookieNonce.Slice(8));
 #else
             byte[] temp = new byte[16];
@@ -184,7 +184,7 @@ namespace NetMQ.Core.Mechanisms
             //  Create full nonce for encryption
             //  8-byte prefix plus 16-byte random nonce
             WelcomeNoncePrefix.CopyTo(welcomeNonce);
-#if NETSTANDARD2_1
+#if NETSTANDARD2_1_OR_GREATER
             rng.GetBytes(welcomeNonce.Slice(8));
 #else
             rng.GetBytes(temp);
