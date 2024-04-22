@@ -1,7 +1,7 @@
 <img src="https://cdn.rawgit.com/zeromq/netmq/master/img/NetMQLogo.svg" width="350" />
 
 [![GitHub Actions CI](https://github.com/zeromq/netmq/actions/workflows/CI.yml/badge.svg)](https://github.com/zeromq/netmq/actions/workflows/CI.yml)
-[![NetMQ AppVeyor Build](https://ci.appveyor.com/api/projects/status/as5fiw8a3suw53iu/branch/master?svg=true)](https://ci.appveyor.com/project/somdoron/netmq-2bhss) [![codecov](https://codecov.io/gh/zeromq/netmq/branch/master/graph/badge.svg)](https://codecov.io/gh/zeromq/netmq) [![NetMQ NuGet version](https://img.shields.io/nuget/v/NetMQ.svg)](https://www.nuget.org/packages/NetMQ/) [![NetMQ NuGet prerelease version](https://img.shields.io/nuget/vpre/NetMQ.svg)](https://www.nuget.org/packages/NetMQ/)
+[![NetMQ NuGet version](https://img.shields.io/nuget/v/NetMQ.svg)](https://www.nuget.org/packages/NetMQ/)
 
 NetMQ is a 100% native C# port of the lightweight messaging library ZeroMQ.
 
