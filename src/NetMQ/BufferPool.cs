@@ -1,6 +1,15 @@
+// USE_SERVICE_MODEL requires the System.ServiceModel.Primitives package.
+// It has been substituted by the System.Buffers package. This define remains
+// merely to be able to exercise tests against both IBufferPool implementations.
+
+// #define USE_SERVICE_MODEL
 using System;
+#if USE_SERVICE_MODEL
 using System.ServiceModel.Channels;
+#endif
+using System.Collections.Generic;
 using System.Threading;
+using System.Buffers;
 
 namespace NetMQ
 {    
@@ -24,6 +33,81 @@ namespace NetMQ
         void Return(byte[] buffer);
     }
 
+    /// <summary>
+    /// This implementation of <see cref="IBufferPool"/> uses System.Buffer's ArrayPool
+    /// class to manage a pool of buffers.
+    /// </summary>
+    public class ArrayBufferPool : IBufferPool
+    {
+        private readonly ArrayPool<byte> m_arrayPool;
+        private readonly HashSet<byte[]> m_onLoan;
+
+        /// <summary>
+        /// Create a new ArrayBufferPool with the specified maximum buffer pool size
+        /// and a maximum size for each individual buffer in the pool.
+        /// </summary>
+        /// <param name="maxBufferPoolSize">the maximum size to allow for the buffer pool</param>
+        /// <param name="maxBufferSize">the maximum size to allow for each individual buffer in the pool</param>
+        /// <exception cref="InsufficientMemoryException">There was insufficient memory to create the requested buffer pool.</exception>
+        /// <exception cref="ArgumentOutOfRangeException">Either maxBufferPoolSize or maxBufferSize was less than zero.</exception>
+        public ArrayBufferPool(long maxBufferPoolSize, int maxBufferSize)
+        {
+            m_arrayPool = ArrayPool<byte>.Create(maxBufferSize, (int) maxBufferPoolSize);
+            m_onLoan = new HashSet<byte[]>();
+        }
+
+        /// <summary>
+        /// Return a byte-array buffer of at least the specified size from the pool.
+        /// </summary>
+        /// <param name="size">the size in bytes of the requested buffer</param>
+        /// <returns>a byte-array that is the requested size</returns>
+        /// <exception cref="ArgumentOutOfRangeException">size cannot be less than zero</exception>
+        public byte[] Take(int size)
+        {
+            var loaner = m_arrayPool.Rent(size);
+            m_onLoan.Add(loaner);
+            return loaner;
+        }
+
+        /// <summary>
+        /// Return the given buffer to this manager pool.
+        /// </summary>
+        /// <param name="buffer">a reference to the buffer being returned</param>
+        /// <exception cref="ArgumentException">the Length of buffer does not match the pool's buffer length property</exception>
+        /// <exception cref="ArgumentNullException">the buffer reference cannot be null</exception>
+        public void Return(byte[] buffer)
+        {
+            if (m_onLoan.Remove(buffer))
+                m_arrayPool.Return(buffer);
+            else
+                throw new ArgumentException("Buffer returned to pool was not rented.",
+                                            nameof(buffer));
+        }
+
+        /// <summary>
+        /// Release the buffers currently cached in this manager.
+        /// </summary>
+        public void Dispose()
+        {
+            Dispose(true);
+            GC.SuppressFinalize(this);
+        }
+
+        /// <summary>
+        /// Release the buffers currently cached in this manager.
+        /// </summary>
+        /// <param name="disposing">true if managed resources are to be disposed</param>
+        protected virtual void Dispose(bool disposing)
+        {
+            if (!disposing)
+                return;
+            foreach (var loaner in m_onLoan)
+                Return(loaner);
+            m_onLoan.Clear();
+        }
+    }
+
+#if USE_SERVICE_MODEL
     /// <summary>
     /// This implementation of <see cref="IBufferPool"/> uses WCF's <see cref="BufferManager"/>
     /// class to manage a pool of buffers.
@@ -88,6 +172,7 @@ namespace NetMQ
             m_bufferManager.Clear();
         }
     }
+#endif
 
     /// <summary>
     /// This simple implementation of <see cref="IBufferPool"/> does no buffer pooling. Instead, it uses regular
@@ -134,6 +219,7 @@ namespace NetMQ
         }
     }
 
+
     /// <summary>
     /// Contains a singleton instance of <see cref="IBufferPool"/> used for allocating byte arrays
     /// for <see cref="Msg"/> instances with type <see cref="MsgType.Pool"/>.
@@ -144,7 +230,7 @@ namespace NetMQ
     /// <para/>
     /// The default implementation is <see cref="GCBufferPool"/>.
     /// <list type="bullet">
-    /// <item>Call <see cref="SetBufferManagerBufferPool"/> to replace it with a <see cref="BufferManagerBufferPool"/>.</item>
+    /// <item>Call <see cref="SetBufferManagerBufferPool"/> to replace it with a pooling implementation.</item>
     /// <item>Call <see cref="SetGCBufferPool"/> to reinstate the default <see cref="GCBufferPool"/>.</item>
     /// <item>Call <see cref="SetCustomBufferPool"/> to substitute a custom implementation for the allocation and
     /// deallocation of message buffers.</item>
@@ -163,7 +249,7 @@ namespace NetMQ
         }
 
         /// <summary>
-        /// Set BufferPool to use the <see cref="BufferManagerBufferPool"/> to manage the buffer-pool.
+        /// Set BufferPool to use a buffer pooling implementation to manage the buffer-pool.
         /// </summary>
         /// <param name="maxBufferPoolSize">the maximum size to allow for the buffer pool</param>
         /// <param name="maxBufferSize">the maximum size to allow for each individual buffer in the pool</param>
@@ -171,7 +257,11 @@ namespace NetMQ
         /// <exception cref="ArgumentOutOfRangeException">Either maxBufferPoolSize or maxBufferSize was less than zero.</exception>
         public static void SetBufferManagerBufferPool(long maxBufferPoolSize, int maxBufferSize)
         {
+#if USE_SERVICE_MODEL
             SetCustomBufferPool(new BufferManagerBufferPool(maxBufferPoolSize, maxBufferSize));
+#else
+            SetCustomBufferPool(new ArrayBufferPool(maxBufferPoolSize, maxBufferSize));
+#endif
         }
 
         /// <summary>
