@@ -217,7 +217,7 @@ namespace NetMQ.Core
         /// <returns>true if the Msg is successfully sent</returns>
         public virtual PullMsgResult PullMsg(ref Msg msg)
         {
-            if (m_pipe == null || !m_pipe.Read(ref msg))
+            if (m_pipe == null || !m_pipe.Read(ref msg) || !msg.IsInitialised)
                 return PullMsgResult.Empty;
             m_incompleteIn = msg.HasMore;
 
