@@ -332,7 +332,7 @@ namespace NetMQ.Tests
                 sub.SendFrame(new byte[] { 1, (byte)'A' });
                 var subscription = pub.ReceiveFrameBytes();
 
-                Assert.Equal(subscription[1], (byte)'A');
+                Assert.Equal((byte)'A', subscription[1]);
 
                 pub.Subscribe("B");
                 pub.SendFrame("A");
@@ -356,7 +356,7 @@ namespace NetMQ.Tests
 
                 var subscription = pub.ReceiveFrameBytes();
 
-                Assert.Equal(subscription[1], (byte)'W');
+                Assert.Equal((byte)'W', subscription[1]);
 
                 Assert.Equal("W", sub.ReceiveFrameString());
             }
@@ -377,7 +377,7 @@ namespace NetMQ.Tests
 
                 var subscription = pub.ReceiveFrameBytes();
 
-                Assert.Equal(subscription[1], (byte)'W');
+                Assert.Equal((byte)'W', subscription[1]);
 
                 Assert.False(sub.TrySkipFrame());
             }

@@ -1,5 +1,6 @@
 using System;
 using System.Threading;
+using System.Threading.Tasks;
 using NetMQ.Sockets;
 using Xunit;
 using Xunit.Abstractions;
@@ -47,7 +48,7 @@ namespace NetMQ.Tests
         }
         
         [Fact]
-        public async void TestAsync()
+        public async Task TestAsync()
         {
             using var radio = new RadioSocket();
             using var dish = new DishSocket();
