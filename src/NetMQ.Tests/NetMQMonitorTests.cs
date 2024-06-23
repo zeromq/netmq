@@ -68,7 +68,7 @@ namespace NetMQ.Tests
                 Thread.Sleep(200);
                 Assert.Equal(TaskStatus.Running, task.Status);
                 monitor.Stop();
-                Assert.True(task.Wait(TimeSpan.FromMilliseconds(1000)));
+                Assert.True(TaskUtils.Wait(task, TimeSpan.FromMilliseconds(1000)));
             }
         }
 #endif
@@ -154,7 +154,7 @@ namespace NetMQ.Tests
                 }
                 Thread.Sleep(100);
                 // Monitor.Dispose should complete
-                var completed = Task.Factory.StartNew(() => monitor.Dispose()).Wait(1000);
+                var completed = TaskUtils.Wait(Task.Factory.StartNew(() => monitor.Dispose()), TimeSpan.FromMilliseconds(1000));
                 Assert.True(completed);
             }
             // NOTE If this test fails, it will hang because context.Dispose will block

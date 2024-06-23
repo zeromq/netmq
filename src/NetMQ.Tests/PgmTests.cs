@@ -230,8 +230,8 @@ namespace NetMQ.Tests
                 }
             });
 
-            pubTask.Wait();
-            subTask.Wait();
+            TaskUtils.Wait(pubTask);
+            TaskUtils.Wait(subTask);
 
             Assert.Equal(1000, count);
         }
@@ -291,7 +291,7 @@ namespace NetMQ.Tests
 
                         monitor.Stop();
 
-                        monitorTask.Wait();
+                        TaskUtils.Wait(monitorTask);
                     }
                 }
             }

@@ -1,4 +1,5 @@
 using System.Threading;
+using System.Threading.Tasks;
 using NetMQ.Sockets;
 using Xunit;
 
@@ -47,7 +48,7 @@ namespace NetMQ.Tests
         }
         
         [Fact]
-        public async void TestAsync()
+        public async Task TestAsync()
         {
             using var scatter = new ScatterSocket();
             using var gather = new GatherSocket();
