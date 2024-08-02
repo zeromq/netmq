@@ -180,17 +180,25 @@ namespace NetMQ.Core
         /// <returns><c>true</c> if the read succeeded, otherwise <c>false</c>.</returns>
         public bool TryRead([MaybeNullWhen(returnValue: false)] out T value)
         {
-            // Try to prefetch a value.
-            if (!CheckRead())
+            try
+            {
+                // Try to prefetch a value.
+                if (!CheckRead())
+                {
+                    value = default(T);
+                    return false;
+                }
+
+                // There was at least one value prefetched.
+                // Return it to the caller.
+                value = m_queue.Pop();
+                return true;
+            }
+            catch
             {
                 value = default(T);
                 return false;
             }
-
-            // There was at least one value prefetched.
-            // Return it to the caller.
-            value = m_queue.Pop();
-            return true;
         }
 
         /// <summary>
