@@ -3,7 +3,7 @@
   <PropertyGroup>
     <Description>A 100% native C# port of the lightweight high performance messaging library ZeroMQ</Description>
     <Version>4.0.0.0</Version>
-    <TargetFrameworks>net45;net47;netstandard2.0;netstandard2.1</TargetFrameworks>
+    <TargetFrameworks>net47;netstandard2.1</TargetFrameworks>
     <DebugType>portable</DebugType>
     <AssemblyOriginatorKeyFile>./NetMQ.snk</AssemblyOriginatorKeyFile>
     <SignAssembly>true</SignAssembly>
@@ -39,18 +39,23 @@
   </ItemGroup>
 
   <ItemGroup Condition=" '$(TargetFramework)' == 'netstandard2.0' ">
-    <PackageReference Include="System.ServiceModel.Primitives" Version="4.9.0" />
+    <PackageReference Include="System.ServiceModel.Primitives" Version="8.1.1" />
   </ItemGroup>
 
   <ItemGroup Condition=" '$(TargetFramework)' == 'netstandard2.1' ">
-    <PackageReference Include="System.ServiceModel.Primitives" Version="4.9.0" />
+    <PackageReference Include="System.ServiceModel.Primitives" Version="8.1.1" />
   </ItemGroup>
 
   <ItemGroup Condition=" '$(TargetFrameworkIdentifier)' == '.NETFramework' ">
     <PackageReference Include="Microsoft.NETFramework.ReferenceAssemblies" Version="1.0.3" PrivateAssets="All" />
-    <PackageReference Include="System.Threading.Tasks.Extensions" Version="4.5.4" />
+    <PackageReference Include="System.Threading.Tasks.Extensions" Version="4.6.0" />
     <Reference Include="System.ServiceModel" />
     <Reference Include="System" />
     <Reference Include="Microsoft.CSharp" />
+  </ItemGroup>
+
+  <ItemGroup>
+    <PackageReference Update="JetBrains.Annotations" Version="2024.3.0" />
+    <PackageReference Update="Microsoft.SourceLink.GitHub" Version="8.0.0" />
   </ItemGroup>
 </Project>
