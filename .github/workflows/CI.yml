@@ -7,30 +7,24 @@ jobs:
     env:
       DOTNET_NOLOGO: true
     steps:
-    - uses: actions/checkout@v3
-    - uses: actions/setup-dotnet@v3
+    - uses: actions/checkout@v4.2.2
+    - uses: actions/setup-dotnet@v4.1.0
       with:
-        dotnet-version: |
-          3.1.x
-          6.0.x
+        dotnet-version: 9.0.x
     - run: dotnet restore src/NetMQ.sln
     - name: build 
       run: dotnet build src/NetMQ.sln /p:Configuration=Release /verbosity:minimal
-    - name: test netcoreapp3.1
-      run: dotnet test -v n -p:ParallelizeTestCollections=false --configuration Release --no-build -f netcoreapp3.1 src/NetMQ.Tests/NetMQ.Tests.csproj
-    - name: test net6.0
-      run: dotnet test -v n -p:ParallelizeTestCollections=false --configuration Release --no-build -f net6.0 src/NetMQ.Tests/NetMQ.Tests.csproj
+    - name: test net9.0
+      run: dotnet test -v n -p:ParallelizeTestCollections=false --configuration Release --no-build -f net9.0 src/NetMQ.Tests/NetMQ.Tests.csproj
   windows:
     runs-on: windows-latest
     env:
       DOTNET_NOLOGO: true
     steps:
-    - uses: actions/checkout@v3
-    - uses: actions/setup-dotnet@v3
+    - uses: actions/checkout@v4.2.2
+    - uses: actions/setup-dotnet@v4.1.0
       with:
-        dotnet-version: |
-          3.1.x
-          6.0.x
+        dotnet-version: 9.0.x
     - name: Install codecov
       run: |
         choco install opencover.portable 
@@ -38,10 +32,8 @@ jobs:
     - run: dotnet restore src/NetMQ.sln
     - name: build 
       run: dotnet build src/NetMQ.sln /p:Configuration=Release /verbosity:minimal
-    - name: test net6.0
-      run: dotnet test -v n -p:ParallelizeTestCollections=false --configuration Release --no-build -f net6.0 src\NetMQ.Tests\NetMQ.Tests.csproj
-    - name: test netcoreapp3.1
-      run: dotnet test -v n -p:ParallelizeTestCollections=false --configuration Release --no-build -f netcoreapp3.1 src\NetMQ.Tests\NetMQ.Tests.csproj
+    - name: test net9.0
+      run: dotnet test -v n -p:ParallelizeTestCollections=false --configuration Release --no-build -f net9.0 src\NetMQ.Tests\NetMQ.Tests.csproj
     - name: test net47
       run: dotnet test -v n -p:ParallelizeTestCollections=false --configuration Release --no-build -f net47 src\NetMQ.Tests\NetMQ.Tests.csproj
     - name: coverage
