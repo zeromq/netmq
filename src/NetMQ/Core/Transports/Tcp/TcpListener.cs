@@ -22,7 +22,7 @@
 using System;
 using System.Diagnostics;
 using System.Net.Sockets;
-#if NETSTANDARD2_0 || NETSTANDARD2_1
+#if NET8_0_OR_GREATER || NETSTANDARD2_0 || NETSTANDARD2_1
 using System.Runtime.InteropServices;
 #endif
 using AsyncIO;
@@ -45,12 +45,12 @@ namespace NetMQ.Core.Transports.Tcp
         /// </summary>
         private AsyncSocket? m_handle;
 
-/*
-        /// <summary>
-        /// socket being accepted
-        /// </summary>
-        private AsyncSocket m_acceptedSocket;
-*/
+        /*
+                /// <summary>
+                /// socket being accepted
+                /// </summary>
+                private AsyncSocket m_acceptedSocket;
+        */
 
         /// <summary>
         /// Socket the listener belongs to.
@@ -107,7 +107,7 @@ namespace NetMQ.Core.Transports.Tcp
         protected override void ProcessTerm(int linger)
         {
             Assumes.NotNull(m_handle);
-           
+
             m_ioObject.SetHandler(this);
             m_ioObject.RemoveSocket(m_handle);
             Close();
@@ -141,7 +141,7 @@ namespace NetMQ.Core.Transports.Tcp
                     }
                 }
 
-#if NETSTANDARD2_0 || NETSTANDARD2_1
+#if NET8_0_OR_GREATER || NETSTANDARD2_0 || NETSTANDARD2_1
                 // This command is failing on linux
                 if (RuntimeInformation.IsOSPlatform(OSPlatform.Windows))
                     m_handle.ExclusiveAddressUse = false;
@@ -194,68 +194,76 @@ namespace NetMQ.Core.Transports.Tcp
             switch (socketError)
             {
                 case SocketError.Success:
-                {
-                    // TODO: check TcpFilters
-                    var acceptedSocket = m_handle.GetAcceptedSocket();
+                    {
+                        // TODO: check TcpFilters
+                        var acceptedSocket = m_handle.GetAcceptedSocket();
 
                         acceptedSocket.NoDelay = true;
 
-                    if (m_options.TcpKeepalive != -1)
-                    {
-                        acceptedSocket.SetSocketOption(SocketOptionLevel.Socket, SocketOptionName.KeepAlive, m_options.TcpKeepalive);
-
-                        if (m_options.TcpKeepaliveIdle != -1 && m_options.TcpKeepaliveIntvl != -1)
+                        if (m_options.TcpKeepalive != -1)
                         {
-                            var bytes = new ByteArraySegment(new byte[12]);
+                            acceptedSocket.SetSocketOption(SocketOptionLevel.Socket, SocketOptionName.KeepAlive, m_options.TcpKeepalive);
+#if NET8_0_OR_GREATER
+                            if (m_options.TcpKeepaliveIdle != -1)
+                                acceptedSocket.SetSocketOption(SocketOptionLevel.Tcp, SocketOptionName.TcpKeepAliveTime, m_options.TcpKeepaliveIdle / 1000);
+                            if (m_options.TcpKeepaliveIntvl != -1)
+                                acceptedSocket.SetSocketOption(SocketOptionLevel.Tcp, SocketOptionName.TcpKeepAliveInterval, m_options.TcpKeepaliveIntvl / 1000);
+#else
 
-                            Endianness endian = BitConverter.IsLittleEndian ? Endianness.Little : Endianness.Big;
+                            if (m_options.TcpKeepaliveIdle != -1 && m_options.TcpKeepaliveIntvl != -1)
+                            {
+                                var bytes = new ByteArraySegment(new byte[12]);
 
-                            bytes.PutInteger(endian, m_options.TcpKeepalive, 0);
-                            bytes.PutInteger(endian, m_options.TcpKeepaliveIdle, 4);
-                            bytes.PutInteger(endian, m_options.TcpKeepaliveIntvl, 8);
+                                Endianness endian = BitConverter.IsLittleEndian ? Endianness.Little : Endianness.Big;
 
-                            acceptedSocket.IOControl(IOControlCode.KeepAliveValues, (byte[])bytes, null);
+                                bytes.PutInteger(endian, m_options.TcpKeepalive, 0);
+                                bytes.PutInteger(endian, m_options.TcpKeepaliveIdle, 4);
+                                bytes.PutInteger(endian, m_options.TcpKeepaliveIntvl, 8);
+
+                                acceptedSocket.IOControl(IOControlCode.KeepAliveValues, (byte[])bytes, null);
+                            }
+#endif
+
                         }
+
+                        // Create the engine object for this connection.
+                        var engine = new StreamEngine(acceptedSocket, m_options, m_endpoint);
+
+                        // Choose I/O thread to run connector in. Given that we are already
+                        // running in an I/O thread, there must be at least one available.
+                        IOThread? ioThread = ChooseIOThread(m_options.Affinity);
+
+                        Assumes.NotNull(ioThread);
+
+                        // Create and launch a session object.
+                        // TODO: send null in address parameter, is unneeded in this case
+                        SessionBase session = SessionBase.Create(ioThread, false, m_socket, m_options, new Address(m_handle.LocalEndPoint));
+                        session.IncSeqnum();
+                        LaunchChild(session);
+
+                        SendAttach(session, engine, false);
+
+                        m_socket.EventAccepted(m_endpoint, acceptedSocket);
+
+                        Accept();
+                        break;
                     }
-
-                    // Create the engine object for this connection.
-                    var engine = new StreamEngine(acceptedSocket, m_options, m_endpoint);
-
-                    // Choose I/O thread to run connector in. Given that we are already
-                    // running in an I/O thread, there must be at least one available.
-                    IOThread? ioThread = ChooseIOThread(m_options.Affinity);
-
-                    Assumes.NotNull(ioThread);
-
-                    // Create and launch a session object.
-                    // TODO: send null in address parameter, is unneeded in this case
-                    SessionBase session = SessionBase.Create(ioThread, false, m_socket, m_options, new Address(m_handle.LocalEndPoint));
-                    session.IncSeqnum();
-                    LaunchChild(session);
-
-                    SendAttach(session, engine, false);
-
-                    m_socket.EventAccepted(m_endpoint, acceptedSocket);
-
-                    Accept();
-                    break;
-                }
                 case SocketError.ConnectionReset:
                 case SocketError.NoBufferSpaceAvailable:
                 case SocketError.TooManyOpenSockets:
-                {
-                    m_socket.EventAcceptFailed(m_endpoint, socketError.ToErrorCode());
+                    {
+                        m_socket.EventAcceptFailed(m_endpoint, socketError.ToErrorCode());
 
-                    Accept();
-                    break;
-                }
+                        Accept();
+                        break;
+                    }
                 default:
-                {
-                    NetMQException exception = NetMQException.Create(socketError);
+                    {
+                        NetMQException exception = NetMQException.Create(socketError);
 
-                    m_socket.EventAcceptFailed(m_endpoint, exception.ErrorCode);
-                    throw exception;
-                }
+                        m_socket.EventAcceptFailed(m_endpoint, exception.ErrorCode);
+                        throw exception;
+                    }
             }
         }
 

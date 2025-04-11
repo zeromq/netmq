@@ -1,4 +1,4 @@
-#if !NETSTANDARD2_1        
+#if !NETSTANDARD2_1 && !NET8_0_OR_GREATER
 using System;
 using System.Text;
 

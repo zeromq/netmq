@@ -248,6 +248,13 @@ namespace NetMQ.Core.Transports.Tcp
                     // Set the TCP keep-alive option values to the underlying socket.
                     m_s.SetSocketOption(SocketOptionLevel.Socket, SocketOptionName.KeepAlive, m_options.TcpKeepalive);
 
+                  
+#if NET8_0_OR_GREATER
+                            if (m_options.TcpKeepaliveIdle != -1)
+                                m_s.SetSocketOption(SocketOptionLevel.Tcp, SocketOptionName.TcpKeepAliveTime, m_options.TcpKeepaliveIdle / 1000);
+                            if (m_options.TcpKeepaliveIntvl != -1)
+                                m_s.SetSocketOption(SocketOptionLevel.Tcp, SocketOptionName.TcpKeepAliveInterval, m_options.TcpKeepaliveIntvl / 1000);
+#else
                     if (m_options.TcpKeepaliveIdle != -1 && m_options.TcpKeepaliveIntvl != -1)
                     {
                         // Write the TCP keep-alive options to a byte-array, to feed to the IOControl method..
@@ -261,6 +268,7 @@ namespace NetMQ.Core.Transports.Tcp
 
                         m_s.IOControl(IOControlCode.KeepAliveValues, (byte[])bytes, null);
                     }
+#endif
                 }
 
                 // Create the engine object for this connection.
