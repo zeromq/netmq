@@ -439,6 +439,10 @@ namespace NetMQ.Core
                     TcpKeepalive = tcpKeepalive;
                     break;
 
+                case ZmqSocketOption.TcpKeepaliveCnt:
+                    TcpKeepaliveCnt = Get<int>();
+                    break;
+
                 case ZmqSocketOption.DelayAttachOnConnect:
                     DelayAttachOnConnect = Get<bool>();
                     break;
@@ -614,6 +618,9 @@ namespace NetMQ.Core
 
                 case ZmqSocketOption.TcpKeepalive:
                     return TcpKeepalive;
+
+                case ZmqSocketOption.TcpKeepaliveCnt:
+                    return TcpKeepaliveCnt;
 
                 case ZmqSocketOption.DelayAttachOnConnect:
                     return DelayAttachOnConnect;

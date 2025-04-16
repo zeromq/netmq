@@ -200,6 +200,11 @@ namespace NetMQ.Core
         TcpKeepalive = 34,
 
         /// <summary>
+        /// Set TCP keep alive retry count
+        /// </summary>
+        TcpKeepaliveCnt = 35,
+
+        /// <summary>
         /// The keep-alive time - the duration between two keepalive transmissions in idle condition.
         /// </summary>
         /// <remarks>

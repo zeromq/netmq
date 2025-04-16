@@ -283,6 +283,18 @@ namespace NetMQ
             // See  http://api.zeromq.org/3-2:zmq-getsockopt
         }
 
+
+        /// <summary>
+        /// Get or set whether to use TCP keepalive retry count
+        /// </summary>
+        /// <remarks>
+        /// </remarks>
+        public int TcpKeepaliveCnt
+        {
+            get => m_socket.GetSocketOption(ZmqSocketOption.TcpKeepaliveCnt);
+            set => m_socket.SetSocketOption(ZmqSocketOption.TcpKeepaliveCnt, value);
+        }
+
         /// <summary>
         /// Get or set the keep-alive time - the duration between two keepalive transmissions in idle condition.
         /// The TCP keepalive period is required by socket implementers to be configurable and by default is

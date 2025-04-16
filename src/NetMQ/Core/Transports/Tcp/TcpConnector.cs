@@ -206,7 +206,7 @@ namespace NetMQ.Core.Transports.Tcp
             // TerminatingException can occur in above call to EventConnectDelayed via
             // MonitorEvent.Write if corresponding PairSocket has been sent Term command
             catch (TerminatingException)
-            {}
+            { }
         }
 
         /// <summary>
@@ -236,9 +236,12 @@ namespace NetMQ.Core.Transports.Tcp
                 m_ioObject.RemoveSocket(m_s);
                 m_handleValid = false;
 
-                try {
+                try
+                {
                     m_s.NoDelay = true;
-                } catch (ArgumentException) {
+                }
+                catch (ArgumentException)
+                {
                     // OSX sometime fail while the socket is still connecting
                 }
 
@@ -248,12 +251,13 @@ namespace NetMQ.Core.Transports.Tcp
                     // Set the TCP keep-alive option values to the underlying socket.
                     m_s.SetSocketOption(SocketOptionLevel.Socket, SocketOptionName.KeepAlive, m_options.TcpKeepalive);
 
-                  
-#if NET8_0_OR_GREATER
-                            if (m_options.TcpKeepaliveIdle != -1)
-                                m_s.SetSocketOption(SocketOptionLevel.Tcp, SocketOptionName.TcpKeepAliveTime, m_options.TcpKeepaliveIdle / 1000);
-                            if (m_options.TcpKeepaliveIntvl != -1)
-                                m_s.SetSocketOption(SocketOptionLevel.Tcp, SocketOptionName.TcpKeepAliveInterval, m_options.TcpKeepaliveIntvl / 1000);
+#if NETCOREAPP3_1_OR_GREATER
+                    if (m_options.TcpKeepaliveIdle != -1)
+                        m_s.SetSocketOption(SocketOptionLevel.Tcp, SocketOptionName.TcpKeepAliveTime, m_options.TcpKeepaliveIdle / 1000);
+                    if (m_options.TcpKeepaliveIntvl != -1)
+                        m_s.SetSocketOption(SocketOptionLevel.Tcp, SocketOptionName.TcpKeepAliveInterval, m_options.TcpKeepaliveIntvl / 1000);
+                    if (m_options.TcpKeepaliveCnt != -1)
+                        m_s.SetSocketOption(SocketOptionLevel.Tcp, SocketOptionName.TcpKeepAliveRetryCount, m_options.TcpKeepaliveCnt);
 #else
                     if (m_options.TcpKeepaliveIdle != -1 && m_options.TcpKeepaliveIntvl != -1)
                     {
