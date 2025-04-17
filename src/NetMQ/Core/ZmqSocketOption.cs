@@ -200,8 +200,12 @@ namespace NetMQ.Core
         TcpKeepalive = 34,
 
         /// <summary>
-        /// Set TCP keep alive retry count
+        /// The maximum number of keepalive probes TCP should send before dropping the connection.
         /// </summary>
+        /// <remarks>
+        /// This setting controls how many unacknowledged probes are sent before the connection is considered dead.
+        /// A value of -1 (the default) means to use the OS default setting.
+        /// </remarks>
         TcpKeepaliveCnt = 35,
 
         /// <summary>
@@ -285,7 +289,7 @@ namespace NetMQ.Core
         /// Returns the last peer routing id connect to the PEER socket
         /// </summary>
         LastPeerRoutingId = 49,
-        
+
         /// <summary>
         /// Defines whether the socket will act as server for CURVE security.
         /// A value of true means the socket will act as CURVE server.
@@ -294,7 +298,7 @@ namespace NetMQ.Core
         /// When you set this you must also set the server's secret key. A server socket does not need to know its own public key.
         /// </summary>
         CurveServer = 50,
-        
+
         /// <summary>
         /// Sets the socket's long term public key. You must set this on CURVE client sockets.
         /// You can provide the key as 32 binary bytes,
@@ -302,7 +306,7 @@ namespace NetMQ.Core
         /// To generate a public/secret key pair, NetMQKeyPair.Create.
         /// </summary>
         CurvePublicKey = 51,
-        
+
         /// <summary>
         /// Sets the socket's long term secret key.
         /// You must set this on both CURVE client and server sockets.
@@ -310,7 +314,7 @@ namespace NetMQ.Core
         /// To generate a public/secret key pair, NetMQKeyPair.Create.
         /// </summary>
         CurveSecretKey = 52,
-        
+
         /// <summary>
         /// Sets the socket's long term server key.
         /// You must set this on CURVE client sockets.
@@ -319,34 +323,34 @@ namespace NetMQ.Core
         /// To generate a public/secret key pair, use NetMQKeyPair.Create.
         /// </summary>
         CurveServerKey = 53,
-        
+
         /// <summary>
         /// Time in milliseconds between sending heartbeat PING messages.
         /// </summary>
         HeartbeatInterval = 54,
-        
+
         /// <summary>
         /// If remote peer receives a PING message and doesn't receive another
         /// message within the ttl value, it should close the connection
         /// (measured in tenths of a second)
         /// </summary>
         HeartbeatTtl = 55,
-        
+
         /// <summary>
         /// Time in milliseconds to wait for a PING response before disconnecting
         /// </summary>
         HeartbeatTimeout = 56,
-        
+
         /// <summary>
         /// Hello Message to send to peer upon connecting
         /// </summary>
         HelloMessage = 57,
-        
+
         /// <summary>
         /// Specifies the byte-order: big-endian, vs little-endian.
         /// </summary>
         Endian = 1000,
-        
+
         /// <summary>
         /// Specifies the max datagram size for PGM.
         /// </summary>

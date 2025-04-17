@@ -285,9 +285,12 @@ namespace NetMQ
 
 
         /// <summary>
-        /// Get or set whether to use TCP keepalive retry count
+        /// Get or set the maximum number of TCP keepalive probes to send before dropping the connection.
         /// </summary>
         /// <remarks>
+        /// This value determines how many unacknowledged keepalive probes TCP should send before assuming the connection is dead.
+        /// A lower value means faster detection of dead peers, while a higher value allows more tolerance for temporary disruptions.
+        /// A value of -1 (the default) means to use the OS default setting.
         /// </remarks>
         public int TcpKeepaliveCnt
         {
