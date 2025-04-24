@@ -25,7 +25,7 @@ namespace NetMQ
         private EventHandler<NetMQSocketEventArgs>? m_sendReady;
         private int m_isClosed;
 
-        #if NET8_0_OR_GREATER || NETSTANDARD2_0 || NETSTANDARD2_1 || NET47
+        #if NET || NET47
         private NetMQRuntime? m_runtime;
         #endif
 
@@ -249,7 +249,7 @@ namespace NetMQ
         /// <summary>Closes this socket, rendering it unusable. Equivalent to calling <see cref="Dispose()"/>.</summary>
         public void Close()
         {
-            #if NET8_0_OR_GREATER || NETSTANDARD2_0 || NETSTANDARD2_1 || NET47
+            #if NET || NET47
             if (m_runtime != null)
             {
                 m_runtime.Remove(this);
@@ -391,7 +391,7 @@ namespace NetMQ
 
         #endregion
 
-        #if NET8_0_OR_GREATER || NETSTANDARD2_0 || NETSTANDARD2_1 || NET47
+        #if NET || NET47
 
         internal void AttachToRuntime()
         {

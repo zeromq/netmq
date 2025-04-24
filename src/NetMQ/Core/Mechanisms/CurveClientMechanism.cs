@@ -189,7 +189,7 @@ namespace NetMQ.Core.Mechanisms
 
             VouchNoncePrefix.CopyTo(vouchNonce);
             using var rng = RandomNumberGenerator.Create();
-#if NET8_0_OR_GREATER || NETSTANDARD2_1
+#if NET
             rng.GetBytes(vouchNonce.Slice(8));
 #else
             byte[] temp = new byte[16];

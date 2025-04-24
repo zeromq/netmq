@@ -20,7 +20,7 @@ namespace NetMQ.Core.Utils
             string val = Environment.GetEnvironmentVariable("NETQM_SUPPRESS_RDTSC");
             if (!string.IsNullOrEmpty(val))
                 return false;
-#if NET8_0_OR_GREATER || NETSTANDARD1_1_OR_GREATER || NET471_OR_GREATER
+#if NET
             if (RuntimeInformation.ProcessArchitecture != Architecture.X86 &&
                 RuntimeInformation.ProcessArchitecture != Architecture.X64)
             {
