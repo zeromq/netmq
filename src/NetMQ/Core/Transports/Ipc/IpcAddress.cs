@@ -39,13 +39,66 @@ namespace NetMQ.Core.Transports.Ipc
         {
             m_name = name;
 
-            int hash = name.GetHashCode();
+            int hash = GetMurmurHash(name);
             if (hash < 0)
                 hash = -hash;
             hash = hash%55536;
             hash += 10000;
 
             this.Address = new IPEndPoint(IPAddress.Loopback, hash);
+        }
+
+        /// <summary>
+        /// Calculate hash values using the MurmurHash algorithm
+        /// </summary>
+        /// <param name="name">input</param>
+        /// <returns>hash value</returns>
+        private static int GetMurmurHash(string name)
+        {
+            const uint seed = 0xc58f1a7b; 
+            const uint m = 0x5bd1e995;
+            const int r = 24;
+
+            uint hash = seed ^ (uint)name.Length;
+            int length = name.Length;
+            int currentIndex = 0;
+
+            while (length >= 4)
+            {
+                uint k = (uint)(name[currentIndex] |
+                                (name[currentIndex + 1] << 8) |
+                                (name[currentIndex + 2] << 16) |
+                                (name[currentIndex + 3] << 24));
+
+                k *= m;
+                k ^= k >> r;
+                k *= m;
+
+                hash *= m;
+                hash ^= k;
+
+                currentIndex += 4;
+                length -= 4;
+            }
+
+            switch (length)
+            {
+                case 3:
+                    hash ^= (uint)(name[currentIndex + 2] << 16);
+                    goto case 2;
+                case 2:
+                    hash ^= (uint)(name[currentIndex + 1] << 8);
+                    goto case 1;
+                case 1:
+                    hash ^= name[currentIndex];
+                    hash *= m;
+                    break;
+            }
+
+            hash ^= hash >> 13;
+            hash *= m;
+            hash ^= hash >> 15;
+            return (int)hash;
         }
 
         [DisallowNull]
