@@ -39,13 +39,10 @@ namespace NetMQ.Core.Transports.Ipc
         {
             m_name = name;
 
-            int hash = GetMurmurHash(name);
-            if (hash < 0)
-                hash = -hash;
-            hash = hash%55536;
-            hash += 10000;
-
-            this.Address = new IPEndPoint(IPAddress.Loopback, hash);
+            uint hash = GetMurmurHash(name);
+            int port = (int)(hash % 55536);
+            port += 10000;
+            this.Address = new IPEndPoint(IPAddress.Loopback, port);
         }
 
         /// <summary>
@@ -53,7 +50,7 @@ namespace NetMQ.Core.Transports.Ipc
         /// </summary>
         /// <param name="name">input</param>
         /// <returns>hash value</returns>
-        private static int GetMurmurHash(string name)
+        private static uint GetMurmurHash(string name)
         {
             const uint seed = 0xc58f1a7b; 
             const uint m = 0x5bd1e995;
@@ -98,7 +95,7 @@ namespace NetMQ.Core.Transports.Ipc
             hash ^= hash >> 13;
             hash *= m;
             hash ^= hash >> 15;
-            return (int)hash;
+            return hash;
         }
 
         [DisallowNull]
