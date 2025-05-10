@@ -52,7 +52,7 @@ namespace NetMQ.Core.Transports.Ipc
         /// <returns>hash value</returns>
         private static uint GetMurmurHash(string name)
         {
-            const uint seed = 0xc58f1a7b; 
+            const uint seed = 0xc58f1a7b;
             const uint m = 0x5bd1e995;
             const int r = 24;
 
@@ -62,16 +62,16 @@ namespace NetMQ.Core.Transports.Ipc
 
             while (length >= 4)
             {
-                uint k = (uint)(name[currentIndex] |
-                                (name[currentIndex + 1] << 8) |
-                                (name[currentIndex + 2] << 16) |
-                                (name[currentIndex + 3] << 24));
+                uint k = unchecked((uint)(name[currentIndex] |
+                                          (name[currentIndex + 1] << 8) |
+                                          (name[currentIndex + 2] << 16) |
+                                          (name[currentIndex + 3] << 24)));
 
-                k *= m;
+                k = unchecked(k * m);
                 k ^= k >> r;
-                k *= m;
+                k = unchecked(k * m);
 
-                hash *= m;
+                hash = unchecked(hash * m);
                 hash ^= k;
 
                 currentIndex += 4;
@@ -81,22 +81,24 @@ namespace NetMQ.Core.Transports.Ipc
             switch (length)
             {
                 case 3:
-                    hash ^= (uint)(name[currentIndex + 2] << 16);
+                    hash ^= unchecked((uint)(name[currentIndex + 2] << 16));
                     goto case 2;
                 case 2:
-                    hash ^= (uint)(name[currentIndex + 1] << 8);
+                    hash ^= unchecked((uint)(name[currentIndex + 1] << 8));
                     goto case 1;
                 case 1:
                     hash ^= name[currentIndex];
-                    hash *= m;
+                    hash = unchecked(hash * m);
                     break;
             }
 
             hash ^= hash >> 13;
-            hash *= m;
+            hash = unchecked(hash * m);
             hash ^= hash >> 15;
+
             return hash;
         }
+
 
         [DisallowNull]
         public IPEndPoint? Address { get; private set; }
