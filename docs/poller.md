@@ -59,7 +59,7 @@ For ZeroMQ/NetMQ to give great performance, some restrictions exist on how we ca
 
 For example, consider socket A with a service loop in thread A, and socket B with a service loop in thread B. It would be invalid to receive a message from socket A (on thread A) and then attempt to send it on socket B. The socket is not threadsafe, and so attempts to use is simultaneously from threads A and B would cause errors.
 
-In fact the pattern described here is known as a [proxy](proxy.md), and one is built into NetMQ. At this point you may not be surprised to learn that it is powered by a `NetMQPoller`.
+In fact the pattern described here is known as a proxy, and one is built into NetMQ. At this point you may not be surprised to learn that it is powered by a `NetMQPoller`.
 
 ## Example: ReceiveReady
 

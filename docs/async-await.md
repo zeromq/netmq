@@ -52,7 +52,7 @@ static void Main(string[] args)
 ```
 
 NetMQRuntime is a wrapper over NetMQPoller, when calling an async function the socket is automatically added to the internal poller.
-NetMQRuntime is also a NetMQScheduler and SyncrhonizationContext, so any awaited function is continuing on the runtime's thread.
+NetMQRuntime is also a NetMQScheduler and SynchronizationContext, so any awaited function is continuing on the runtime's thread.
 
 NetMQSocket should still be used only within one thread.
 
