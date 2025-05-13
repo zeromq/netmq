@@ -1,4 +1,4 @@
-#if NETSTANDARD2_0 || NETSTANDARD2_1 || NET47
+#if NET || NET47
 
 using System;
 using System.Threading;
