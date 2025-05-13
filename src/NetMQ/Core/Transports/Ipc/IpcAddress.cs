@@ -39,7 +39,7 @@ namespace NetMQ.Core.Transports.Ipc
         {
             m_name = name;
 
-            int hash = name.GetHashCode();
+            int hash = Strings.GetStableHashCode(name);
             if (hash < 0)
                 hash = -hash;
             hash = hash%55536;
