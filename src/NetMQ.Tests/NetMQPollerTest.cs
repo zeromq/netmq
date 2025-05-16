@@ -51,8 +51,8 @@ namespace NetMQ.Tests
             }
         }
 
-        [Fact]
-        public void Monitoring()
+        [Fact(Timeout=5000)]
+        public async void Monitoring()
         {
             var listeningEvent = new ManualResetEvent(false);
             var acceptedEvent = new ManualResetEvent(false);
@@ -80,11 +80,27 @@ namespace NetMQ.Tests
                 req.Connect("tcp://127.0.0.1:" + port);
                 req.SendFrame("a");
 
-                rep.SkipFrame();
+                // keep the test from blocking when something goes wrong.
+                var timeout = new CancellationTokenSource(5000).Token;
+                Exception e = null;
 
-                rep.SendFrame("b");
+                await Task.Run(() =>
+                {
+                    try
+                    {
+                        rep.SkipFrame();
 
-                req.SkipFrame();
+                        rep.SendFrame("b");
+
+                        req.SkipFrame();
+                    }
+                    catch (Exception ex)
+                    {
+                        e = ex;
+                    }
+                }, timeout);
+
+                Assert.Null(e);
 
                 Assert.True(listeningEvent.WaitOne(300));
                 Assert.True(connectedEvent.WaitOne(300));
@@ -767,8 +783,8 @@ namespace NetMQ.Tests
 
             Assert.Equal(3, count);
 
-            Assert.True(Math.Abs(length1 - 30) <= 10.0);
-            Assert.True(Math.Abs(length2 - 60) <= 10.0);
+            Assert.InRange(Math.Abs(length1 - 30), 0, 10);
+            Assert.InRange(Math.Abs(length2 - 60), 0, 10);
         }
 
         [Fact]
