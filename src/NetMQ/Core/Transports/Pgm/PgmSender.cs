@@ -272,7 +272,7 @@ namespace NetMQ.Core.Transports.Pgm
         private void Error()
         {
             Assumes.NotNull(m_session);
-            m_session.Detach();
+            m_session.Detach(false);
             Destroy();
         }
 

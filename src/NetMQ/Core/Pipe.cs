@@ -143,6 +143,11 @@ namespace NetMQ.Core
         private readonly ZObject m_parent;
 
         /// <summary>
+        /// Disconnect msg
+        /// </summary>
+        private Msg m_disconnectMsg;
+
+        /// <summary>
         /// Create a new Pipe object with the given parent, and inbound and outbound YPipes.
         /// </summary>
         /// <remarks>
@@ -167,6 +172,7 @@ namespace NetMQ.Core
             m_sink = null;
             m_state = State.Active;
             m_delay = true;
+            m_disconnectMsg.InitEmpty();
         }
 
         /// <summary>
@@ -227,6 +233,15 @@ namespace NetMQ.Core
         {
             Debug.Assert(m_sink == null);
             m_sink = sink;
+        }
+
+        public void SetDisconnectMsg(byte[] disconnectMsg)
+        {
+            var msg  = new Msg();
+
+            msg.InitPool(disconnectMsg.Length);
+            msg.Put(disconnectMsg, 0, disconnectMsg.Length);
+            m_disconnectMsg = msg;
         }
 
         /// <summary>
@@ -689,6 +704,17 @@ namespace NetMQ.Core
         public override string ToString()
         {
             return base.ToString() + "[" + m_parent + "]";
+        }
+
+        public void SendDisconnectMessage()
+        {
+            if (m_disconnectMsg.Size > 0)
+            {
+                Rollback();
+                m_outboundPipe?.Write(ref m_disconnectMsg, false);
+                Flush();
+                m_disconnectMsg.InitEmpty();
+            }
         }
     }
 }
