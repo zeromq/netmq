@@ -66,6 +66,7 @@ namespace NetMQ.Core
             HeartbeatTimeout = -1;
             HelloMsg = null;
             CanSendHelloMsg = false;
+            CanGenerateDisconnectMsg = false;
             Correlate = false;
             Relaxed = false;
         }
@@ -321,11 +322,22 @@ namespace NetMQ.Core
         /// Hello msg to send to peer upon connecting
         /// </summary>
         public byte[]? HelloMsg { get; set; }
-        
+
+
+        /// <summary>
+        /// Disconnect msg to send to peer upon disconnecting
+        /// </summary>
+        public byte[]? DisconnectMsg { get; set; }
+
         /// <summary>
         /// Indicate of socket can send an hello msg
         /// </summary>
         public bool CanSendHelloMsg { get; set; }
+
+        /// <summary>
+        /// Indicate of socket can generate a disconnect msg
+        /// </summary>
+        public bool CanGenerateDisconnectMsg { get; set; }
 
         public bool Correlate { get; set; }
         public bool Relaxed { get; set; }
@@ -528,6 +540,27 @@ namespace NetMQ.Core
                         HelloMsg = new byte[helloMsg.Length];
                     
                         Buffer.BlockCopy(helloMsg, 0, HelloMsg, 0, helloMsg.Length);
+                    }
+                    break;
+                }
+
+
+                case ZmqSocketOption.DisconnectMessage:
+                {
+                    if (optionValue == null)
+                    {
+                        DisconnectMsg = null;
+                    }
+                    else if( CanGenerateDisconnectMsg )
+                    {
+                        var disconnectMsg = Get<byte[]>();
+                        DisconnectMsg = new byte[disconnectMsg.Length];
+                    
+                        Buffer.BlockCopy(disconnectMsg, 0, DisconnectMsg, 0, disconnectMsg.Length);
+                    }
+                    else
+                    {
+                        throw new InvalidException("Socket doesn't support disconnect message");
                     }
                     break;
                 }

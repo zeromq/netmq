@@ -347,6 +347,11 @@ namespace NetMQ.Core
         HelloMessage = 57,
 
         /// <summary>
+        /// Disconnect Message to be generated on router upon disconnecting of client
+        /// </summary>
+        DisconnectMessage = 60,
+
+        /// <summary>
         /// Specifies the byte-order: big-endian, vs little-endian.
         /// </summary>
         Endian = 1000,

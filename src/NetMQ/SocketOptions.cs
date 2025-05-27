@@ -513,6 +513,15 @@ namespace NetMQ
             set => m_socket.SetSocketOption(ZmqSocketOption.HelloMessage, value);
         }
 
+
+        /// <summary>
+        /// Set a disconnect message that the socket will generate when accepted peer disconnect
+        /// </summary>
+        public byte[] DisconnectMessage
+        {
+            set => m_socket.SetSocketOption(ZmqSocketOption.DisconnectMessage, value);
+        }
+
         /// <summary>
         /// relax strict alternation between request and reply on REQ sockets
         /// </summary>

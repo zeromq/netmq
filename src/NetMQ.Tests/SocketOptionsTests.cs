@@ -147,5 +147,36 @@ namespace NetMQ.Tests
             
             Assert.Equal("H", msg);
         }
+
+
+        [Theory]
+        [InlineData("inproc://inproc-hello-msg")]
+        [InlineData("tcp://127.0.0.1:5569")]
+        public void DisconnectMsg( string addr)
+        {
+            // Create a router
+            using var router = new RouterSocket();
+            router.Options.DisconnectMessage = new byte[] {(byte)'D'};
+            
+            // bind router
+            router.Bind(addr);
+            
+            // create a dealer
+            using var dealer = new DealerSocket();
+            dealer.Options.HelloMessage = new byte[] {(byte)'H'};
+            dealer.Connect(addr);
+
+            var msg = dealer.ReceiveFrameString();
+            
+            Assert.Equal("H", msg);
+
+            dealer.Close();
+
+            var x = router.ReceiveMultipartMessage();
+           
+
+            Assert.Equal("D", x.Last.ConvertToString());
+
+        }
     }
 }

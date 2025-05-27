@@ -210,7 +210,7 @@ namespace NetMQ.Core.Transports.Pgm
         {
             Assumes.NotNull(m_session);
 
-            m_session.Detach();
+            m_session.Detach(false);
 
             Assumes.NotNull(m_ioObject);
             Assumes.NotNull(m_handle);

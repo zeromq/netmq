@@ -100,7 +100,7 @@ namespace NetMQ.Core
         /// Indicate if the socket is thread safe
         /// </summary>
         private bool m_threadSafe;
-        
+
         /// <summary>
         /// Mutex for synchronize access to the socket in thread safe mode
         /// </summary>
@@ -423,7 +423,7 @@ namespace NetMQ.Core
                 {
                     if (m_threadSafe)
                         throw new InvalidException();
-                    return ((Mailbox) m_mailbox).Handle;
+                    return ((Mailbox)m_mailbox).Handle;
                 }
 
                 if (option == ZmqSocketOption.Events)
@@ -454,7 +454,7 @@ namespace NetMQ.Core
                 Unlock();
             }
         }
-        
+
         /// <summary>
         /// Join the dish socket to a group
         /// </summary>
@@ -462,7 +462,7 @@ namespace NetMQ.Core
         public void Join(string group)
         {
             Lock();
-            
+
             try
             {
                 XJoin(group);
@@ -472,7 +472,7 @@ namespace NetMQ.Core
                 Unlock();
             }
         }
-        
+
         /// <summary>
         /// Leave a group for a dish socket
         /// </summary>
@@ -480,7 +480,7 @@ namespace NetMQ.Core
         public void Leave(string group)
         {
             Lock();
-            
+
             try
             {
                 XLeave(group);
@@ -526,29 +526,29 @@ namespace NetMQ.Core
                 switch (protocol)
                 {
                     case Address.InProcProtocol:
-                    {
-                        var endpoint = new Ctx.Endpoint(this, m_options);
-                        bool addressRegistered = RegisterEndpoint(addr, endpoint);
-
-                        if (!addressRegistered)
-                            throw new AddressAlreadyInUseException($"Cannot bind address ( {addr} ) - already in use.");
-
-                        m_options.LastEndpoint = addr;
-                        return;
-                    }
-                    case Address.PgmProtocol:
-                    case Address.EpgmProtocol:
-                    {
-                        if (m_options.SocketType == ZmqSocketType.Pub || m_options.SocketType == ZmqSocketType.Xpub)
                         {
-                            // For convenience's sake, bind can be used interchangeable with
-                            // connect for PGM and EPGM transports.
-                            Connect(addr);
+                            var endpoint = new Ctx.Endpoint(this, m_options);
+                            bool addressRegistered = RegisterEndpoint(addr, endpoint);
+
+                            if (!addressRegistered)
+                                throw new AddressAlreadyInUseException($"Cannot bind address ( {addr} ) - already in use.");
+
+                            m_options.LastEndpoint = addr;
                             return;
                         }
+                    case Address.PgmProtocol:
+                    case Address.EpgmProtocol:
+                        {
+                            if (m_options.SocketType == ZmqSocketType.Pub || m_options.SocketType == ZmqSocketType.Xpub)
+                            {
+                                // For convenience's sake, bind can be used interchangeable with
+                                // connect for PGM and EPGM transports.
+                                Connect(addr);
+                                return;
+                            }
 
-                        break;
-                    }
+                            break;
+                        }
                 }
 
                 // Remaining transports require to be run in an I/O thread, so at this
@@ -561,73 +561,73 @@ namespace NetMQ.Core
                 switch (protocol)
                 {
                     case Address.TcpProtocol:
-                    {
-                        var listener = new TcpListener(ioThread, this, m_options);
-
-                        try
                         {
-                            listener.SetAddress(address);
-                            m_port = listener.Port;
+                            var listener = new TcpListener(ioThread, this, m_options);
 
-                            // Recreate the address string (localhost:1234) in case the port was system-assigned
-                            addr = $"tcp://{address.Substring(0, address.IndexOf(':'))}:{m_port}";
-                        }
-                        catch (NetMQException ex)
-                        {
-                            listener.Destroy();
-                            EventBindFailed(addr, ex.ErrorCode);
-                            throw;
-                        }
+                            try
+                            {
+                                listener.SetAddress(address);
+                                m_port = listener.Port;
 
-                        m_options.LastEndpoint = listener.Address;
-                        AddEndpoint(addr, listener, null);
-                        break;
-                    }
+                                // Recreate the address string (localhost:1234) in case the port was system-assigned
+                                addr = $"tcp://{address.Substring(0, address.IndexOf(':'))}:{m_port}";
+                            }
+                            catch (NetMQException ex)
+                            {
+                                listener.Destroy();
+                                EventBindFailed(addr, ex.ErrorCode);
+                                throw;
+                            }
+
+                            m_options.LastEndpoint = listener.Address;
+                            AddEndpoint(addr, listener, null);
+                            break;
+                        }
                     case Address.PgmProtocol:
                     case Address.EpgmProtocol:
-                    {
-                        var listener = new PgmListener(ioThread, this, m_options);
-
-                        try
                         {
-                            listener.Init(address);
-                        }
-                        catch (NetMQException ex)
-                        {
-                            listener.Destroy();
-                            EventBindFailed(addr, ex.ErrorCode);
-                            throw;
-                        }
+                            var listener = new PgmListener(ioThread, this, m_options);
 
-                        m_options.LastEndpoint = addr;
-                        AddEndpoint(addr, listener, null);
-                        break;
-                    }
+                            try
+                            {
+                                listener.Init(address);
+                            }
+                            catch (NetMQException ex)
+                            {
+                                listener.Destroy();
+                                EventBindFailed(addr, ex.ErrorCode);
+                                throw;
+                            }
+
+                            m_options.LastEndpoint = addr;
+                            AddEndpoint(addr, listener, null);
+                            break;
+                        }
                     case Address.IpcProtocol:
-                    {
-                        var listener = new IpcListener(ioThread, this, m_options);
-
-                        try
                         {
-                            listener.SetAddress(address);
-                            m_port = listener.Port;
-                        }
-                        catch (NetMQException ex)
-                        {
-                            listener.Destroy();
-                            EventBindFailed(addr, ex.ErrorCode);
-                            throw;
-                        }
+                            var listener = new IpcListener(ioThread, this, m_options);
 
-                        m_options.LastEndpoint = listener.Address;
-                        AddEndpoint(addr, listener, null);
-                        break;
-                    }
+                            try
+                            {
+                                listener.SetAddress(address);
+                                m_port = listener.Port;
+                            }
+                            catch (NetMQException ex)
+                            {
+                                listener.Destroy();
+                                EventBindFailed(addr, ex.ErrorCode);
+                                throw;
+                            }
+
+                            m_options.LastEndpoint = listener.Address;
+                            AddEndpoint(addr, listener, null);
+                            break;
+                        }
                     default:
-                    {
-                        throw new ArgumentException($"Address {addr} has unsupported protocol: {protocol}",
-                            nameof(addr));
-                    }
+                        {
+                            throw new ArgumentException($"Address {addr} has unsupported protocol: {protocol}",
+                                nameof(addr));
+                        }
                 }
             }
             finally
@@ -647,21 +647,21 @@ namespace NetMQ.Core
         /// <exception cref="FaultException">the socket bind failed</exception>
         public int BindRandomPort(string addr)
         {
-              Lock();
-              try
-              {
-                  DecodeAddress(addr, out string address, out string protocol);
+            Lock();
+            try
+            {
+                DecodeAddress(addr, out string address, out string protocol);
 
-                  if (protocol != Address.TcpProtocol)
-                      throw new ProtocolNotSupportedException("Address must use the TCP protocol.");
+                if (protocol != Address.TcpProtocol)
+                    throw new ProtocolNotSupportedException("Address must use the TCP protocol.");
 
-                  Bind(addr + ":0");
-                  return m_port;
-              }
-              finally
-              {
-                  Unlock();
-              }
+                Bind(addr + ":0");
+                return m_port;
+            }
+            finally
+            {
+                Unlock();
+            }
         }
 
         /// <summary>
@@ -776,6 +776,12 @@ namespace NetMQ.Core
                         pipes[1].Flush();
                     }
 
+
+                    if (peer.Options.CanGenerateDisconnectMsg && peer.Options.DisconnectMsg != null)
+                    {
+                        pipes[0].SetDisconnectMsg(peer.Options.DisconnectMsg);
+                    }
+
                     // Attach remote end of the pipe to the peer socket. Note that peer's
                     // seqnum was incremented in find_endpoint function. We don't need it
                     // increased here.
@@ -802,30 +808,30 @@ namespace NetMQ.Core
                 switch (protocol)
                 {
                     case Address.TcpProtocol:
-                    {
-                        paddr.Resolved = (new TcpAddress());
-                        paddr.Resolved.Resolve(address, m_options.IPv4Only);
-                        break;
-                    }
+                        {
+                            paddr.Resolved = (new TcpAddress());
+                            paddr.Resolved.Resolve(address, m_options.IPv4Only);
+                            break;
+                        }
                     case Address.IpcProtocol:
-                    {
-                        paddr.Resolved = (new IpcAddress());
-                        paddr.Resolved.Resolve(address, true);
-                        break;
-                    }
+                        {
+                            paddr.Resolved = (new IpcAddress());
+                            paddr.Resolved.Resolve(address, true);
+                            break;
+                        }
                     case Address.PgmProtocol:
                     case Address.EpgmProtocol:
-                    {
-                        if (m_options.SocketType == ZmqSocketType.Sub || m_options.SocketType == ZmqSocketType.Xsub)
                         {
-                            Bind(addr);
-                            return;
-                        }
+                            if (m_options.SocketType == ZmqSocketType.Sub || m_options.SocketType == ZmqSocketType.Xsub)
+                            {
+                                Bind(addr);
+                                return;
+                            }
 
-                        paddr.Resolved = new PgmAddress();
-                        paddr.Resolved.Resolve(address, m_options.IPv4Only);
-                        break;
-                    }
+                            paddr.Resolved = new PgmAddress();
+                            paddr.Resolved.Resolve(address, m_options.IPv4Only);
+                            break;
+                        }
                 }
 
                 // Create session.
@@ -926,6 +932,7 @@ namespace NetMQ.Core
                     if (!m_inprocs.TryGetValue(addr, out Pipe pipe))
                         throw new EndpointNotFoundException("Endpoint was not found and cannot be disconnected");
 
+                    pipe.SendDisconnectMessage();
                     pipe.Terminate(true);
                     m_inprocs.Remove(addr);
                 }
@@ -987,7 +994,7 @@ namespace NetMQ.Core
 
                 // Compute the time when the timeout should occur.
                 // If the timeout is infinite, don't care.
-                int timeoutMillis = (int) timeout.TotalMilliseconds;
+                int timeoutMillis = (int)timeout.TotalMilliseconds;
                 long end = timeoutMillis < 0 ? 0 : (Clock.NowMs() + timeoutMillis);
 
                 // Oops, we couldn't send the message. Wait for the next
@@ -1005,7 +1012,7 @@ namespace NetMQ.Core
                     if (timeoutMillis <= 0)
                         continue;
 
-                    timeoutMillis = (int) (end - Clock.NowMs());
+                    timeoutMillis = (int)(end - Clock.NowMs());
 
                     if (timeoutMillis <= 0)
                         return false;
@@ -1091,7 +1098,7 @@ namespace NetMQ.Core
 
                 // Compute the time when the timeout should occur.
                 // If the timeout is infinite (negative), don't care.
-                int timeoutMillis = (int) timeout.TotalMilliseconds;
+                int timeoutMillis = (int)timeout.TotalMilliseconds;
                 long end = timeoutMillis < 0 ? 0L : Clock.NowMs() + timeoutMillis;
 
                 // In blocking scenario, commands are processed over and over again until
@@ -1101,7 +1108,7 @@ namespace NetMQ.Core
                 {
                     if (cancellationToken.IsCancellationRequested)
                         return false;
-                    
+
                     ProcessCommands(block ? timeoutMillis : 0, false, cancellationToken);
 
                     isMessageAvailable = XRecv(ref msg);
@@ -1114,7 +1121,7 @@ namespace NetMQ.Core
                     block = true;
                     if (timeoutMillis > 0)
                     {
-                        timeoutMillis = (int) (end - Clock.NowMs());
+                        timeoutMillis = (int)(end - Clock.NowMs());
 
                         if (timeoutMillis <= 0)
                             return false;
@@ -1139,8 +1146,8 @@ namespace NetMQ.Core
             Lock();
             try
             {
-                if (m_threadSafe) 
-                    ((MailboxSafe) m_mailbox).ClearSignalers();
+                if (m_threadSafe)
+                    ((MailboxSafe)m_mailbox).ClearSignalers();
 
                 // Mark the socket as disposed
                 m_disposed = true;
@@ -1182,22 +1189,22 @@ namespace NetMQ.Core
         {
             // Plug the socket to the reaper thread.
             m_poller = poller;
-            
+
             if (!m_threadSafe)
-                m_handle = ((Mailbox) m_mailbox).Handle;
+                m_handle = ((Mailbox)m_mailbox).Handle;
             else
             {
                 lock (m_threadSafeSync)
                 {
                     m_reaperSignaler = new Signaler();
                     m_handle = m_reaperSignaler.Handle;
-                    ((MailboxSafe) m_mailbox).AddSignaler(m_reaperSignaler);
+                    ((MailboxSafe)m_mailbox).AddSignaler(m_reaperSignaler);
 
                     // Send a signal to make sure reaper handle existing commands
                     m_reaperSignaler.Send();
                 }
             }
-            
+
             m_poller.AddHandle(m_handle, this);
             m_poller.SetPollIn(m_handle);
 
@@ -1303,8 +1310,12 @@ namespace NetMQ.Core
             UnregisterEndpoints(this);
 
             // Ask all attached pipes to terminate.
-            for (int i = 0; i != m_pipes.Count; ++i)
-                m_pipes[i].Terminate(false);
+            foreach (var pipe in m_pipes)
+            {
+                pipe.SendDisconnectMessage();
+                pipe.Terminate(false);
+            }
+
             RegisterTermAcks(m_pipes.Count);
 
             // Continue the termination process immediately.
@@ -1402,12 +1413,12 @@ namespace NetMQ.Core
         {
             throw new NotSupportedException("Must override");
         }
-        
+
         protected virtual void XJoin(string group)
         {
             throw new NotSupportedException("Must override");
         }
-        
+
         protected virtual void XLeave(string group)
         {
             throw new NotSupportedException("Must override");
@@ -1424,7 +1435,7 @@ namespace NetMQ.Core
             // be destroyed.
 
             Lock();
-            
+
             try
             {
                 //  If the socket is thread safe we need to unsignal the reaper signaler

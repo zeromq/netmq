@@ -412,13 +412,20 @@ namespace NetMQ.Core
         /// <summary>
         /// Flush out any leftover messages and call Detached.
         /// </summary>
-        public void Detach()
+        public void Detach(bool handshaked)
         {
             // Engine is dead. Let's forget about it.
             m_engine = null;
 
             // Remove any half-done messages from the pipes.
             CleanPipes();
+
+            //  Only send disconnect message if socket was accepted and handshake was completed
+            if (m_pipe is not null && handshaked && m_options.CanGenerateDisconnectMsg && m_options.DisconnectMsg is not null)
+            {
+                m_pipe.SetDisconnectMsg(m_options.DisconnectMsg);
+                m_pipe.SendDisconnectMessage();
+            }
 
             // Send the event to the derived class.
             Detached();
