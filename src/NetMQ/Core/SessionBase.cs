@@ -399,6 +399,11 @@ namespace NetMQ.Core
                 Debug.Assert(m_pipe == null);
                 m_pipe = pipes[0];
 
+                if (m_options.CanGenerateDisconnectMsg && m_options.DisconnectMsg is not null)
+                {
+                    pipes[1].SetDisconnectMsg(m_options.DisconnectMsg);
+                }
+
                 // Ask socket to plug into the remote end of the pipe.
                 SendBind(m_socket, pipes[1]);
             }
@@ -412,13 +417,20 @@ namespace NetMQ.Core
         /// <summary>
         /// Flush out any leftover messages and call Detached.
         /// </summary>
-        public void Detach()
+        public void Detach(bool handshaked)
         {
             // Engine is dead. Let's forget about it.
             m_engine = null;
 
             // Remove any half-done messages from the pipes.
             CleanPipes();
+
+            //  Only send disconnect message if socket was accepted and handshake was completed
+            if (m_pipe is not null && m_pipe.Active && handshaked && m_options.CanGenerateDisconnectMsg &&  m_options.DisconnectMsg?.Length > 0)
+            {
+                m_pipe.SetDisconnectMsg(m_options.DisconnectMsg);
+                m_pipe.SendDisconnectMessage();
+            }
 
             // Send the event to the derived class.
             Detached();

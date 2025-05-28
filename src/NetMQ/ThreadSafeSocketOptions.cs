@@ -405,5 +405,14 @@ namespace NetMQ
         {
             set => SetSocketOption(ZmqSocketOption.HelloMessage, value);
         }
+
+
+        /// <summary>
+        /// Set message to send to peer upon connecting
+        /// </summary>
+        public byte[] DisconnectMessage
+        {
+            set => SetSocketOption(ZmqSocketOption.DisconnectMessage, value);
+        }
     }
 }

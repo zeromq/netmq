@@ -323,7 +323,7 @@ namespace NetMQ.Core.Transports
             m_state = State.Error;
             m_socket.EventDisconnected(m_endpoint, m_handle);
             m_session.Flush();
-            m_session.Detach();
+            m_session.Detach(m_state != State.Handshaking && m_mechanism.Status != MechanismStatus.Handshaking );
             Unplug();
             Destroy();
         }
