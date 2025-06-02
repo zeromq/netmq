@@ -147,5 +147,65 @@ namespace NetMQ.Tests
             
             Assert.Equal("H", msg);
         }
+
+
+        [Fact]
+        public void DisconnectMsgInProc()
+        {
+            // Create a router
+            using var router = new RouterSocket();
+            router.Options.DisconnectMessage = new byte[] {(byte)'D'};
+            
+            // bind router
+            router.Bind("inproc://inproc-hello-msg");
+            
+            // create a dealer
+            using var dealer = new DealerSocket();
+            dealer.Options.HelloMessage = new byte[] {(byte)'H'};
+            dealer.Connect("inproc://inproc-hello-msg");
+
+            var msg = router.ReceiveMultipartMessage();
+            
+            Assert.Equal("H", msg.Last.ConvertToString());
+
+            dealer.Close();
+
+            var routerMsg = router.ReceiveMultipartMessage();
+           
+
+            Assert.Equal("D",
+             routerMsg.Last.ConvertToString());
+
+        }
+
+
+        [Fact]
+        public void DisconnectMsgTcp()
+        {
+            // Create a router
+            using var router = new RouterSocket();
+            router.Options.DisconnectMessage = new byte[] {(byte)'D'};
+            
+            // bind router
+            int port = router.BindRandomPort("tcp://*");
+            
+            // create a dealer
+            using var dealer = new DealerSocket();
+            dealer.Options.HelloMessage = new byte[] {(byte)'H'};
+            dealer.Connect($"tcp://localhost:{port}");
+
+            var msg = router.ReceiveMultipartMessage();
+            
+            Assert.Equal("H", msg.Last.ConvertToString());
+
+            dealer.Close();
+
+            var routerMsg = router.ReceiveMultipartMessage();
+           
+
+            Assert.Equal("D",
+                routerMsg.Last.ConvertToString());
+
+        }
     }
 }

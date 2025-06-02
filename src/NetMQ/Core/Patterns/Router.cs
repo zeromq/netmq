@@ -144,6 +144,7 @@ namespace NetMQ.Core.Patterns
             m_nextPeerId = s_random.Next();
             m_options.SocketType = ZmqSocketType.Router;
             m_options.CanSendHelloMsg = true;
+            m_options.CanGenerateDisconnectMsg = true;
             m_fairQueueing = new FairQueueing();
             m_prefetchedId = new Msg();
             m_prefetchedId.InitEmpty();
