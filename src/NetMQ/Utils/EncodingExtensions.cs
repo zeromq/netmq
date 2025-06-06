@@ -1,4 +1,4 @@
-#if !NETSTANDARD2_1        
+#if !NET
 using System;
 using System.Text;
 
