@@ -10,6 +10,6 @@ addons:
 
 script:
   - dotnet restore src/NetMQ.sln
-  - dotnet build -v q -f netstandard2.0 src/NetMQ/NetMQ.csproj
+  - dotnet build -v q -f netstandard2.1 src/NetMQ/NetMQ.csproj
   - dotnet test -v n --logger "Console;noprogress=true" -p:ParallelizeTestCollections=false -f netcoreapp2.1 --filter Category!=Beacon src/NetMQ.Tests/NetMQ.Tests.csproj -- RunConfiguration.ReporterSwitch=verbose
 

@@ -1,4 +1,4 @@
-#if !NETSTANDARD2_1        
+#if NETFRAMEWORK        
 using System;
 using System.Text;
 

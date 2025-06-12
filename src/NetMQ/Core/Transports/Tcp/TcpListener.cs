@@ -22,7 +22,7 @@
 using System;
 using System.Diagnostics;
 using System.Net.Sockets;
-#if NETSTANDARD2_0 || NETSTANDARD2_1
+#if NETSTANDARD || NET
 using System.Runtime.InteropServices;
 #endif
 using AsyncIO;
@@ -142,7 +142,7 @@ namespace NetMQ.Core.Transports.Tcp
                     }
                 }
 
-#if NETSTANDARD2_0 || NETSTANDARD2_1
+#if NETSTANDARD || NET
                 // This command is failing on linux
                 if (RuntimeInformation.IsOSPlatform(OSPlatform.Windows))
                     m_handle.ExclusiveAddressUse = false;
