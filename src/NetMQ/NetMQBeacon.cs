@@ -125,7 +125,7 @@ namespace NetMQ
 							// on linux to receive broadcast you must bind to the broadcast address specifically
 							//bindTo = @interface.Address;
 							sendTo = @interface.BroadcastAddress;
-#if NET45 || NET47
+#if NETFRAMEWORK
 							if (Environment.OSVersion.Platform==PlatformID.Unix)
 #else
 							if (RuntimeInformation.IsOSPlatform(OSPlatform.Linux))

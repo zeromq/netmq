@@ -262,7 +262,6 @@ namespace NetMQ.Core.Transports.Tcp
                         bytes.PutInteger(endian, m_options.TcpKeepaliveIdle, 4);
                         bytes.PutInteger(endian, m_options.TcpKeepaliveIntvl, 8);
 
-                        bytes.PutInteger(endian, m_options.TcpKeepaliveIntvl, 8);
 #if NET
                         if (!OperatingSystem.IsWindows())
                         {
