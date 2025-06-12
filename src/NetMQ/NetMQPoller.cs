@@ -641,7 +641,7 @@ namespace NetMQ
 
 #if !NET35
                 // Try to dequeue and execute all pending tasks before stopping poller
-                while (m_tasksQueue.TryDequeue(out Task? task, TimeSpan.Zero) )
+                while (m_tasksQueue.TryDequeue(out Task? task, TimeSpan.Zero))
                     TryExecuteTask(task!);
 #endif
             }

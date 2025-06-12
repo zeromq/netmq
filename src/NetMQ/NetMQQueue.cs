@@ -117,7 +117,6 @@ namespace NetMQ
 
             m_queue.TryDequeue(out T? result);
 
-
             return result;
         }
 

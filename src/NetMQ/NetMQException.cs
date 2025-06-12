@@ -25,7 +25,7 @@ namespace NetMQ
         /// Create NetMQ Exception
         /// </summary>
         public NetMQException()
-        { }
+        {}
 
         /// <summary>
         /// Create a new NetMQ exception
@@ -33,7 +33,7 @@ namespace NetMQ
         /// <param name="message"></param>
         public NetMQException(string message)
             : base(message)
-        { }
+        {}
 
         /// <summary>
         /// Create a new NetMQ exception
@@ -42,7 +42,7 @@ namespace NetMQ
         /// <param name="innerException"></param>
         public NetMQException(string message, Exception innerException)
             : base(message, innerException)
-        { }
+        {}
 
         /// <summary>Constructor for serialisation.</summary>
         protected NetMQException(SerializationInfo info, StreamingContext context)
