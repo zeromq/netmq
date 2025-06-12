@@ -206,7 +206,7 @@ namespace NetMQ.Core.Transports.Tcp
             // TerminatingException can occur in above call to EventConnectDelayed via
             // MonitorEvent.Write if corresponding PairSocket has been sent Term command
             catch (TerminatingException)
-            {}
+            { }
         }
 
         /// <summary>
@@ -236,9 +236,12 @@ namespace NetMQ.Core.Transports.Tcp
                 m_ioObject.RemoveSocket(m_s);
                 m_handleValid = false;
 
-                try {
+                try
+                {
                     m_s.NoDelay = true;
-                } catch (ArgumentException) {
+                }
+                catch (ArgumentException)
+                {
                     // OSX sometime fail while the socket is still connecting
                 }
 
@@ -259,7 +262,16 @@ namespace NetMQ.Core.Transports.Tcp
                         bytes.PutInteger(endian, m_options.TcpKeepaliveIdle, 4);
                         bytes.PutInteger(endian, m_options.TcpKeepaliveIntvl, 8);
 
+                        bytes.PutInteger(endian, m_options.TcpKeepaliveIntvl, 8);
+#if NET
+                        if (!OperatingSystem.IsWindows())
+                        {
+                            throw new InvalidOperationException("Not supported on you platform"); // There is a pull request for .net8.0
+
+                        }
+#endif
                         m_s.IOControl(IOControlCode.KeepAliveValues, (byte[])bytes, null);
+
                     }
                 }
 
