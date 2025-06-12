@@ -1,5 +1,6 @@
 using System;
 using System.Threading;
+using System.Threading.Tasks;
 using NetMQ.Sockets;
 using Xunit;
 using Xunit.Abstractions;
@@ -47,7 +48,7 @@ namespace NetMQ.Tests
         }
         
         [Fact]
-        public async void TestAsync()
+        public async Task TestAsync()
         {
             using var radio = new RadioSocket();
             using var dish = new DishSocket();
@@ -56,7 +57,7 @@ namespace NetMQ.Tests
             int port = radio.BindRandomPort("tcp://*");
             dish.Connect($"tcp://127.0.0.1:{port}");
             
-            Thread.Sleep(100);
+            await Task.Delay(100);
 
             await radio.SendAsync("1", "HELLO");
             await radio.SendAsync("2", "HELLO");

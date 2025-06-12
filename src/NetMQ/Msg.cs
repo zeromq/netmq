@@ -330,7 +330,7 @@ namespace NetMQ
             var data = new byte[Size];
 
             if (Size > 0)
-                Buffer.BlockCopy(m_data, m_offset, data, 0, Size);
+                Buffer.BlockCopy(m_data!, m_offset, data, 0, Size);
 
             return data;
         }
@@ -548,6 +548,7 @@ namespace NetMQ
         /// <returns>The string</returns>
         public string GetString(Encoding encoding)
         {
+            Assumes.NotNull(m_data);
             return encoding.GetString(m_data, m_offset, Size);
         }
 
@@ -560,6 +561,7 @@ namespace NetMQ
         /// <returns>The string</returns>
         public string GetString(Encoding encoding, int offset, int count)
         {
+            Assumes.NotNull(m_data);
             return encoding.GetString(m_data, m_offset + offset, count);
         }
 
@@ -573,7 +575,7 @@ namespace NetMQ
         {
             if (len == 0 || src == null)
                 return;
-
+            Assumes.NotNull(m_data);
             Buffer.BlockCopy(src, 0, m_data, dstOffset, len);
         }
 
@@ -587,6 +589,7 @@ namespace NetMQ
         public void Put(byte[]? src, int srcOffset, int dstOffset, int len) {
             if (len == 0 || src == null)
                 return;
+            Assumes.NotNull(m_data);
             Buffer.BlockCopy(src, srcOffset, m_data, dstOffset, len);
         }
 
@@ -619,6 +622,7 @@ namespace NetMQ
         /// <param name="index">The index to write the string to</param>
         public void Put(Encoding encoding, string str, int index)
         {
+            Assumes.NotNull(m_data);
             encoding.GetBytes(str, 0, str.Length, m_data, m_offset + index);
         }
         /// <summary>
@@ -728,7 +732,7 @@ namespace NetMQ
             var data = new byte[Size];
 
             if (Size > 0)
-                Buffer.BlockCopy(m_data, m_offset, data, 0, Size);
+                Buffer.BlockCopy(m_data!, m_offset, data, 0, Size);
 
             return data;
         }

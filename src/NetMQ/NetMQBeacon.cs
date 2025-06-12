@@ -144,7 +144,7 @@ namespace NetMQ
                     }
                 }
 
-                if (bindTo != null)
+                if (bindTo != null && sendTo != null)
                 {
                     m_broadcastAddress = new IPEndPoint(sendTo, m_udpPort);
                     m_udpSocket.Bind(new IPEndPoint(bindTo, m_udpPort));
@@ -266,6 +266,7 @@ namespace NetMQ
             private void SendUdpFrame(NetMQFrame frame)
             {
                 Assumes.NotNull(m_udpSocket);
+                Assumes.NotNull(m_broadcastAddress);
 
                 try
                 {
@@ -299,7 +300,7 @@ namespace NetMQ
                     return false;
                 }
 
-                peerName = peer.ToString();
+                peerName = peer.ToString()!;
                 frame = new NetMQFrame(buffer, bytesRead);
                 return true;
             }

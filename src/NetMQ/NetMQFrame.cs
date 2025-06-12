@@ -268,7 +268,7 @@ namespace NetMQ
         /// </summary>
         /// <param name="obj">the Object to compare this to</param>
         /// <returns>true only if the given Object is a NetMQFrame equal to this one</returns>
-        public override bool Equals(object obj)
+        public override bool Equals(object? obj)
         {
             return Equals(obj as NetMQFrame);
         }

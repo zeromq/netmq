@@ -319,7 +319,7 @@ namespace NetMQ.Tests
 
 
         [Fact]
-        public void RemoveSocket()
+        public async Task RemoveSocket()
         {
             using (var router1 = new RouterSocket())
             using (var router2 = new RouterSocket())
@@ -396,8 +396,8 @@ namespace NetMQ.Tests
 
                 poller.Stop();
                 // await the pollerTask, 1ms should suffice
-                pollerTask.Wait(1);
-                Assert.True(pollerTask.IsCompleted);
+                var completedTask = await Task.WhenAny(pollerTask, Task.Delay(1));
+                Assert.Equal(pollerTask, completedTask);
             }
         }
 

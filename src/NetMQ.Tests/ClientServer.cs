@@ -54,7 +54,7 @@ namespace NetMQ.Tests
         }
 
         [Fact]
-        public async void Async()
+        public async Task Async()
         {
             using var server = new ServerSocket();
             using var client = new ClientSocket();
@@ -72,7 +72,7 @@ namespace NetMQ.Tests
         }
 
         [Fact]
-        public async void AsyncWithCancellationToken()
+        public async Task AsyncWithCancellationToken()
         {
             using CancellationTokenSource source = new CancellationTokenSource();
             using var server = new ServerSocket();

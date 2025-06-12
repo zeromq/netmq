@@ -275,16 +275,16 @@ namespace NetMQ.Core.Transports.Tcp
             if (m_handle == null)
                 return;
 
-            Assumes.NotNull(m_endpoint);
-
             try
             {
                 m_handle.Dispose();
-                m_socket.EventClosed(m_endpoint, m_handle);
+                if (m_endpoint is not null)
+                    m_socket.EventClosed(m_endpoint, m_handle);
             }
             catch (SocketException ex)
             {
-                m_socket.EventCloseFailed(m_endpoint, ex.SocketErrorCode.ToErrorCode());
+                if (m_endpoint is not null)
+                  m_socket.EventCloseFailed(m_endpoint, ex.SocketErrorCode.ToErrorCode());
             }
 
             m_handle = null;

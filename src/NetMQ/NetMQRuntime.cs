@@ -14,7 +14,7 @@ namespace NetMQ
     {
         private NetMQPoller m_poller;
         private readonly NetMQSynchronizationContext m_synchronizationContext;
-        private readonly SynchronizationContext m_oldSynchronizationContext;
+        private readonly SynchronizationContext? m_oldSynchronizationContext;
         private static readonly ThreadLocal<NetMQRuntime> s_current = new ThreadLocal<NetMQRuntime>();
         private readonly List<NetMQSocket> m_sockets;
 
@@ -36,7 +36,7 @@ namespace NetMQ
         /// </summary>
         public static NetMQRuntime Current
         {
-            get { return s_current.Value; }
+            get { return s_current.Value!; }
         }
 
         internal static NetMQPoller Poller

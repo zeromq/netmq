@@ -94,7 +94,7 @@ namespace NetMQ
         /// <param name="result">Will be filled with the item upon success</param>
         /// <param name="timeout">Timeout to try and dequeue and item</param>
         /// <returns>Will return false if it didn't succeed to dequeue an item after the timeout.</returns>
-        public bool TryDequeue([MaybeNull] out T result, TimeSpan timeout)
+        public bool TryDequeue(out T? result, TimeSpan timeout)
         {
             if (m_reader.TryReceive(ref m_dequeueMsg, timeout))
             {
@@ -111,11 +111,12 @@ namespace NetMQ
         /// Dequeue an item from the queue, will block if queue is empty. Dequeueing and item is not thread safe.
         /// </summary>
         /// <returns>Dequeued item</returns>
-        public T Dequeue()
+        public T? Dequeue()
         {
             m_reader.TryReceive(ref m_dequeueMsg, SendReceiveConstants.InfiniteTimeout);
 
-            m_queue.TryDequeue(out T result);
+            m_queue.TryDequeue(out T? result);
+
 
             return result;
         }
