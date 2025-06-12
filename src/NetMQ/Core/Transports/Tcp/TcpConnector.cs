@@ -206,7 +206,7 @@ namespace NetMQ.Core.Transports.Tcp
             // TerminatingException can occur in above call to EventConnectDelayed via
             // MonitorEvent.Write if corresponding PairSocket has been sent Term command
             catch (TerminatingException)
-            { }
+            {}
         }
 
         /// <summary>
@@ -236,12 +236,9 @@ namespace NetMQ.Core.Transports.Tcp
                 m_ioObject.RemoveSocket(m_s);
                 m_handleValid = false;
 
-                try
-                {
+                try {
                     m_s.NoDelay = true;
-                }
-                catch (ArgumentException)
-                {
+                } catch (ArgumentException) {
                     // OSX sometime fail while the socket is still connecting
                 }
 
