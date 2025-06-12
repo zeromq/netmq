@@ -17,7 +17,7 @@ namespace NetMQ.Core.Utils
             // While this is supported in modern CPUs, the technique used for allocating executable memory, copying OP Code
             // for the read of the time stamp and invoking the OP Code can be detected as Malware by some anti-virus vendors.
             // https://github.com/zeromq/netmq/issues/1071
-            string val = Environment.GetEnvironmentVariable("NETQM_SUPPRESS_RDTSC");
+            string? val = Environment.GetEnvironmentVariable("NETQM_SUPPRESS_RDTSC");
             if (!string.IsNullOrEmpty(val))
                 return false;
 #if NETSTANDARD || NET 
@@ -83,8 +83,8 @@ namespace NetMQ.Core.Utils
         {
             // force to load from mono gac
             Assembly currentAssembly = Assembly.Load("Mono.Posix, Version=2.0.0.0, Culture=neutral, PublicKeyToken=0738eb9f132ed756");
-            Type syscall = currentAssembly.GetType("Mono.Unix.Native.Syscall");
-            Type utsname = currentAssembly.GetType("Mono.Unix.Native.Utsname");
+            Type? syscall = currentAssembly.GetType("Mono.Unix.Native.Syscall");
+            Type? utsname = currentAssembly.GetType("Mono.Unix.Native.Utsname");
             if (syscall is null || utsname is null) return false;
             MethodInfo? uname = syscall.GetMethod("uname");
             object?[] parameters = { null };
@@ -111,9 +111,9 @@ namespace NetMQ.Core.Utils
                     Assembly.Load("Mono.Posix, Version=2.0.0.0, Culture=neutral, " +
                     "PublicKeyToken=0738eb9f132ed756");
 
-                Type syscall = assembly.GetType("Mono.Unix.Native.Syscall");
-                MethodInfo munmap = syscall.GetMethod("munmap");
-                munmap.Invoke(null, new object[] { s_codeBuffer, s_size });
+                Type? syscall = assembly.GetType("Mono.Unix.Native.Syscall");
+                MethodInfo? munmap = syscall?.GetMethod("munmap");
+                munmap?.Invoke(null, new object[] { s_codeBuffer, s_size });
             }
             else
             {

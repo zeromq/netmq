@@ -91,7 +91,7 @@ namespace NetMQ.Core.Transports.Tcp
                 }
             }
 
-            IPAddress ipAddress;
+            IPAddress? ipAddress;
 
             // Interpret * as Any.
             if (addrStr == "*")

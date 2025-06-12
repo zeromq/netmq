@@ -57,7 +57,7 @@ namespace NetMQ
             m_dequeueMsg.InitEmpty();
         }
 
-        private void OnReceiveReady(object sender, NetMQSocketEventArgs e)
+        private void OnReceiveReady(object? sender, NetMQSocketEventArgs e)
         {
             m_eventDelegator.Fire(this, new NetMQQueueEventArgs<T>(this));
         }

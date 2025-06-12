@@ -91,7 +91,7 @@ namespace NetMQ
                 registration = cancellationToken.Register(PropagateCancel);
             }
 
-            void Listener(object sender, NetMQSocketEventArgs args)
+            void Listener(object? sender, NetMQSocketEventArgs args)
             {
                 if (socket.TryReceive(ref msg, TimeSpan.Zero))
                 {
@@ -174,7 +174,7 @@ namespace NetMQ
                 registration = cancellationToken.Register(PropagateCancel);
             }
 
-            void Listener(object sender, NetMQSocketEventArgs args)
+            void Listener(object? sender, NetMQSocketEventArgs args)
             {
                 if (socket.TryReceive(ref msg, TimeSpan.Zero))
                 {
@@ -241,7 +241,7 @@ namespace NetMQ
                 registration = cancellationToken.Register(PropagateCancel);
             }
 
-            void Listener(object sender, NetMQSocketEventArgs args)
+            void Listener(object? sender, NetMQSocketEventArgs args)
             {
                 if (socket.TryReceive(ref msg, TimeSpan.Zero))
                 {

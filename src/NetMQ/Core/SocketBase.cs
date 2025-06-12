@@ -929,7 +929,7 @@ namespace NetMQ.Core
                     if (UnregisterEndpoint(addr, this))
                         return;
 
-                    if (!m_inprocs.TryGetValue(addr, out Pipe pipe))
+                    if (!m_inprocs.TryGetValue(addr, out Pipe? pipe))
                         throw new EndpointNotFoundException("Endpoint was not found and cannot be disconnected");
 
                     pipe.SendDisconnectMessage();
@@ -938,7 +938,7 @@ namespace NetMQ.Core
                 }
                 else
                 {
-                    if (!m_endpoints.TryGetValue(addr, out Endpoint endpoint))
+                    if (!m_endpoints.TryGetValue(addr, out Endpoint? endpoint))
                         throw new EndpointNotFoundException("Endpoint was not found and cannot be disconnected");
 
                     endpoint.Pipe?.Terminate(false);

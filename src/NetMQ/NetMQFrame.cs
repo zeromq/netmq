@@ -258,7 +258,7 @@ namespace NetMQ
             return true;
         }
 
-        bool IEquatable<NetMQFrame>.Equals(NetMQFrame other)
+        bool IEquatable<NetMQFrame>.Equals(NetMQFrame? other)
         {
             return Equals(other);
         }

@@ -25,7 +25,7 @@ namespace NetMQ
         /// Create NetMQ Exception
         /// </summary>
         public NetMQException()
-        {}
+        { }
 
         /// <summary>
         /// Create a new NetMQ exception
@@ -33,7 +33,7 @@ namespace NetMQ
         /// <param name="message"></param>
         public NetMQException(string message)
             : base(message)
-        {}
+        { }
 
         /// <summary>
         /// Create a new NetMQ exception
@@ -42,22 +42,33 @@ namespace NetMQ
         /// <param name="innerException"></param>
         public NetMQException(string message, Exception innerException)
             : base(message, innerException)
-        {}
+        { }
 
         /// <summary>Constructor for serialisation.</summary>
         protected NetMQException(SerializationInfo info, StreamingContext context)
+#pragma warning disable SYSLIB0051
             : base(info, context)
+#pragma warning restore SYSLIB0051
         {
             ErrorCode = (ErrorCode)info.GetInt32("ErrorCode");
         }
 
         /// <inheritdoc />
+
+#if !NET
+       
         [SecurityPermission(SecurityAction.Demand, SerializationFormatter = true)]
+#endif
+#pragma warning disable CS0672 // Member overrides obsolete member
         public override void GetObjectData(SerializationInfo info, StreamingContext context)
+#pragma warning restore CS0672 // Member overrides obsolete member
         {
             info.AddValue("ErrorCode", ErrorCode);
+#pragma warning disable SYSLIB0051
             base.GetObjectData(info, context);
+#pragma warning restore SYSLIB0051
         }
+
 
         #endregion
 

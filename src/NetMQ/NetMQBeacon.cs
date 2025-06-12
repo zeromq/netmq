@@ -189,7 +189,7 @@ namespace NetMQ
 #endif
             }
 
-            private void PingElapsed(object sender, NetMQTimerEventArgs e)
+            private void PingElapsed(object? sender, NetMQTimerEventArgs e)
             {
                 Assumes.NotNull(m_transmit);
 
@@ -201,7 +201,7 @@ namespace NetMQ
                 Assumes.NotNull(m_pipe);
 
                 if (!TryReceiveUdpFrame(out NetMQFrame? frame, out string? peerName))
-		    return;
+                    return;
 
                 // If filter is set, check that beacon matches it
                 var isValid = frame.MessageSize >= m_filter?.MessageSize && Compare(frame, m_filter, m_filter.MessageSize);
@@ -222,7 +222,7 @@ namespace NetMQ
                 }
             }
 
-            private void OnPipeReady(object sender, NetMQSocketEventArgs e)
+            private void OnPipeReady(object? sender, NetMQSocketEventArgs e)
             {
                 Assumes.NotNull(m_pipe);
                 Assumes.NotNull(m_pingTimer);
@@ -323,7 +323,7 @@ namespace NetMQ
         {
             m_actor = NetMQActor.Create(new Shim());
 
-            void OnReceive(object sender, NetMQActorEventArgs e) => m_receiveEvent!.Fire(this, new NetMQBeaconEventArgs(this));
+            void OnReceive(object? sender, NetMQActorEventArgs e) => m_receiveEvent!.Fire(this, new NetMQBeaconEventArgs(this));
 
             m_receiveEvent = new EventDelegator<NetMQBeaconEventArgs>(
                 () => m_actor.ReceiveReady += OnReceive,

@@ -104,7 +104,7 @@ namespace NetMQ.Core
             }
 
             Debug.Assert(endpoint != null);
-            AddressString = endpoint.ToString()!;
+            AddressString = endpoint!.ToString()!;
         }
 
 
