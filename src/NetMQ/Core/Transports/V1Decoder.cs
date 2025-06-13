@@ -124,7 +124,7 @@ namespace NetMQ.Core.Transports
             ulong payloadLength = m_tmpbuf.GetUnsignedLong(Endian, 0);
 
             // There has to be at least one byte (the flags) in the message).
-            if (payloadLength == 0)
+            if (payloadLength is 0)
                 return DecodeResult.Error;
 
             // Message size must not exceed the maximum allowed size.
