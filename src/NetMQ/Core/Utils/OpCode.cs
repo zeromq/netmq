@@ -20,13 +20,12 @@ namespace NetMQ.Core.Utils
             string? val = Environment.GetEnvironmentVariable("NETQM_SUPPRESS_RDTSC");
             if (!string.IsNullOrEmpty(val))
                 return false;
-#if NETSTANDARD || NET 
+
             if (RuntimeInformation.ProcessArchitecture != Architecture.X86 &&
                 RuntimeInformation.ProcessArchitecture != Architecture.X64)
             {
                 return false; // RDTSC instruction not supported
             }
-#endif
 
             var p = (int)Environment.OSVersion.Platform;
 

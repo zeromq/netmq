@@ -155,7 +155,7 @@ namespace NetMQ
 
                 // Try to dequeue and execute all pending tasks
                 while (m_tasksQueue.TryDequeue(out Task? task, TimeSpan.Zero))
-                    TryExecuteTask(task!);
+                    TryExecuteTask(task);
             };
 
             m_sockets.Add(((ISocketPollable)m_tasksQueue).Socket);
@@ -639,11 +639,9 @@ namespace NetMQ
                     }
                 }
 
-#if !NET35
                 // Try to dequeue and execute all pending tasks before stopping poller
                 while (m_tasksQueue.TryDequeue(out Task? task, TimeSpan.Zero))
-                    TryExecuteTask(task!);
-#endif
+                    TryExecuteTask(task);
             }
             finally
             {
