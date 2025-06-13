@@ -106,6 +106,7 @@ namespace NetMQ.Core.Patterns
             m_nextPeerId = (uint) s_random.Next();
             m_options.SocketType = ZmqSocketType.Peer;
             m_options.CanSendHelloMsg = true;
+            m_options.CanGenerateDisconnectMsg = true;
             m_fairQueueing = new FairQueueing();      
             m_prefetchedMsg = new Msg();
             m_prefetchedMsg.InitEmpty();            
@@ -147,7 +148,7 @@ namespace NetMQ.Core.Patterns
         /// <param name="pipe">the Pipe that is being removed</param>
         protected override void XTerminated(Pipe pipe)
         {           
-            m_outpipes.TryGetValue(pipe.RoutingId, out Outpipe old);
+            m_outpipes.TryGetValue(pipe.RoutingId, out Outpipe? old);
             m_outpipes.Remove(pipe.RoutingId);
 
             Debug.Assert(old != null);
@@ -207,7 +208,7 @@ namespace NetMQ.Core.Patterns
                     // Find the pipe associated with the routingId stored in the prefix.                    
                     var routingId = BitConverter.ToUInt32(msg.UnsafeToArray(), 0);
 
-                    if (m_outpipes.TryGetValue(routingId, out Outpipe op))
+                    if (m_outpipes.TryGetValue(routingId, out Outpipe? op))
                     {
                         m_currentOut = op.Pipe;
                         if (!m_currentOut.CheckWrite())

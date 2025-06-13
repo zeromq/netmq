@@ -143,7 +143,7 @@ namespace NetMQ.Core.Patterns
         {
             Assumes.NotNull(pipe.Identity);
 
-            m_outpipes.TryGetValue(pipe.Identity, out Outpipe old);
+            m_outpipes.TryGetValue(pipe.Identity, out Outpipe? old);
             m_outpipes.Remove(pipe.Identity);
 
             Debug.Assert(old != null);
@@ -206,7 +206,7 @@ namespace NetMQ.Core.Patterns
                     // mandatory is set.
 
                     var identity = msg.UnsafeToArray();
-                    if (m_outpipes.TryGetValue(identity, out Outpipe op))
+                    if (m_outpipes.TryGetValue(identity, out Outpipe? op))
                     {
                         m_currentOut = op.Pipe;
                         if (!m_currentOut.CheckWrite())

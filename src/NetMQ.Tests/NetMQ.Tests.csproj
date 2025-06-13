@@ -7,7 +7,7 @@
     <PublicSign Condition=" '$(OS)' != 'Windows_NT' ">true</PublicSign>
     <GenerateRuntimeConfigurationFiles>true</GenerateRuntimeConfigurationFiles>
     <IsTestProject>true</IsTestProject>
-    <TargetFrameworks>net6.0;netcoreapp3.1;net47</TargetFrameworks>
+    <TargetFrameworks>net9.0;net472</TargetFrameworks>
   </PropertyGroup>
 
   <PropertyGroup>
@@ -20,13 +20,13 @@
     <BaseFrameworkPathOverrideForMono Condition="'$(BaseFrameworkPathOverrideForMono)' == '' AND '$(TargetIsMono)' == 'true' AND EXISTS('/usr/lib/mono')">/usr/lib/mono</BaseFrameworkPathOverrideForMono>
     <BaseFrameworkPathOverrideForMono Condition="'$(BaseFrameworkPathOverrideForMono)' == '' AND '$(TargetIsMono)' == 'true' AND EXISTS('/usr/local/lib/mono')">/usr/local/lib/mono</BaseFrameworkPathOverrideForMono>
 
-    <FrameworkPathOverride Condition="'$(BaseFrameworkPathOverrideForMono)' != '' AND '$(TargetFramework)' == 'net47'">$(BaseFrameworkPathOverrideForMono)/4.7-api</FrameworkPathOverride>
+    <FrameworkPathOverride Condition="'$(BaseFrameworkPathOverrideForMono)' != '' AND '$(TargetFramework)' == 'net472'">$(BaseFrameworkPathOverrideForMono)/4.7-api</FrameworkPathOverride>
 
     <!-- Add the Facades directory.  Not sure how else to do this. Necessary at least for .NET 4.5 -->
     <AssemblySearchPaths Condition="'$(BaseFrameworkPathOverrideForMono)' != ''">$(FrameworkPathOverride)/Facades;$(AssemblySearchPaths)</AssemblySearchPaths>
   </PropertyGroup>
 
-  <ItemGroup Condition=" '$(TargetFramework)' == 'net47' ">
+  <ItemGroup Condition=" '$(TargetFramework)' == 'net472' ">
     <Reference Include="mscorlib" />
     <Reference Include="System" />
     <Reference Include="System.Core" />
@@ -39,14 +39,23 @@
   </ItemGroup>
 
   <ItemGroup>
-    <PackageReference Include="Microsoft.NET.Test.Sdk" Version="15.5.0" />
-    <PackageReference Include="Newtonsoft.Json" Version="10.0.3" />
-    <PackageReference Include="xunit" Version="2.4.2-pre.13" />
-    <PackageReference Include="xunit.runner.visualstudio" Version="2.4.3" />
+    <PackageReference Include="Microsoft.NET.Test.Sdk" Version="17.14.1" />
+    <PackageReference Include="Newtonsoft.Json" Version="13.0.3" />
+    <PackageReference Include="System.Threading.Tasks.Extensions" Version="4.6.3" />
+    <PackageReference Include="xunit" Version="2.9.3" />
+    <PackageReference Include="xunit.runner.visualstudio" Version="3.1.1">
+      <PrivateAssets>all</PrivateAssets>
+      <IncludeAssets>runtime; build; native; contentfiles; analyzers; buildtransitive</IncludeAssets>
+    </PackageReference>
   </ItemGroup>
   
-  <ItemGroup Condition=" '$(TargetFramework)' == 'net47' ">
+  <ItemGroup Condition=" '$(TargetFramework)' == 'net472' ">
     <PackageReference Include="ZeroMQ" Version="4.1.0.31" />
+  </ItemGroup>
+  
+  <ItemGroup>
+    <PackageReference Update="JetBrains.Annotations" Version="2024.3.0" />
+    <PackageReference Update="Microsoft.SourceLink.GitHub" Version="8.0.0" />
   </ItemGroup>
 
 </Project>

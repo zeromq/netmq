@@ -18,6 +18,7 @@
     along with this program.  If not, see <http://www.gnu.org/licenses/>.
 */
 
+using System.Diagnostics;
 using System.Net;
 
 namespace NetMQ.Core
@@ -102,7 +103,8 @@ namespace NetMQ.Core
                 return;
             }
 
-            AddressString = endpoint.ToString();
+            Debug.Assert(endpoint != null);
+            AddressString = endpoint!.ToString()!;
         }
 
 
@@ -112,9 +114,9 @@ namespace NetMQ.Core
             {
                 switch (Protocol)
                 {
-                    case TcpProtocol: return Resolved.ToString();
-                    case IpcProtocol: return Resolved.ToString();
-                    case PgmProtocol: return Resolved.ToString();
+                    case TcpProtocol: return Resolved!.ToString()!;
+                    case IpcProtocol: return Resolved!.ToString()!;
+                    case PgmProtocol: return Resolved!.ToString()!;
                 }
             }
 
@@ -123,7 +125,7 @@ namespace NetMQ.Core
                 return Protocol + "://" + AddressString;
             }
 
-            return base.ToString();
+            return base.ToString()!;
         }
 
         public string Protocol { get; }

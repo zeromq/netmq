@@ -259,7 +259,15 @@ namespace NetMQ.Core.Transports.Tcp
                         bytes.PutInteger(endian, m_options.TcpKeepaliveIdle, 4);
                         bytes.PutInteger(endian, m_options.TcpKeepaliveIntvl, 8);
 
+#if NET
+                        if (!OperatingSystem.IsWindows())
+                        {
+                            throw new InvalidOperationException("Not supported on you platform"); // There is a pull request for .net8.0
+
+                        }
+#endif
                         m_s.IOControl(IOControlCode.KeepAliveValues, (byte[])bytes, null);
+
                     }
                 }
 

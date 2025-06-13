@@ -24,7 +24,7 @@ namespace NetMQ.Tests
         }
 
         [Fact]
-        public void EnqueueShouldNotBlockWhenCapacityIsZero()
+        public async Task EnqueueShouldNotBlockWhenCapacityIsZero()
         {
             using (var mockSocket = new PairSocket())
             using (var queue = new NetMQQueue<int>())
@@ -39,8 +39,8 @@ namespace NetMQ.Tests
                     }
                 });
 
-                bool completed = task.Wait(TimeSpan.FromSeconds(1));
-                Assert.True(completed, "Enqueue task should have completed " + socketWatermarkCapacity + " enqueue within 1 second");
+                var completedTask = await Task.WhenAny(task, Task.Delay(1000));
+                Assert.True(task == completedTask, "Enqueue task should have completed " + socketWatermarkCapacity + " enqueue within 1 second");
             }
         }
 

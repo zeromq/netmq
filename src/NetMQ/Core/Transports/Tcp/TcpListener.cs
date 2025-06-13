@@ -22,7 +22,7 @@
 using System;
 using System.Diagnostics;
 using System.Net.Sockets;
-#if NETSTANDARD2_0 || NETSTANDARD2_1
+#if NETSTANDARD || NET
 using System.Runtime.InteropServices;
 #endif
 using AsyncIO;
@@ -123,11 +123,12 @@ namespace NetMQ.Core.Transports.Tcp
             m_address.Resolve(addr, m_options.IPv4Only);
 
             Assumes.NotNull(m_address.Address);
-            Assumes.NotNull(m_handle);
+           
 
             try
             {
                 m_handle = AsyncSocket.Create(m_address.Address.AddressFamily, SocketType.Stream, ProtocolType.Tcp);
+                Assumes.NotNull(m_handle);
 
                 if (!m_options.IPv4Only && m_address.Address.AddressFamily == AddressFamily.InterNetworkV6)
                 {
@@ -141,7 +142,7 @@ namespace NetMQ.Core.Transports.Tcp
                     }
                 }
 
-#if NETSTANDARD2_0 || NETSTANDARD2_1
+#if NETSTANDARD || NET
                 // This command is failing on linux
                 if (RuntimeInformation.IsOSPlatform(OSPlatform.Windows))
                     m_handle.ExclusiveAddressUse = false;
@@ -213,7 +214,13 @@ namespace NetMQ.Core.Transports.Tcp
                             bytes.PutInteger(endian, m_options.TcpKeepalive, 0);
                             bytes.PutInteger(endian, m_options.TcpKeepaliveIdle, 4);
                             bytes.PutInteger(endian, m_options.TcpKeepaliveIntvl, 8);
+#if NET
+                                if (!OperatingSystem.IsWindows())
+                                {
+                                    throw new InvalidOperationException("Not supported on you platform"); // There is a pull request for .net8.0
 
+                                }
+#endif
                             acceptedSocket.IOControl(IOControlCode.KeepAliveValues, (byte[])bytes, null);
                         }
                     }
@@ -267,16 +274,16 @@ namespace NetMQ.Core.Transports.Tcp
             if (m_handle == null)
                 return;
 
-            Assumes.NotNull(m_endpoint);
-
             try
             {
                 m_handle.Dispose();
-                m_socket.EventClosed(m_endpoint, m_handle);
+                if (m_endpoint is not null)
+                    m_socket.EventClosed(m_endpoint, m_handle);
             }
             catch (SocketException ex)
             {
-                m_socket.EventCloseFailed(m_endpoint, ex.SocketErrorCode.ToErrorCode());
+                if (m_endpoint is not null)
+                  m_socket.EventCloseFailed(m_endpoint, ex.SocketErrorCode.ToErrorCode());
             }
 
             m_handle = null;

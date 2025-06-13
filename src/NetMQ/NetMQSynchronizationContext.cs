@@ -1,7 +1,7 @@
 using System.Threading;
 using System.Threading.Tasks;
 
-#if !NET35
+
 namespace NetMQ
 {
     internal sealed class NetMQSynchronizationContext : SynchronizationContext
@@ -14,14 +14,14 @@ namespace NetMQ
         }
 
         /// <summary>Dispatches an asynchronous message to a synchronization context.</summary>
-        public override void Post(SendOrPostCallback d, object state)
+        public override void Post(SendOrPostCallback d, object? state)
         {
             var task = new Task(() => d(state));
             task.Start(m_poller);
         }
 
         /// <summary>Dispatches a synchronous message to a synchronization context.</summary>
-        public override void Send(SendOrPostCallback d, object state)
+        public override void Send(SendOrPostCallback d, object? state)
         {
             var task = new Task(() => d(state));
             task.Start(m_poller);
@@ -29,4 +29,3 @@ namespace NetMQ
         }
     }
 }
-#endif

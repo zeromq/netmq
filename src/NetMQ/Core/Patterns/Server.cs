@@ -56,6 +56,7 @@ namespace NetMQ.Core.Patterns
             m_nextRoutingId = (uint) s_random.Next();
             m_options.SocketType = ZmqSocketType.Server;
             m_options.CanSendHelloMsg = true;
+            m_options.CanGenerateDisconnectMsg = true;
             m_fairQueueing = new FairQueueing();
             m_outpipes = new Dictionary<uint, Outpipe>();
         }

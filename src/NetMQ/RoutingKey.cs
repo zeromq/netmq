@@ -50,7 +50,7 @@ namespace NetMQ
         /// </summary>
         /// <param name="obj">Object to compare against, valid types are byte-array and RoutingKey</param>
         /// <returns>True if equals, otherwise false</returns>
-        public override bool Equals(object obj)
+        public override bool Equals(object? obj)
         {
             if (obj is RoutingKey)
                 return Equals((RoutingKey) obj);
@@ -66,9 +66,9 @@ namespace NetMQ
         /// </summary>
         /// <param name="x">Byte-array to compare against</param>
         /// <returns>True if equals, otherwise false</returns>
-        public bool Equals(byte[] x)
+        public bool Equals(byte[]? x)
         {
-            if (bytes.Length != x.Length)
+            if (bytes.Length != x?.Length)
             {
                 return false;
             }

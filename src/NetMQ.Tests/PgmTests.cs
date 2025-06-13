@@ -187,7 +187,7 @@ namespace NetMQ.Tests
         }
 
         [Fact(Skip = "Requires MSMQ for PGM sockets")]
-        public void Sending1000Messages()
+        public async Task Sending1000Messages()
         {
             // creating two different context and sending 1000 messages
 
@@ -230,8 +230,8 @@ namespace NetMQ.Tests
                 }
             });
 
-            pubTask.Wait();
-            subTask.Wait();
+            await pubTask;
+            await subTask;
 
             Assert.Equal(1000, count);
         }
@@ -266,7 +266,7 @@ namespace NetMQ.Tests
         [Theory(Skip = "Requires MSMQ for PGM sockets")]
         [InlineData("pgm://239.0.0.1:1000")]
         [InlineData("tcp://localhost:60000")]
-        public void SubscriberCleanupOnUnbind(string address)
+        public async Task SubscriberCleanupOnUnbind(string address)
         {
             for (var i = 0; i < 10; i++)
             {
@@ -290,8 +290,8 @@ namespace NetMQ.Tests
 //                        var duration = DateTime.Now - time;
 
                         monitor.Stop();
-
-                        monitorTask.Wait();
+                         
+                        await monitorTask;
                     }
                 }
             }

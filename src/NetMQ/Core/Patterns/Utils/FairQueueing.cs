@@ -96,7 +96,7 @@ namespace NetMQ.Core.Patterns.Utils
 
         public bool Recv(ref Msg msg)
         {
-            return RecvPipe(ref msg, out Pipe _);
+            return RecvPipe(ref msg, out _);
         }
 
         public bool RecvPipe(ref Msg msg, [NotNullWhen(returnValue: true)] out Pipe? pipe)
@@ -122,7 +122,7 @@ namespace NetMQ.Core.Patterns.Utils
 
                     m_more = msg.HasMore;
                     if (!m_more)
-                        m_current = (m_current + 1) % m_active;
+                        m_current = m_active > 0 ? (m_current + 1) % m_active : 0;
                     return true;
                 }
 
