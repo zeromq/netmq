@@ -53,7 +53,7 @@ namespace NetMQ.Tests
         }
 
         [Fact(Timeout=5000)]
-        public async void Monitoring()
+        public async Task Monitoring()
         {
             var listeningEvent = new ManualResetEvent(false);
             var acceptedEvent = new ManualResetEvent(false);
@@ -83,7 +83,7 @@ namespace NetMQ.Tests
 
                 // keep the test from blocking when something goes wrong.
                 var timeout = new CancellationTokenSource(5000).Token;
-                Exception e = null;
+                Exception? e = null;
 
                 await Task.Run(() =>
                 {
