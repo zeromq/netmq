@@ -46,9 +46,9 @@ namespace NetMQ
 
         /// <summary>Constructor for serialisation.</summary>
         protected NetMQException(SerializationInfo info, StreamingContext context)
-#pragma warning disable SYSLIB0051
+#pragma warning disable SYSLIB0051 // Legacy serialization support APIs are obsolete
             : base(info, context)
-#pragma warning restore SYSLIB0051
+#pragma warning restore SYSLIB0051 // Legacy serialization support APIs are obsolete
         {
             ErrorCode = (ErrorCode)info.GetInt32("ErrorCode");
         }
