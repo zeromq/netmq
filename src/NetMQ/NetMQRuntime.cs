@@ -36,7 +36,14 @@ namespace NetMQ
         /// </summary>
         public static NetMQRuntime Current
         {
-            get { return s_current.Value!; }
+            get
+            {
+                var result = s_current.Value;
+                if (result == null)
+                    throw new InvalidOperationException("NetMQRuntime.Current is not available on this thread. Ensure that a NetMQRuntime has been created.");
+                else
+                    return result;
+            }
         }
 
         internal static NetMQPoller Poller
@@ -52,7 +59,7 @@ namespace NetMQ
         {
             Run(CancellationToken.None, tasks);
         }
-        
+
         internal void Add(NetMQSocket socket)
         {
             m_poller.Add(socket);
