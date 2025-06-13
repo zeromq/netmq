@@ -152,7 +152,7 @@ namespace NetMQ.Monitoring
 
         #endregion
 
-        private void Handle(object sender, NetMQSocketEventArgs socketEventArgs)
+        private void Handle(object? sender, NetMQSocketEventArgs socketEventArgs)
         {
             var monitorEvent = MonitorEvent.Read(m_monitoringSocket.SocketHandle);
 

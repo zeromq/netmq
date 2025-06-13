@@ -50,7 +50,7 @@ namespace NetMQ.Core.Utils
 
                 m_writeSocket = new Socket(AddressFamily.InterNetwork, SocketType.Stream, ProtocolType.Unspecified) { NoDelay = true };
 
-                m_writeSocket.Connect(listener.LocalEndPoint);
+                m_writeSocket.Connect(listener.LocalEndPoint!);
                 m_readSocket = listener.Accept();
             }
 

@@ -17,16 +17,15 @@ namespace NetMQ.Core.Utils
             // While this is supported in modern CPUs, the technique used for allocating executable memory, copying OP Code
             // for the read of the time stamp and invoking the OP Code can be detected as Malware by some anti-virus vendors.
             // https://github.com/zeromq/netmq/issues/1071
-            string val = Environment.GetEnvironmentVariable("NETQM_SUPPRESS_RDTSC");
+            string? val = Environment.GetEnvironmentVariable("NETQM_SUPPRESS_RDTSC");
             if (!string.IsNullOrEmpty(val))
                 return false;
-#if NETSTANDARD1_1_OR_GREATER || NET471_OR_GREATER
+
             if (RuntimeInformation.ProcessArchitecture != Architecture.X86 &&
                 RuntimeInformation.ProcessArchitecture != Architecture.X64)
             {
                 return false; // RDTSC instruction not supported
             }
-#endif
 
             var p = (int)Environment.OSVersion.Platform;
 
@@ -39,24 +38,25 @@ namespace NetMQ.Core.Utils
                 // Unix
                 if (IsARMArchitecture()) return false;
 
-                Assembly assembly = Assembly.Load("Mono.Posix");
+                Assembly assembly = Assembly.Load("Mono.Posix") ?? throw new InvalidOperationException("Mmap failed");
+                Type syscall = assembly.GetType("Mono.Unix.Native.Syscall") ?? throw new InvalidOperationException("Mmap failed");
+                MethodInfo mmap = syscall?.GetMethod("mmap") ?? throw new InvalidOperationException("Mmap failed");
 
-                Type syscall = assembly.GetType("Mono.Unix.Native.Syscall");
-                MethodInfo mmap = syscall.GetMethod("mmap");
+                Type mmapProts = assembly?.GetType("Mono.Unix.Native.MmapProts") ?? throw new InvalidOperationException("Mmap failed");
 
-                Type mmapProts = assembly.GetType("Mono.Unix.Native.MmapProts");
                 object mmapProtsParam = Enum.ToObject(mmapProts,
-                    (int)mmapProts.GetField("PROT_READ").GetValue(null) |
-                    (int)mmapProts.GetField("PROT_WRITE").GetValue(null) |
-                    (int)mmapProts.GetField("PROT_EXEC").GetValue(null));
+                    (int)(mmapProts.GetField("PROT_READ")?.GetValue(null) ?? 0) |
+                    (int)(mmapProts.GetField("PROT_WRITE")?.GetValue(null) ?? 0) |
+                    (int)(mmapProts.GetField("PROT_EXEC")?.GetValue(null) ?? 0));
 
-                Type mmapFlags = assembly.GetType("Mono.Unix.Native.MmapFlags");
+                Type mmapFlags = assembly!.GetType("Mono.Unix.Native.MmapFlags") ??
+                                  throw new InvalidOperationException("Mmap failed");
                 object mmapFlagsParam = Enum.ToObject(mmapFlags,
-                    (int)mmapFlags.GetField("MAP_ANONYMOUS").GetValue(null) |
-                    (int)mmapFlags.GetField("MAP_PRIVATE").GetValue(null));
+                    (int)(mmapFlags.GetField("MAP_ANONYMOUS")?.GetValue(null) ?? 0) |
+                    (int)(mmapFlags.GetField("MAP_PRIVATE")?.GetValue(null) ?? 0));
 
                 s_codeBuffer = (IntPtr)mmap.Invoke(null,
-                    new[] { IntPtr.Zero, s_size, mmapProtsParam, mmapFlagsParam, -1, 0 });
+                    new[] { IntPtr.Zero, s_size, mmapProtsParam, mmapFlagsParam, -1, 0 })!;
 
                 if (s_codeBuffer == IntPtr.Zero || s_codeBuffer == (IntPtr)(-1))
                 {
@@ -82,18 +82,19 @@ namespace NetMQ.Core.Utils
         {
             // force to load from mono gac
             Assembly currentAssembly = Assembly.Load("Mono.Posix, Version=2.0.0.0, Culture=neutral, PublicKeyToken=0738eb9f132ed756");
-            Type syscall = currentAssembly.GetType("Mono.Unix.Native.Syscall");
-            Type utsname = currentAssembly.GetType("Mono.Unix.Native.Utsname");
-            MethodInfo uname = syscall.GetMethod("uname");
+            Type? syscall = currentAssembly.GetType("Mono.Unix.Native.Syscall");
+            Type? utsname = currentAssembly.GetType("Mono.Unix.Native.Utsname");
+            if (syscall is null || utsname is null) return false;
+            MethodInfo? uname = syscall.GetMethod("uname");
             object?[] parameters = { null };
 
-            var invokeResult = (int)uname.Invoke(null, parameters);
+            var invokeResult = (int) (uname?.Invoke(null, parameters) ?? -1);
 
             if (invokeResult != 0)
                 return false;
 
             var currentValues = parameters[0];
-            var machineValue = (string)utsname.GetField("machine").GetValue(currentValues);
+            var machineValue = (string)(utsname!.GetField("machine")?.GetValue(currentValues) ?? "unknown");
             return machineValue.ToLower().Contains("arm");
         }
 
@@ -109,9 +110,9 @@ namespace NetMQ.Core.Utils
                     Assembly.Load("Mono.Posix, Version=2.0.0.0, Culture=neutral, " +
                     "PublicKeyToken=0738eb9f132ed756");
 
-                Type syscall = assembly.GetType("Mono.Unix.Native.Syscall");
-                MethodInfo munmap = syscall.GetMethod("munmap");
-                munmap.Invoke(null, new object[] { s_codeBuffer, s_size });
+                Type? syscall = assembly.GetType("Mono.Unix.Native.Syscall");
+                MethodInfo? munmap = syscall?.GetMethod("munmap");
+                munmap?.Invoke(null, new object[] { s_codeBuffer, s_size });
             }
             else
             {

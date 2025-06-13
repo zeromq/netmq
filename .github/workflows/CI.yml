@@ -34,8 +34,8 @@ jobs:
       run: dotnet build src/NetMQ.sln /p:Configuration=Release /verbosity:minimal
     - name: test net9.0
       run: dotnet test -v n -p:ParallelizeTestCollections=false --configuration Release --no-build -f net9.0 src\NetMQ.Tests\NetMQ.Tests.csproj
-    - name: test net47
-      run: dotnet test -v n -p:ParallelizeTestCollections=false --configuration Release --no-build -f net47 src\NetMQ.Tests\NetMQ.Tests.csproj
+    - name: test net472
+      run: dotnet test -v n -p:ParallelizeTestCollections=false --configuration Release --no-build -f net472 src\NetMQ.Tests\NetMQ.Tests.csproj
     - name: coverage
       run: |
         OpenCover.Console.exe -register:user -target:"C:\Program Files\dotnet\dotnet.exe" -targetargs:"test --no-build --configuration Release -f net6.0 --logger:trx;LogFileName=results.trx /p:DebugType=full src\NetMQ.Tests\NetMQ.Tests.csproj" -filter:"+[NetMQ*]* -[NetMQ.Tests*]*" -output:".\NetMQ_coverage.xml" -oldStyle

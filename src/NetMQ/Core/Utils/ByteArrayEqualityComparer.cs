@@ -18,8 +18,10 @@ namespace NetMQ.Core.Utils
         /// <param name="x">one of the two byte-arrays to compare</param>
         /// <param name="y">the other byte-array to compare against</param>
         /// <returns></returns>
-        public bool Equals(byte[] x, byte[] y)
+        public bool Equals(byte[]? x, byte[]? y)
         {
+            if (x == y) return true;
+            if (x is null || y is null) return false;
             if (x.Length != y.Length)
             {
                 return false;

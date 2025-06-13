@@ -46,17 +46,27 @@ namespace NetMQ
 
         /// <summary>Constructor for serialisation.</summary>
         protected NetMQException(SerializationInfo info, StreamingContext context)
+#pragma warning disable SYSLIB0051 // Legacy serialization support APIs are obsolete
             : base(info, context)
+#pragma warning restore SYSLIB0051 // Legacy serialization support APIs are obsolete
         {
             ErrorCode = (ErrorCode)info.GetInt32("ErrorCode");
         }
 
         /// <inheritdoc />
+
+#if !NET
+       
         [SecurityPermission(SecurityAction.Demand, SerializationFormatter = true)]
+#endif
+#pragma warning disable CS0672 // Member overrides obsolete member
         public override void GetObjectData(SerializationInfo info, StreamingContext context)
+#pragma warning restore CS0672 // Member overrides obsolete member
         {
             info.AddValue("ErrorCode", ErrorCode);
+#pragma warning disable SYSLIB0051 // Legacy serialization support APIs are obsolete
             base.GetObjectData(info, context);
+#pragma warning restore SYSLIB0051 // Legacy serialization support APIs are obsolete
         }
 
         #endregion

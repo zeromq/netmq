@@ -48,7 +48,7 @@ namespace NetMQ
             m_receiveSocket.ReceiveReady -= OnSocketReady;
         }
 
-        private void OnShimReady(object sender, NetMQSocketEventArgs e)
+        private void OnShimReady(object? sender, NetMQSocketEventArgs e)
         {
             Assumes.NotNull(m_poller);
 
@@ -59,7 +59,7 @@ namespace NetMQ
             }
         }
 
-        private void OnSocketReady(object sender, NetMQSocketEventArgs e)
+        private void OnSocketReady(object? sender, NetMQSocketEventArgs e)
         {
             NetMQMessage message = m_receiveSocket.ReceiveMultipartMessage();
 

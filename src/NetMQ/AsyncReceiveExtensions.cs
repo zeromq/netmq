@@ -1,5 +1,4 @@
-﻿#if NETSTANDARD2_0 || NETSTANDARD2_1 || NET47
-
+﻿
 using System;
 using System.Collections.Generic;
 using System.Text;
@@ -92,7 +91,7 @@ namespace NetMQ
                 registration = cancellationToken.Register(PropagateCancel);
             }
 
-            void Listener(object sender, NetMQSocketEventArgs args)
+            void Listener(object? sender, NetMQSocketEventArgs args)
             {
                 if (socket.TryReceive(ref msg, TimeSpan.Zero))
                 {
@@ -175,7 +174,7 @@ namespace NetMQ
                 registration = cancellationToken.Register(PropagateCancel);
             }
 
-            void Listener(object sender, NetMQSocketEventArgs args)
+            void Listener(object? sender, NetMQSocketEventArgs args)
             {
                 if (socket.TryReceive(ref msg, TimeSpan.Zero))
                 {
@@ -242,7 +241,7 @@ namespace NetMQ
                 registration = cancellationToken.Register(PropagateCancel);
             }
 
-            void Listener(object sender, NetMQSocketEventArgs args)
+            void Listener(object? sender, NetMQSocketEventArgs args)
             {
                 if (socket.TryReceive(ref msg, TimeSpan.Zero))
                 {
@@ -308,4 +307,3 @@ namespace NetMQ
     }
 }
 
-#endif
