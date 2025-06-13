@@ -36,14 +36,7 @@ namespace NetMQ
         /// </summary>
         public static NetMQRuntime Current
         {
-            get
-            {
-                var result = s_current.Value;
-                if (result == null)
-                    throw new InvalidOperationException("NetMQRuntime.Current is not available on this thread. Ensure that a NetMQRuntime has been created.");
-                else
-                    return result;
-            }
+            get => s_current.Value ?? throw new InvalidOperationException("NetMQRuntime.Current is not available on this thread. Ensure that a NetMQRuntime has been created.");
         }
 
         internal static NetMQPoller Poller
