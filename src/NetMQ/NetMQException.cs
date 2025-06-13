@@ -64,11 +64,10 @@ namespace NetMQ
 #pragma warning restore CS0672 // Member overrides obsolete member
         {
             info.AddValue("ErrorCode", ErrorCode);
-#pragma warning disable SYSLIB0051
+#pragma warning disable SYSLIB0051 // Legacy serialization support APIs are obsolete
             base.GetObjectData(info, context);
-#pragma warning restore SYSLIB0051
+#pragma warning restore SYSLIB0051 // Legacy serialization support APIs are obsolete
         }
-
 
         #endregion
 
