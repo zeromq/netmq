@@ -258,7 +258,7 @@ namespace NetMQ
             return true;
         }
 
-        bool IEquatable<NetMQFrame>.Equals(NetMQFrame other)
+        bool IEquatable<NetMQFrame>.Equals(NetMQFrame? other)
         {
             return Equals(other);
         }
@@ -268,7 +268,7 @@ namespace NetMQ
         /// </summary>
         /// <param name="obj">the Object to compare this to</param>
         /// <returns>true only if the given Object is a NetMQFrame equal to this one</returns>
-        public override bool Equals(object obj)
+        public override bool Equals(object? obj)
         {
             return Equals(obj as NetMQFrame);
         }
@@ -336,6 +336,15 @@ namespace NetMQ
             System.Buffer.BlockCopy(Buffer, 0, byteArray, 0, MessageSize);
 
             return byteArray;
+        }
+
+        /// <summary>
+        /// Return an readonly span of bytes that carries the content of this NetMQFrames Buffer.
+        /// </summary>
+        /// <returns>the Buffer as a readonly span</returns>
+        public ReadOnlySpan<byte> AsSpan()
+        {
+            return new ReadOnlySpan<byte>(Buffer, 0, MessageSize);
         }
     }
 }

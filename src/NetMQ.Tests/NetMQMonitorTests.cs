@@ -2,6 +2,8 @@
 using System.Linq;
 using System.Threading;
 using System.Threading.Tasks;
+using AsyncIO;
+using NetMQ.Core;
 using NetMQ.Monitoring;
 using NetMQ.Sockets;
 using Xunit;
@@ -55,9 +57,9 @@ namespace NetMQ.Tests
             }
         }
 
-#if !NET35
+
         [Fact]
-        public void StartAsync()
+        public async Task StartAsync()
         {
             using (var rep = new ResponseSocket())
             using (var monitor = new NetMQMonitor(rep, "inproc://foo", SocketEvents.Closed))
@@ -66,10 +68,11 @@ namespace NetMQ.Tests
                 Thread.Sleep(200);
                 Assert.Equal(TaskStatus.Running, task.Status);
                 monitor.Stop();
-                Assert.True(task.Wait(TimeSpan.FromMilliseconds(1000)));
+                var completedTask = await Task.WhenAny(task, Task.Delay(1000));
+                Assert.Equal(task, completedTask);
             }
         }
-#endif
+
 
         [Fact]
         public void NoHangWhenMonitoringUnboundInprocAddress()
@@ -124,7 +127,7 @@ namespace NetMQ.Tests
         }
 
         [Fact]
-        public void MonitorDisposeProperlyWhenDisposedAfterMonitoredTcpSocket()
+        public async Task  MonitorDisposeProperlyWhenDisposedAfterMonitoredTcpSocket()
         {
             // The bug:
             // Given we monitor a netmq tcp socket
@@ -139,7 +142,7 @@ namespace NetMQ.Tests
                 using (var req = new RequestSocket())
                 {
                     monitor = new NetMQMonitor(req, "inproc://#monitor", SocketEvents.All);
-                    Task.Factory.StartNew(monitor.Start);
+                    _ = Task.Factory.StartNew(monitor.Start);
 
                     // Bug only occurs when monitoring a tcp socket
                     var port = res.BindRandomPort("tcp://127.0.0.1");
@@ -150,12 +153,40 @@ namespace NetMQ.Tests
                     res.SendFrame("response");
                     Assert.Equal("response", req.ReceiveFrameString());
                 }
-                Thread.Sleep(100);
+
+                await Task.Delay(100);
                 // Monitor.Dispose should complete
-                var completed = Task.Factory.StartNew(() => monitor.Dispose()).Wait(1000);
-                Assert.True(completed);
+                var task = Task.Factory.StartNew(() => monitor.Dispose());
+                var completedTask = await Task.WhenAny(task, Task.Delay(1000));
+                Assert.Equal(task, completedTask);
             }
             // NOTE If this test fails, it will hang because context.Dispose will block
+        }
+
+        [Fact]
+        public void ConvertArgDoesNotThrowForNullSocket()
+        {
+            AsyncSocket? socket = null;
+            MonitorEvent monitorEvent = new MonitorEvent(SocketEvents.All, addr: "", arg: socket!);
+            Assert.Null(monitorEvent.ConvertArg<AsyncSocket>());
+        }
+
+        [Fact]
+        public void ConvertArgDoesNotThrowForNonNullSocket()
+        {
+            using (AsyncSocket socket = AsyncSocket.CreateIPv4Tcp())
+            {
+                MonitorEvent monitorEvent = new MonitorEvent(SocketEvents.All, addr: "", arg: socket);
+                Assert.Equal(socket, monitorEvent.ConvertArg<AsyncSocket>());
+            }
+        }
+
+        [Fact]
+        public void ConvertArgThrowsForInvalidType()
+        {
+            AsyncSocket? socket = null;
+            MonitorEvent monitorEvent = new MonitorEvent(SocketEvents.All, addr: "", arg: socket!);
+            Assert.Throws<ArgumentException>(() => monitorEvent.ConvertArg<int>());
         }
     }
 }

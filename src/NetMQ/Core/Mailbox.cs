@@ -19,6 +19,7 @@
     along with this program.  If not, see <http://www.gnu.org/licenses/>.
 */
 
+using System;
 using System.Diagnostics;
 using System.Net.Sockets;
 using NetMQ.Core.Utils;
@@ -208,8 +209,17 @@ namespace NetMQ.Core
                     return true;
 
                 // If there are no more commands available, switch into passive state.
-                m_active = false;
-                m_signaler.Recv();
+                try
+                {
+                    m_active = false;
+                    m_signaler.Recv();
+                }
+                catch
+                {
+                    m_active = true;
+                    command = default(Command);
+                    return false;
+                }
             }
 
             // Wait for signal from the command sender.

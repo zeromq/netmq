@@ -35,7 +35,7 @@ namespace Ventilator
             // Sends batch of tasks to workers via that socket
             Console.WriteLine("====== VENTILATOR ======");
             using (var sender = new PushSocket("@tcp://*:5557"))
-            using (var sink = new PullSocket(">tcp://localhost:5558"))
+            using (var sink = new PushSocket(">tcp://localhost:5558"))
             {
                 Console.WriteLine("Press enter when worker are ready");
                 Console.ReadLine();

@@ -3,9 +3,7 @@ using System.Diagnostics.CodeAnalysis;
 using System.Linq;
 using System.Threading;
 using NetMQ.Core;
-#if NET40
-using NetMQ.Core.Utils;
-#endif
+
 
 namespace NetMQ
 {
@@ -25,9 +23,7 @@ namespace NetMQ
         private EventHandler<NetMQSocketEventArgs>? m_sendReady;
         private int m_isClosed;
 
-        #if NETSTANDARD2_0 || NETSTANDARD2_1 || NET47
         private NetMQRuntime? m_runtime;
-        #endif
 
         internal enum DefaultAction
         {
@@ -249,13 +245,11 @@ namespace NetMQ
         /// <summary>Closes this socket, rendering it unusable. Equivalent to calling <see cref="Dispose()"/>.</summary>
         public void Close()
         {
-            #if NETSTANDARD2_0 || NETSTANDARD2_1 || NET47
             if (m_runtime != null)
             {
                 m_runtime.Remove(this);
                 m_runtime  = null;
             }
-            #endif
 
             if (Interlocked.CompareExchange(ref m_isClosed, 1, 0) != 0)
                 return;
@@ -391,8 +385,6 @@ namespace NetMQ
 
         #endregion
 
-        #if NETSTANDARD2_0 || NETSTANDARD2_1 || NET47
-
         internal void AttachToRuntime()
         {
             if (m_runtime == null)
@@ -408,8 +400,6 @@ namespace NetMQ
         {
             m_runtime = null;
         }
-
-        #endif
 
         /// <summary>
         /// Listen to the given endpoint for SocketEvent events.
@@ -472,12 +462,11 @@ namespace NetMQ
         /// <returns>an object of the given type, that is the value of that option</returns>
         /// <exception cref="TerminatingException">The socket has been stopped.</exception>
         /// <exception cref="ObjectDisposedException">This object is already disposed.</exception>
-        [return: MaybeNull]
-        internal T GetSocketOptionX<T>(ZmqSocketOption option)
+        internal T? GetSocketOptionX<T>(ZmqSocketOption option)
         {
             m_socketHandle.CheckDisposed();
 
-            return (T)m_socketHandle.GetSocketOptionX(option);
+            return (T?)m_socketHandle.GetSocketOptionX(option);
         }
 
         /// <summary>

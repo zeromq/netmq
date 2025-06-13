@@ -53,6 +53,8 @@ namespace NetMQ.Tests.InProcActors.AccountJSON
 
                         string accountJson = msg[2].ConvertToString();
                         var account = JsonConvert.DeserializeObject<Account>(accountJson);
+                        Assumes.NotNull(accountAction);
+                        Assumes.NotNull(account);
                         AmendAccount(accountAction, account);
                         shim.SendFrame(JsonConvert.SerializeObject(account));
                     }

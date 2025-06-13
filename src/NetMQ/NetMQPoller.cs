@@ -633,17 +633,15 @@ namespace NetMQ
                         else if (item.ResultEvent.HasError() || item.ResultEvent.HasIn())
                         {
                             Assumes.NotNull(item.FileDescriptor);
-                            if (m_pollinSockets.TryGetValue(item.FileDescriptor, out Action<Socket> action))
+                            if (m_pollinSockets.TryGetValue(item.FileDescriptor, out Action<Socket>? action))
                                 action(item.FileDescriptor);
                         }
                     }
                 }
 
-#if !NET35
                 // Try to dequeue and execute all pending tasks before stopping poller
                 while (m_tasksQueue.TryDequeue(out Task? task, TimeSpan.Zero))
                     TryExecuteTask(task);
-#endif
             }
             finally
             {
@@ -687,7 +685,7 @@ namespace NetMQ
 
         #endregion
 
-        private void OnSocketEventsChanged(object sender, NetMQSocketEventArgs e)
+        private void OnSocketEventsChanged(object? sender, NetMQSocketEventArgs e)
         {
             // when the sockets SendReady or ReceiveReady changed we marked the poller as dirty in order to reset the poll events
             m_isPollSetDirty = true;

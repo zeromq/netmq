@@ -213,6 +213,7 @@ namespace NetMQ.Tests
             var socket = new MockOutgoingSocket((ref Msg msg, TimeSpan timeout, bool more) =>
             {
                 Assert.Equal(SendReceiveConstants.InfiniteTimeout, timeout);
+                Assert.NotNull(msg.UnsafeData);
                 Assert.Empty(msg.UnsafeData);
                 Assert.False(more);
                 return true;
@@ -227,6 +228,7 @@ namespace NetMQ.Tests
             var socket = new MockOutgoingSocket((ref Msg msg, TimeSpan timeout, bool more) =>
             {
                 Assert.Equal(SendReceiveConstants.InfiniteTimeout, timeout);
+                Assert.NotNull(msg.UnsafeData);
                 Assert.Empty(msg.UnsafeData);
                 Assert.True(more);
                 return true;
@@ -242,6 +244,7 @@ namespace NetMQ.Tests
             var socket = new MockOutgoingSocket((ref Msg msg, TimeSpan timeout, bool more) =>
             {
                 Assert.Equal(TimeSpan.Zero, timeout);
+                Assert.NotNull(msg.UnsafeData);
                 Assert.Empty(msg.UnsafeData);
                 Assert.False(more);
                 return true;
@@ -257,6 +260,7 @@ namespace NetMQ.Tests
             var socket = new MockOutgoingSocket((ref Msg msg, TimeSpan timeout, bool more) =>
             {
                 Assert.Equal(TimeSpan.Zero, timeout);
+                Assert.NotNull(msg.UnsafeData);
                 Assert.Empty(msg.UnsafeData);
                 Assert.False(more);
                 return false;

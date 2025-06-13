@@ -44,7 +44,7 @@ namespace NetMQ.Tests
             using (var server = new RouterSocket())
             {
                 server.BindRandomPort("tcp://127.0.0.1");
-                server.ReceiveReady += (s, e) => Assert.True(false, "Should not receive");
+                server.ReceiveReady += (s, e) => Assert.Fail( "Should not receive");
 
                 Assert.False(server.Poll(TimeSpan.FromMilliseconds(1500)));
             }
@@ -129,6 +129,27 @@ namespace NetMQ.Tests
                     Assert.Equal("World", message);
                 }
             }
+        }
+
+        [Fact]
+        public void RoutingKeys() 
+        {
+            using var router = new RouterSocket("inproc://routing-keys");
+            using var dealer = new DealerSocket("inproc://routing-keys");
+
+            dealer.SendRoutingKeys(new RoutingKey(1)).SendFrame("Hello");
+            
+            var keys = router.ReceiveRoutingKeys();
+            var message = router.ReceiveFrameString();
+
+            Assert.Equal("Hello", message);
+
+            router.SendRoutingKeys(keys).SendFrame("World");
+
+            dealer.ReceiveRoutingKeys();
+            var reply = dealer.ReceiveFrameString();
+
+            Assert.Equal("World", reply);
         }
     }
 }

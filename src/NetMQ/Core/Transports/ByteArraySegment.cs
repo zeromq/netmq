@@ -413,7 +413,7 @@ namespace NetMQ.Core.Transports
         /// and has the same Offset property value
         /// and it's buffer points to the SAME byte-array as the otherObject does.
         /// </remarks>
-        public override bool Equals(object otherObject)
+        public override bool Equals(object? otherObject)
         {
             var byteArraySegment = otherObject as ByteArraySegment;
             if (byteArraySegment != null)

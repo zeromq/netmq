@@ -114,8 +114,8 @@ namespace NetMQ
             m_state = StateStopped;
         }
 
-        private void OnFrontendReady(object sender, NetMQSocketEventArgs e) => ProxyBetween(m_frontend, m_backend, m_controlIn);
-        private void OnBackendReady (object sender, NetMQSocketEventArgs e) => ProxyBetween(m_backend, m_frontend, m_controlOut);
+        private void OnFrontendReady(object? sender, NetMQSocketEventArgs e) => ProxyBetween(m_frontend, m_backend, m_controlIn);
+        private void OnBackendReady (object? sender, NetMQSocketEventArgs e) => ProxyBetween(m_backend, m_frontend, m_controlOut);
 
         private static void ProxyBetween(IReceivingSocket from, IOutgoingSocket to, IOutgoingSocket? control)
         {

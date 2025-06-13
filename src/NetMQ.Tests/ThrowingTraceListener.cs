@@ -6,16 +6,16 @@ namespace NetMQ.Tests
 {
     public sealed class ThrowingTraceListener : TraceListener
     {
-        public override void Fail(string message, string detailMessage)
+        public override void Fail(string? message, string? detailMessage)
         {
             throw new DebugAssertFailureException((message + Environment.NewLine + detailMessage).Trim());
         }
 
-        public override void Write(string message)
+        public override void Write(string? message)
         {
         }
 
-        public override void WriteLine(string message)
+        public override void WriteLine(string? message)
         {
         }
 

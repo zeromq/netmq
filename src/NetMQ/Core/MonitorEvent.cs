@@ -1,4 +1,5 @@
 ﻿using System;
+using System.Diagnostics.CodeAnalysis;
 using System.Runtime.InteropServices;
 using AsyncIO;
 using NetMQ.Core.Transports;
@@ -19,11 +20,7 @@ namespace NetMQ.Core
 
         static MonitorEvent()
         {
-#if NETSTANDARD1_6
-            s_sizeOfIntPtr = Marshal.SizeOf<IntPtr>();
-#else
             s_sizeOfIntPtr = Marshal.SizeOf(typeof(IntPtr));
-#endif
 
             if (s_sizeOfIntPtr > 4)
                 s_sizeOfIntPtr = 8;
@@ -158,6 +155,18 @@ namespace NetMQ.Core
             }
 
             return new MonitorEvent(@event, addr, arg);
+        }
+
+        [return: MaybeNull]
+        public T ConvertArg<T>()
+        {
+            if (Arg is T v)
+                return v;
+
+            if (Arg is null && default(T) is null)
+                return default;
+
+            throw new ArgumentException($"Command argument must be of type {typeof(T).Name}.");
         }
     }
 }

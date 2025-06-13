@@ -92,7 +92,7 @@ namespace NetMQ.Tests
         }
 
         [Fact]
-        public void ReceiveMessageWithTimeout()
+        public async Task ReceiveMessageWithTimeout()
         {
             {
                 var pubSync = new AutoResetEvent(false);
@@ -134,7 +134,7 @@ namespace NetMQ.Tests
                 t1.Start();
                 t2.Start();
 
-                Task.WaitAll(t1, t2);
+                await Task.WhenAll(t1, t2);
             }
         }
 

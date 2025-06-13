@@ -1,5 +1,3 @@
-#if NETSTANDARD2_0 || NETSTANDARD2_1 || NET47
-
 using System;
 using System.Threading;
 using System.Threading.Tasks;
@@ -16,7 +14,7 @@ namespace NetMQ
     {
         private NetMQPoller m_poller;
         private readonly NetMQSynchronizationContext m_synchronizationContext;
-        private readonly SynchronizationContext m_oldSynchronizationContext;
+        private readonly SynchronizationContext? m_oldSynchronizationContext;
         private static readonly ThreadLocal<NetMQRuntime> s_current = new ThreadLocal<NetMQRuntime>();
         private readonly List<NetMQSocket> m_sockets;
 
@@ -38,7 +36,7 @@ namespace NetMQ
         /// </summary>
         public static NetMQRuntime Current
         {
-            get { return s_current.Value; }
+            get => s_current.Value ?? throw new InvalidOperationException("NetMQRuntime.Current is not available on this thread. Ensure that a NetMQRuntime has been created.");
         }
 
         internal static NetMQPoller Poller
@@ -54,7 +52,7 @@ namespace NetMQ
         {
             Run(CancellationToken.None, tasks);
         }
-        
+
         internal void Add(NetMQSocket socket)
         {
             m_poller.Add(socket);
@@ -99,4 +97,3 @@ namespace NetMQ
     }
 }
 
-#endif
