@@ -19,7 +19,6 @@
     along with this program.  If not, see <http://www.gnu.org/licenses/>.
 */
 
-using System.Diagnostics;
 using NetMQ.Core.Patterns.Utils;
 
 namespace NetMQ.Core.Patterns
