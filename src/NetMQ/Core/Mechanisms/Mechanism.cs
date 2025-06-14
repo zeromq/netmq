@@ -190,7 +190,7 @@ namespace NetMQ.Core.Mechanisms
                 }
                 else
                 {
-                    written = AddProperty(output, ZmtpPropertyIdentity, new byte[0]);
+                    written = AddProperty(output, ZmtpPropertyIdentity, []);
                     output = output.Slice(written);
                 }
             }
