@@ -6,12 +6,7 @@ using System.Linq;
 using System.Net.Sockets;
 using System.Threading;
 using NetMQ.Core.Utils;
-#if !NET35
 using System.Threading.Tasks;
-#endif
-#if NET40
-using System.ComponentModel;
-#endif
 
 using Switch = NetMQ.Core.Utils.Switch;
 
@@ -21,15 +16,10 @@ namespace NetMQ
     /// Enable polling on multiple NetMQSockets
     /// </summary>
     public sealed class NetMQPoller :
-#if !NET35
         TaskScheduler,
-#endif
-#if NET40
-        ISynchronizeInvoke,
-#endif
-#pragma warning disable 618
+#pragma warning disable 618 // Type or member is obsolete
         INetMQPoller, ISocketPollableCollection, IEnumerable, IDisposable
-#pragma warning restore 618
+#pragma warning restore 618 // Type or member is obsolete
     {
         private readonly List<NetMQSocket> m_sockets = new List<NetMQSocket>();
         private readonly List<NetMQTimer> m_timers = new List<NetMQTimer>();
@@ -39,18 +29,13 @@ namespace NetMQ
         private readonly StopSignaler m_stopSignaler = new StopSignaler();
 
         private NetMQSelector.Item[]? m_pollSet;
-		private NetMQSocket[]? m_pollact;
+        private NetMQSocket[]? m_pollact;
 
-		private volatile bool m_isPollSetDirty = true;
+        private volatile bool m_isPollSetDirty = true;
         private int m_disposeState = (int)DisposeState.Undisposed;
-
-#if NET35
-        private Thread m_pollerThread;
-#endif
 
         #region Scheduling
 
-#if !NET35
         private readonly NetMQQueue<Task> m_tasksQueue = new NetMQQueue<Task>();
         private readonly ThreadLocal<bool> m_isSchedulerThread = new ThreadLocal<bool>(() => false);
 
@@ -130,12 +115,6 @@ namespace NetMQ
             else
                 new Task(action).Start(this);
         }
-#else
-        private void Run(Action action)
-        {
-            action();
-        }
-#endif
 
         #endregion
 
@@ -145,8 +124,6 @@ namespace NetMQ
         public NetMQPoller()
         {
             m_sockets.Add(((ISocketPollable)m_stopSignaler).Socket);
-
-#if !NET35
 
             m_tasksQueue.ReceiveReady += delegate
             {
@@ -159,7 +136,6 @@ namespace NetMQ
             };
 
             m_sockets.Add(((ISocketPollable)m_tasksQueue).Socket);
-#endif
         }
 
         /// <summary>
@@ -172,11 +148,7 @@ namespace NetMQ
         /// </summary>
         public bool IsDisposed => m_disposeState == (int)DisposeState.Disposed;
 
-#if NET35
-        private bool IsPollerThread => ReferenceEquals(m_pollerThread, Thread.CurrentThread);
-#else
         private bool IsPollerThread => m_isSchedulerThread.Value;
-#endif
 
         #region Add / Remove
 
@@ -353,7 +325,6 @@ namespace NetMQ
         #endregion
 
         #region Contains
-#if !NET35
 
         /// <summary>
         /// Check if poller contains the socket asynchronously.
@@ -404,7 +375,7 @@ namespace NetMQ
             Run(() => tcs.SetResult(m_pollinSockets.ContainsKey(socket)));
             return tcs.Task;
         }
-#endif
+
         #endregion
 
         #region Start / Stop
@@ -451,31 +422,6 @@ namespace NetMQ
             m_switch.WaitForOn();
         }
 
-#if NET35
-        /// <summary>
-        /// Runs the poller on the caller's thread. Only returns when <see cref="Stop"/> or <see cref="StopAsync"/> are called from another thread.
-        /// </summary>
-        public void Run()
-        {
-            CheckDisposed();
-            if (IsRunning)
-                throw new InvalidOperationException("NetMQPoller is already running");
-
-            m_pollerThread = Thread.CurrentThread;
-            m_stopSignaler.Reset();
-            m_switch.SwitchOn();
-
-            try
-            {
-                RunPoller();
-            }
-            finally
-            {
-                m_pollerThread = null;
-                m_switch.SwitchOff();
-            }
-        }
-#else
         /// <summary>
         /// Runs the poller on the caller's thread. Only returns when <see cref="Stop"/> or <see cref="StopAsync"/> are called from another thread.
         /// </summary>
@@ -514,9 +460,7 @@ namespace NetMQ
                 SynchronizationContext.SetSynchronizationContext(oldSynchronisationContext);
                 m_switch.SwitchOff();
             }
-
         }
-#endif
 
         /// <summary>
         /// Runs the poller on the caller's thread. Only returns when <see cref="Stop"/> or <see cref="StopAsync"/> are called from another thread.
@@ -693,9 +637,7 @@ namespace NetMQ
 
         private void RebuildPollset()
         {
-#if !NET35
             Debug.Assert(m_isSchedulerThread.Value);
-#endif
 
             // Recreate the m_pollSet and m_pollact arrays.
             m_pollSet = new NetMQSelector.Item[m_sockets.Count + m_pollinSockets.Count];
@@ -777,10 +719,9 @@ namespace NetMQ
 
             m_sockets.Remove(((ISocketPollable)m_stopSignaler).Socket);
             m_stopSignaler.Dispose();
-#if !NET35
+
             m_sockets.Remove(((ISocketPollable)m_tasksQueue).Socket);
             m_tasksQueue.Dispose();
-#endif
 
             foreach (var socket in m_sockets)
             {
