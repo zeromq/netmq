@@ -119,17 +119,17 @@ namespace NetMQ
         /// <summary>
         /// Returns true if msg is empty
         /// </summary>
-        public bool IsEmpty => m_data == null || Size == 0;
+        public readonly bool IsEmpty => m_data == null || Size == 0;
 
         /// <summary>
         /// Returns true if the msg is join message
         /// </summary>
-        public bool IsJoin => MsgType == MsgType.Join;
+        public readonly bool IsJoin => MsgType == MsgType.Join;
         
         /// <summary>
         /// Returns true if the msg is leave message
         /// </summary>    
-        public bool IsLeave => MsgType == MsgType.Leave;
+        public readonly bool IsLeave => MsgType == MsgType.Leave;
 
         /// <summary>
         /// Gets the position of the first element in the Data property delimited by the message,
@@ -137,7 +137,7 @@ namespace NetMQ
         /// Deprecated: use <see cref="Slice()"/> or implicit casting to Span
         /// </summary>
         [Obsolete("Use implicit casting to Span or Slice instead")]
-        public int Offset => m_offset;
+        public readonly int Offset => m_offset;
 
         #region MsgType
 
@@ -149,14 +149,14 @@ namespace NetMQ
         /// which would indicate that this message is intended for use simply to mark a boundary
         /// between other parts of some unit of communication.
         /// </summary>
-        public bool IsDelimiter => MsgType == MsgType.Delimiter;
+        public readonly bool IsDelimiter => MsgType == MsgType.Delimiter;
 
         /// <summary>Get whether this <see cref="Msg"/> is initialised and ready for use.</summary>
         /// <remarks>A newly constructed <see cref="Msg"/> is uninitialised, and can be initialised via one
         /// of <see cref="InitEmpty"/>, <see cref="InitDelimiter"/>, <see cref="InitGC(byte[],int)"/>, <see cref="InitGC(byte[],int,int)"/>, or <see cref="InitPool"/>.
         /// Calling <see cref="Close"/> will cause the <see cref="Msg"/> to become uninitialised again.</remarks>
         /// <returns><c>true</c> if the <see cref="Msg"/> is initialised, otherwise <c>false</c>.</returns>
-        public bool IsInitialised => MsgType != MsgType.Uninitialised;
+        public readonly bool IsInitialised => MsgType != MsgType.Uninitialised;
 
         #endregion
 
@@ -170,20 +170,20 @@ namespace NetMQ
         /// <summary>
         /// Get the "Has-More" flag, which when set on a message-queue frame indicates that there are more frames to follow.
         /// </summary>
-        public bool HasMore => (Flags & MsgFlags.More) == MsgFlags.More;
+        public readonly bool HasMore => (Flags & MsgFlags.More) == MsgFlags.More;
         
-        internal bool HasCommand => (Flags & MsgFlags.Command) == MsgFlags.Command;
+        internal readonly bool HasCommand => (Flags & MsgFlags.Command) == MsgFlags.Command;
         
         /// <summary>
         /// Get whether the <see cref="Data"/> buffer of this <see cref="Msg"/> is shared with another instance.
         /// Only applies to pooled message types.
         /// </summary>
-        public bool IsShared => (Flags & MsgFlags.Shared) != 0;
+        public readonly bool IsShared => (Flags & MsgFlags.Shared) != 0;
 
         /// <summary>
         /// Get whether the Identity bit is set on the Flags property.
         /// </summary>
-        public bool IsIdentity => (Flags & MsgFlags.Identity) != 0;
+        public readonly bool IsIdentity => (Flags & MsgFlags.Identity) != 0;
 
         /// <summary>
         /// Set the indicated Flags bits.
@@ -210,7 +210,7 @@ namespace NetMQ
         /// </summary>
         public uint RoutingId
         {
-            get => m_routingId;
+            readonly get => m_routingId;
             set
             {
                 if (value == 0)
@@ -233,7 +233,7 @@ namespace NetMQ
         /// <exception cref="InvalidException">Value is larger than 255.</exception>
         public string Group
         {
-            get => m_group;
+            readonly get => m_group;
             set
             {
                 if (value.Length > MaxGroupLength)
@@ -252,13 +252,13 @@ namespace NetMQ
         /// <see cref="NetMQ.MsgType.Empty"/> or <see cref="NetMQ.MsgType.Delimiter"/>.
         /// </remarks>
         [Obsolete("Use implicit casting to Span or Slice instead")]
-        public byte[]? Data => m_data;
+        public readonly byte[]? Data => m_data;
         
         /// <summary>
         /// Return the internal buffer as Span
         /// </summary>
         /// <returns>The span</returns>
-        public Span<byte> Slice()
+        public readonly Span<byte> Slice()
         {
             if (m_data == null)
                 return Span<byte>.Empty;
@@ -270,7 +270,7 @@ namespace NetMQ
         /// Return the internal buffer as Memory
         /// </summary>
         /// <returns>The memory</returns>
-        public Memory<byte> SliceAsMemory()
+        public readonly Memory<byte> SliceAsMemory()
         {
             if (m_data == null)
                 return Memory<byte>.Empty;
@@ -282,7 +282,7 @@ namespace NetMQ
         /// Returns a slice of the internal buffer.
         /// </summary>
         /// <param name="offset">The offset to take the span from</param>
-        public Span<byte> Slice(int offset)
+        public readonly Span<byte> Slice(int offset)
         {
             if (m_data == null && offset > 0)
                 throw new ArgumentOutOfRangeException(nameof(offset));
@@ -298,7 +298,7 @@ namespace NetMQ
         /// </summary>
         /// <param name="offset">The offset to take the span from</param>
         /// <param name="count">The size of the slice</param>
-        public Span<byte> Slice(int offset, int count)
+        public readonly Span<byte> Slice(int offset, int count)
         {
             if (m_data == null && offset > 0)
                 throw new ArgumentOutOfRangeException(nameof(offset));
@@ -316,7 +316,7 @@ namespace NetMQ
         /// Copy the content of the message into a Span
         /// </summary>
         /// <param name="span">The span to copy content to</param>
-        public void CopyTo(Span<byte> span)
+        public readonly void CopyTo(Span<byte> span)
         {
             ((Span<byte>) this).CopyTo(span);
         }
@@ -325,7 +325,7 @@ namespace NetMQ
         /// Return a copy of the internal buffer as byte array
         /// </summary>
         /// <returns>Byte array</returns>
-        public byte[] ToArray()
+        public readonly byte[] ToArray()
         {
             var data = new byte[Size];
 
@@ -357,7 +357,7 @@ namespace NetMQ
         /// Returns span enumerator, to iterate of the Msg
         /// </summary>
         /// <returns>Span Enumerator</returns>
-        public Span<byte>.Enumerator GetEnumerator()
+        public readonly Span<byte>.Enumerator GetEnumerator()
         {
             return ((Span<byte>) this).GetEnumerator();
         }
@@ -536,7 +536,7 @@ namespace NetMQ
         /// Override the Object ToString method to show the object-type, and values of the MsgType, Size, and Flags properties.
         /// </summary>
         /// <returns>a string that provides some detail about this Msg's state</returns>
-        public override string ToString()
+        public override readonly string ToString()
         {
             return base.ToString() + "[" + MsgType + "," + Size + "," + Flags + "]";
         }
@@ -546,7 +546,7 @@ namespace NetMQ
         /// </summary>
         /// <param name="encoding">The encoding to use for the conversion</param>
         /// <returns>The string</returns>
-        public string GetString(Encoding encoding)
+        public readonly string GetString(Encoding encoding)
         {
             Assumes.NotNull(m_data);
             return encoding.GetString(m_data, m_offset, Size);
@@ -559,7 +559,7 @@ namespace NetMQ
         /// <param name="offset">Offset to start conversion from</param>
         /// <param name="count">Number of bytes to convert</param>
         /// <returns>The string</returns>
-        public string GetString(Encoding encoding, int offset, int count)
+        public readonly string GetString(Encoding encoding, int offset, int count)
         {
             Assumes.NotNull(m_data);
             return encoding.GetString(m_data, m_offset + offset, count);
@@ -571,7 +571,7 @@ namespace NetMQ
         /// <param name="src">the source byte-array to copy from</param>
         /// <param name="dstOffset">index within the internal Data array to copy that byte to</param>
         /// <param name="len">the number of bytes to copy</param>
-        public void Put(byte[]? src, int dstOffset, int len)
+        public readonly void Put(byte[]? src, int dstOffset, int len)
         {
             if (len == 0 || src == null)
                 return;
@@ -586,7 +586,7 @@ namespace NetMQ
         /// <param name="srcOffset">first byte in the source byte-array</param>
         /// <param name="dstOffset">index within the internal Data array to copy that byte to</param>
         /// <param name="len">the number of bytes to copy</param>
-        public void Put(byte[]? src, int srcOffset, int dstOffset, int len) {
+        public readonly void Put(byte[]? src, int srcOffset, int dstOffset, int len) {
             if (len == 0 || src == null)
                 return;
             Assumes.NotNull(m_data);
@@ -597,7 +597,7 @@ namespace NetMQ
         /// Copy the given single byte to this Msg's Data buffer.
         /// </summary>
         /// <param name="b">the source byte to copy from</param>
-        public void Put(byte b)
+        public readonly void Put(byte b)
         {
             Assumes.NotNull(m_data);
             m_data[m_offset] = b;
@@ -608,7 +608,7 @@ namespace NetMQ
         /// </summary>
         /// <param name="b">the source byte to copy from</param>
         /// <param name="i">index within the internal Data array to copy that byte to</param>
-        public void Put(byte b, int i)
+        public readonly void Put(byte b, int i)
         {
             Assumes.NotNull(m_data);
             m_data[m_offset + i] = b;
@@ -620,7 +620,7 @@ namespace NetMQ
         /// <param name="encoding">The encoding to use for the writing</param>
         /// <param name="str">The string to write</param>
         /// <param name="index">The index to write the string to</param>
-        public void Put(Encoding encoding, string str, int index)
+        public readonly void Put(Encoding encoding, string str, int index)
         {
             Assumes.NotNull(m_data);
             encoding.GetBytes(str, 0, str.Length, m_data, m_offset + index);
@@ -640,7 +640,7 @@ namespace NetMQ
         /// </summary>
         /// <param name="index">The index to access</param>
         /// <returns></returns>
-        public byte this[int index]
+        public readonly byte this[int index]
         {
             get
             {
@@ -727,7 +727,7 @@ namespace NetMQ
         /// Returns a new array containing the first <see cref="Size"/> bytes of <see cref="Data"/>.
         /// Deprecated: use <see cref="ToArray()"/>
         /// </summary>
-        public byte[] CloneData()
+        public readonly byte[] CloneData()
         {
             var data = new byte[Size];
 
@@ -757,8 +757,8 @@ namespace NetMQ
             return CloneData();
         }
 
-        internal byte[]? UnsafeData => m_data;
-        internal int UnsafeOffset => m_offset;
+        internal readonly byte[]? UnsafeData => m_data;
+        internal readonly int UnsafeOffset => m_offset;
 
         #endregion
     }
