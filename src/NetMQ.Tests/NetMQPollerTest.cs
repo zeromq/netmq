@@ -990,7 +990,6 @@ namespace NetMQ.Tests
 
         #region ISynchronizeInvoke tests
 
-#if NET451
         [Fact]
         public void ISynchronizeInvokeWorks()
         {
@@ -1012,8 +1011,7 @@ namespace NetMQ.Tests
                 Assert.True(isCorrectThread);
             }
         }
-#endif
 
-#endregion
+        #endregion
     }
 }

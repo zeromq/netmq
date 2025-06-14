@@ -1,12 +1,13 @@
 using System;
 using System.Collections;
 using System.Collections.Generic;
+using System.ComponentModel;
 using System.Diagnostics;
 using System.Linq;
 using System.Net.Sockets;
 using System.Threading;
-using NetMQ.Core.Utils;
 using System.Threading.Tasks;
+using NetMQ.Core.Utils;
 
 using Switch = NetMQ.Core.Utils.Switch;
 
@@ -17,6 +18,7 @@ namespace NetMQ
     /// </summary>
     public sealed class NetMQPoller :
         TaskScheduler,
+        ISynchronizeInvoke,
 #pragma warning disable 618 // Type or member is obsolete
         INetMQPoller, ISocketPollableCollection, IEnumerable, IDisposable
 #pragma warning restore 618 // Type or member is obsolete
@@ -737,10 +739,9 @@ namespace NetMQ
 
         #region ISynchronizeInvoke
 
-#if NET40
-        IAsyncResult ISynchronizeInvoke.BeginInvoke(Delegate method, object[] args)
+        IAsyncResult ISynchronizeInvoke.BeginInvoke(Delegate method, object?[]? args)
         {
-            var task = new Task<object>(() => method.DynamicInvoke(args));
+            var task = new Task<object?>(() => method.DynamicInvoke(args));
             task.Start(this);
             return task;
         }
@@ -751,18 +752,17 @@ namespace NetMQ
             return task.Result;
         }
 
-        object ISynchronizeInvoke.Invoke(Delegate method, object[] args)
+        object? ISynchronizeInvoke.Invoke(Delegate method, object?[]? args)
         {
             if (CanExecuteTaskInline)
                 return method.DynamicInvoke(args);
 
-            var task = new Task<object>(() => method.DynamicInvoke(args));
+            var task = new Task<object?>(() => method.DynamicInvoke(args));
             task.Start(this);
             return task.Result;
         }
 
         bool ISynchronizeInvoke.InvokeRequired => !CanExecuteTaskInline;
-#endif
 
         #endregion
     }
