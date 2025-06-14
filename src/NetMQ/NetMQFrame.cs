@@ -25,7 +25,7 @@ namespace NetMQ
         /// <param name="buffer">a byte-array to hold as the frame's data</param>
         public NetMQFrame(byte[]? buffer)
         {
-            buffer ??= EmptyArray<byte>.Instance;
+            buffer ??= [];
 
             Buffer = buffer;
             MessageSize = buffer.Length;

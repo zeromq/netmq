@@ -76,11 +76,7 @@ namespace NetMQ
                 {
                     m_poller.Remove(m_udpSocket);
 
-#if NET35
-                    m_udpSocket.Close();
-#else
                     m_udpSocket.Dispose();
-#endif
                 }
 
                 m_udpPort = port;
@@ -182,11 +178,7 @@ namespace NetMQ
                 }
 
                 // the beacon might never been configured
-#if NET35
-                m_udpSocket?.Close();
-#else
                 m_udpSocket?.Dispose();
-#endif
             }
 
             private void PingElapsed(object? sender, NetMQTimerEventArgs e)

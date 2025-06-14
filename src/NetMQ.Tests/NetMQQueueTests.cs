@@ -1,6 +1,4 @@
-﻿#if !NET35
-using System;
-using System.Net.Sockets;
+﻿using System;
 using System.Threading;
 using System.Threading.Tasks;
 using NetMQ.Sockets;
@@ -81,4 +79,3 @@ namespace NetMQ.Tests
         }
     }
 }
-#endif

@@ -69,7 +69,7 @@ namespace NetMQ.Core.Transports
         public void Dispose()
         {
             if (m_inProgress.IsInitialised)
-            m_inProgress.Close();
+                m_inProgress.Close();
         }
 
         /// <summary>
@@ -141,7 +141,7 @@ namespace NetMQ.Core.Transports
             return pos;
         }
         
-        public void LoadMsg (ref Msg msg)
+        public void LoadMsg(ref Msg msg)
         {
             m_inProgress = msg;
             m_hasMessage = true;

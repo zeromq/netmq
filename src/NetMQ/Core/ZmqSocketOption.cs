@@ -1,6 +1,4 @@
-﻿using System;
-
-namespace NetMQ.Core
+﻿namespace NetMQ.Core
 {
     /// <summary>
     /// This enum-type serves to identity a particular socket-option.

@@ -1,4 +1,3 @@
-#if !NET35
 using System;
 using System.Collections.Concurrent;
 using System.Collections.Generic;
@@ -129,7 +128,7 @@ namespace NetMQ
             m_queue.Enqueue(value);
 
             var msg = new Msg();
-            msg.InitGC(EmptyArray<byte>.Instance, 0);
+            msg.InitGC([], 0);
 
             lock (m_writer)
                 m_writer.TrySend(ref msg, SendReceiveConstants.InfiniteTimeout, false);
@@ -163,4 +162,3 @@ namespace NetMQ
         }
     }
 }
-#endif

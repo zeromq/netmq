@@ -47,12 +47,6 @@ namespace NetMQ.Core.Utils
         /// <exception cref="SocketException">an error occurred when attempting to access the socket.</exception>
         public static void Select(IList? checkRead, IList? checkWrite, IList? checkError, int microSeconds)
         {
-#if NET35
-            // .NET 3.5 has a bug, such that -1 is not blocking the select call - therefore we use here instead the maximum integer value.
-            if (microSeconds == -1)
-                microSeconds = int.MaxValue;
-#endif
-
             Socket.Select(checkRead, checkWrite, checkError, microSeconds);
         }
     }

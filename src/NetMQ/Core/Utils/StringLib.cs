@@ -110,7 +110,7 @@ namespace NetMQ.Core.Utils
                 {
                     sb.Append("IsBound,");
                 }
-                if (socket.LingerState.Enabled)
+                if (socket.LingerState?.Enabled == true)
                 {
                     sb.Append("LingerTime=");
                     sb.Append(socket.LingerState.LingerTime);

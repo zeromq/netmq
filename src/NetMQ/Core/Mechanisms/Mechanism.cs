@@ -1,5 +1,4 @@
 using System;
-using System.Collections;
 using System.Collections.Generic;
 using System.Text;
 using NetMQ.Core.Utils;
@@ -191,7 +190,7 @@ namespace NetMQ.Core.Mechanisms
                 }
                 else
                 {
-                    written = AddProperty(output, ZmtpPropertyIdentity, new byte[0]);
+                    written = AddProperty(output, ZmtpPropertyIdentity, []);
                     output = output.Slice(written);
                 }
             }

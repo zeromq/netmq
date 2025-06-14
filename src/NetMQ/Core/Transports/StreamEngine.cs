@@ -29,7 +29,6 @@ using System.Text;
 using AsyncIO;
 using JetBrains.Annotations;
 using NetMQ.Core.Mechanisms;
-using NetMQ.Core.Patterns;
 using NetMQ.Core.Utils;
 
 namespace NetMQ.Core.Transports

@@ -507,7 +507,7 @@ namespace NetMQ
         /// <param name="more">set this flag to true to signal that you will be immediately sending another frame (optional: default is false)</param>
         public static void SendFrameEmpty(this IOutgoingSocket socket, bool more = false)
         {
-            SendFrame(socket, EmptyArray<byte>.Instance, more);
+            SendFrame(socket, [], more);
         }
 
 
@@ -519,7 +519,7 @@ namespace NetMQ
         /// <returns>a reference to this IOutgoingSocket so that method-calls may be chained together</returns>
         public static IOutgoingSocket SendMoreFrameEmpty(this IOutgoingSocket socket)
         {
-            SendFrame(socket, EmptyArray<byte>.Instance, true);
+            SendFrame(socket, [], true);
 
             return socket;
         }
@@ -538,7 +538,7 @@ namespace NetMQ
         /// <returns><c>true</c> if a message was available, otherwise <c>false</c>.</returns>
         public static bool TrySendFrameEmpty(this IOutgoingSocket socket, TimeSpan timeout, bool more = false)
         {
-            return TrySendFrame(socket, timeout, EmptyArray<byte>.Instance, more);
+            return TrySendFrame(socket, timeout, [], more);
         }
 
         #endregion
@@ -554,7 +554,7 @@ namespace NetMQ
         /// <returns><c>true</c> if a message was available, otherwise <c>false</c>.</returns>
         public static bool TrySendFrameEmpty(this IOutgoingSocket socket, bool more = false)
         {
-            return TrySendFrame(socket, EmptyArray<byte>.Instance, more);
+            return TrySendFrame(socket, [], more);
         }
 
         #endregion
