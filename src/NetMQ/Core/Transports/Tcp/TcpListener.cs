@@ -204,6 +204,14 @@ namespace NetMQ.Core.Transports.Tcp
                     if (m_options.TcpKeepalive != -1)
                     {
                         acceptedSocket.SetSocketOption(SocketOptionLevel.Socket, SocketOptionName.KeepAlive, m_options.TcpKeepalive);
+#if NET
+                            if (m_options.TcpKeepaliveIdle != -1)
+                                acceptedSocket.SetSocketOption(SocketOptionLevel.Tcp, SocketOptionName.TcpKeepAliveTime, m_options.TcpKeepaliveIdle / 1000);
+                            if (m_options.TcpKeepaliveIntvl != -1)
+                                acceptedSocket.SetSocketOption(SocketOptionLevel.Tcp, SocketOptionName.TcpKeepAliveInterval, m_options.TcpKeepaliveIntvl / 1000);
+                            if (m_options.TcpKeepaliveCnt != -1)
+                                acceptedSocket.SetSocketOption(SocketOptionLevel.Tcp, SocketOptionName.TcpKeepAliveRetryCount, m_options.TcpKeepaliveCnt);
+#else
 
                         if (m_options.TcpKeepaliveIdle != -1 && m_options.TcpKeepaliveIntvl != -1)
                         {
@@ -214,15 +222,11 @@ namespace NetMQ.Core.Transports.Tcp
                             bytes.PutInteger(endian, m_options.TcpKeepalive, 0);
                             bytes.PutInteger(endian, m_options.TcpKeepaliveIdle, 4);
                             bytes.PutInteger(endian, m_options.TcpKeepaliveIntvl, 8);
-#if NET
-                                if (!OperatingSystem.IsWindows())
-                                {
-                                    throw new InvalidOperationException("Not supported on you platform"); // There is a pull request for .net8.0
 
-                                }
-#endif
+
                             acceptedSocket.IOControl(IOControlCode.KeepAliveValues, (byte[])bytes, null);
                         }
+#endif
                     }
 
                     // Create the engine object for this connection.
