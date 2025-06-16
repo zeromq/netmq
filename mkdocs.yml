@@ -1,6 +1,6 @@
 site_name: NetMQ
 
-pages:
+nav:
 - Home: index.md
 - Introduction: introduction.md
 - Concepts:
@@ -16,6 +16,7 @@ pages:
   - Timer: timer.md
   - Queue: queue.md
   - Proactor: proactor.md
+  - Devices: devices.md
 - Patterns:
   - Request-Response: request-response.md
   - Pub-Sub: pub-sub.md
