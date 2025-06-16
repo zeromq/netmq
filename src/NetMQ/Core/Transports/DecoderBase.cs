@@ -20,7 +20,6 @@
 */
 
 using System;
-using System.Diagnostics;
 
 namespace NetMQ.Core.Transports
 {

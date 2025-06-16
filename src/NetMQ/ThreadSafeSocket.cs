@@ -1,10 +1,6 @@
 using System;
-using System.Diagnostics;
 using System.Threading;
 using NetMQ.Core;
-#if NET40
-using NetMQ.Core.Utils;
-#endif
 
 namespace NetMQ
 {

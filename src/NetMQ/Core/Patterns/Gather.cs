@@ -1,4 +1,3 @@
-using System.Diagnostics;
 using NetMQ.Core.Patterns.Utils;
 
 namespace NetMQ.Core.Patterns

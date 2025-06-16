@@ -1,8 +1,6 @@
 ﻿using System;
 using System.Threading;
-#if !NET35
 using System.Threading.Tasks;
-#endif
 using AsyncIO;
 using NetMQ.Core;
 using NetMQ.Sockets;
@@ -289,7 +287,6 @@ namespace NetMQ.Monitoring
             }
         }
 
-#if !NET35
         /// <summary>
         /// Start a background task for the monitoring operation.
         /// </summary>
@@ -304,7 +301,6 @@ namespace NetMQ.Monitoring
 
             return Task.Factory.StartNew(Start);
         }
-#endif
 
         /// <summary>
         /// Stop monitoring. Blocks until monitoring completed.
@@ -352,11 +348,7 @@ namespace NetMQ.Monitoring
 
             m_monitoringSocket.ReceiveReady -= Handle;
 
-#if NET35
-            m_isStoppedEvent.Close();
-#else
             m_isStoppedEvent.Dispose();
-#endif
 
             if (m_ownsMonitoringSocket && !attachedToPoller)
             {

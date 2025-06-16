@@ -1,6 +1,5 @@
 ﻿using System;
 using System.Diagnostics;
-using System.Runtime.Serialization;
 
 namespace NetMQ.Tests
 {
@@ -19,7 +18,6 @@ namespace NetMQ.Tests
         {
         }
 
-        [Serializable]
         public class DebugAssertFailureException : Exception
         {
             public DebugAssertFailureException()
@@ -31,10 +29,6 @@ namespace NetMQ.Tests
             }
 
             public DebugAssertFailureException(string message, Exception inner) : base(message, inner)
-            {
-            }
-
-            protected DebugAssertFailureException(SerializationInfo info, StreamingContext context) : base(info, context)
             {
             }
         }

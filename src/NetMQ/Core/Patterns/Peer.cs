@@ -23,9 +23,7 @@
 using System;
 using System.Collections.Generic;
 using System.Diagnostics;
-using System.Threading;
 using NetMQ.Core.Patterns.Utils;
-using NetMQ.Core.Utils;
 
 namespace NetMQ.Core.Patterns
 {

@@ -1,5 +1,4 @@
 using System;
-using System.Text;
 using NetMQ.Core.Utils;
 
 namespace NetMQ.Core.Mechanisms

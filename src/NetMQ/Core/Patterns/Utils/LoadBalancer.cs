@@ -22,7 +22,6 @@
 
 using System.Collections.Generic;
 using System.Diagnostics;
-using System.Diagnostics.CodeAnalysis;
 
 namespace NetMQ.Core.Patterns.Utils
 {
