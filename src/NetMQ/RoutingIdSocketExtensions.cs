@@ -564,7 +564,6 @@ namespace NetMQ
         
         #region AsyncEnumerable
 
-#if NETSTANDARD || NET
         
         /// <summary>
         /// Provides a consuming IAsyncEnumerable for receiving messages from the socket.
@@ -583,7 +582,6 @@ namespace NetMQ
             }
         }
         
-#endif  
         
         #endregion
 

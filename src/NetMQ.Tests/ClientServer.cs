@@ -82,7 +82,6 @@ namespace NetMQ.Tests
             await Assert.ThrowsAnyAsync<OperationCanceledException>(async () => await server.ReceiveStringAsync(source.Token));
         }
 
-#if NETSTANDARD || NET
         [Fact(Timeout = 120)]
         public async Task AsyncEnumerableCanceled()
         {
@@ -155,6 +154,6 @@ namespace NetMQ.Tests
             
             Assert.Equal(15002, totalCount);
         }
-#endif
+
     }
 }

@@ -45,9 +45,11 @@
   <ItemGroup Condition=" '$(TargetFrameworkIdentifier)' == '.NETFramework' ">
     <PackageReference Include="Microsoft.NETFramework.ReferenceAssemblies" Version="1.0.3" PrivateAssets="All" />
     <PackageReference Include="System.Threading.Tasks.Extensions" Version="4.6.3" />
+    <PackageReference Include="Microsoft.Bcl.AsyncInterfaces" Version="9.0.6" />
     <Reference Include="System.ServiceModel" />
     <Reference Include="System" />
     <Reference Include="Microsoft.CSharp" />
+    
   </ItemGroup>
 
   <ItemGroup>
