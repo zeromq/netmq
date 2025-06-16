@@ -198,6 +198,15 @@
         TcpKeepalive = 34,
 
         /// <summary>
+        /// The maximum number of keepalive probes TCP should send before dropping the connection.
+        /// </summary>
+        /// <remarks>
+        /// This setting controls how many unacknowledged probes are sent before the connection is considered dead.
+        /// A value of -1 (the default) means to use the OS default setting.
+        /// </remarks>
+        TcpKeepaliveCnt = 35,
+
+        /// <summary>
         /// The keep-alive time - the duration between two keepalive transmissions in idle condition.
         /// </summary>
         /// <remarks>

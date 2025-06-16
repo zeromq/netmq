@@ -77,8 +77,8 @@ namespace NetMQ.Tests
                 socket.Options.TcpKeepalive = true;
                 Assert.True(socket.Options.TcpKeepalive);
 
-//                socket.Options.TcpKeepaliveCnt = 100;
-//                Assert.Equal(100, socket.Options.TcpKeepaliveCnt);
+                socket.Options.TcpKeepaliveCnt = 100;
+                Assert.Equal(100, socket.Options.TcpKeepaliveCnt);
 
                 socket.Options.TcpKeepaliveIdle = TimeSpan.FromMilliseconds(100);
                 Assert.Equal(TimeSpan.FromMilliseconds(100), socket.Options.TcpKeepaliveIdle);
