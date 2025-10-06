@@ -7,16 +7,7 @@ using NetMQ.Sockets;
 
 namespace NetMQ.Monitoring
 {
-    /// <summary>
-    /// Monitors a <see cref="NetMQSocket"/> for events, raising them via events.
-    /// </summary>
-    /// <remarks>
-    /// To run a monitor instance, either:
-    /// <list type="bullet">
-    ///   <item>Call <see cref="Start"/> (blocking) and <see cref="Stop"/>, or</item>
-    ///   <item>Call <see cref="AttachToPoller{T}"/> and <see cref="DetachFromPoller()"/>.</item>
-    /// </list>
-    /// </remarks>
+    /// <inheritdoc />
     public class NetMQMonitor : INetMQMonitor
     {
         private readonly NetMQSocket m_monitoringSocket;

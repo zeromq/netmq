@@ -4,8 +4,15 @@ using System.Threading.Tasks;
 namespace NetMQ.Monitoring
 {
     /// <summary>
-    /// NetMQMonitor interface, implement to fake the NetMQMonitor in tests.
+    /// Monitors a <see cref="NetMQSocket"/> for events, raising them via events.
     /// </summary>
+    /// <remarks>
+    /// To run a monitor instance, either:
+    /// <list type="bullet">
+    ///   <item>Call <see cref="Start"/> (blocking) and <see cref="Stop"/>, or</item>
+    ///   <item>Call <see cref="AttachToPoller{T}"/> and <see cref="DetachFromPoller()"/>.</item>
+    /// </list>
+    /// </remarks>
     public interface INetMQMonitor : IDisposable
     {
         /// <summary>
