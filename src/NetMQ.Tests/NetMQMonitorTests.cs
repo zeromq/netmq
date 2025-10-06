@@ -188,5 +188,86 @@ namespace NetMQ.Tests
             MonitorEvent monitorEvent = new MonitorEvent(SocketEvents.All, addr: "", arg: socket!);
             Assert.Throws<ArgumentException>(() => monitorEvent.ConvertArg<int>());
         }
+
+        [Fact]
+        public void INetMQMonitorCanBeMocked()
+        {
+            // This test demonstrates that INetMQMonitor can be mocked for testing
+            var mockMonitor = new MockNetMQMonitor();
+            
+            // Verify the mock implements the interface
+            INetMQMonitor monitor = mockMonitor;
+            
+            Assert.NotNull(monitor);
+            Assert.Equal("mock://endpoint", monitor.Endpoint);
+            Assert.False(monitor.IsRunning);
+            
+            // Verify we can subscribe to events
+            var eventReceived = false;
+            monitor.EventReceived += (s, e) => { eventReceived = true; };
+            
+            // Trigger the event
+            mockMonitor.RaiseEventReceived();
+            
+            Assert.True(eventReceived);
+        }
+
+        // Simple mock implementation to demonstrate INetMQMonitor is mockable
+        private class MockNetMQMonitor : INetMQMonitor
+        {
+            public string Endpoint => "mock://endpoint";
+            public bool IsRunning { get; private set; }
+            public TimeSpan Timeout { get; set; }
+
+            public event EventHandler<NetMQMonitorEventArgs>? EventReceived;
+#pragma warning disable CS0067 // Event is never used - these are part of the interface contract
+            public event EventHandler<NetMQMonitorSocketEventArgs>? Connected;
+            public event EventHandler<NetMQMonitorErrorEventArgs>? ConnectDelayed;
+            public event EventHandler<NetMQMonitorIntervalEventArgs>? ConnectRetried;
+            public event EventHandler<NetMQMonitorSocketEventArgs>? Listening;
+            public event EventHandler<NetMQMonitorErrorEventArgs>? BindFailed;
+            public event EventHandler<NetMQMonitorSocketEventArgs>? Accepted;
+            public event EventHandler<NetMQMonitorErrorEventArgs>? AcceptFailed;
+            public event EventHandler<NetMQMonitorSocketEventArgs>? Closed;
+            public event EventHandler<NetMQMonitorErrorEventArgs>? CloseFailed;
+            public event EventHandler<NetMQMonitorSocketEventArgs>? Disconnected;
+#pragma warning restore CS0067
+
+            public void AttachToPoller<T>(T poller) where T : INetMQPoller
+            {
+                IsRunning = true;
+            }
+
+            public void DetachFromPoller()
+            {
+                IsRunning = false;
+            }
+
+            public void Start()
+            {
+                IsRunning = true;
+            }
+
+            public Task StartAsync()
+            {
+                IsRunning = true;
+                return Task.CompletedTask;
+            }
+
+            public void Stop()
+            {
+                IsRunning = false;
+            }
+
+            public void Dispose()
+            {
+                IsRunning = false;
+            }
+
+            public void RaiseEventReceived()
+            {
+                EventReceived?.Invoke(this, new NetMQMonitorSocketEventArgs(null!, "test", null!, SocketEvents.Connected));
+            }
+        }
     }
 }
