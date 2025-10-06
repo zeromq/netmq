@@ -9,12 +9,12 @@ namespace NetMQ.Monitoring
     public interface INetMQMonitor : IDisposable
     {
         /// <summary>
-        /// The monitoring address.
+        /// Gets the monitoring address.
         /// </summary>
         string Endpoint { get; }
 
         /// <summary>
-        /// Get whether this monitor is currently running.
+        /// Gets whether this monitor is currently running.
         /// </summary>
         /// <remarks>
         /// Start the monitor running via either <see cref="Start"/> or <see cref="AttachToPoller{T}"/>.
@@ -87,35 +87,35 @@ namespace NetMQ.Monitoring
         event EventHandler<NetMQMonitorSocketEventArgs>? Disconnected;
 
         /// <summary>
-        /// Add the monitor object to a NetMQPoller, register to <see cref="EventReceived"/> to be signalled on new events
+        /// Adds the monitor object to a NetMQPoller. Register to <see cref="EventReceived"/> to be signalled on new events.
         /// </summary>
-        /// <param name="poller"></param>
-        /// <typeparam name="T"></typeparam>
-        /// <exception cref="ArgumentNullException"></exception>
-        /// <exception cref="InvalidOperationException"></exception>
+        /// <param name="poller">The poller to attach to.</param>
+        /// <typeparam name="T">The type of poller.</typeparam>
+        /// <exception cref="ArgumentNullException">The <paramref name="poller"/> is <c>null</c>.</exception>
+        /// <exception cref="InvalidOperationException">The monitor is already started or already attached to a poller.</exception>
         void AttachToPoller<T>(T poller) where T : INetMQPoller;
 
         /// <summary>
-        /// Remove the monitor object from attached poller
+        /// Removes the monitor object from the attached poller.
         /// </summary>
         void DetachFromPoller();
 
         /// <summary>
-        /// Start monitor the socket, the method doesn't start a new thread and will block until the monitor poll is stopped
+        /// Starts monitoring the socket. This method doesn't start a new thread and will block until the monitor poll is stopped.
         /// </summary>
         /// <exception cref="InvalidOperationException">The Monitor must not have already started nor attached to a poller.</exception>
         void Start();
 
         /// <summary>
-        /// Start a background task for the monitoring operation.
+        /// Starts a background task for the monitoring operation.
         /// </summary>
-        /// <returns></returns>
+        /// <returns>A task representing the monitoring operation.</returns>
         Task StartAsync();
 
         /// <summary>
-        /// Stop monitoring. Blocks until monitoring completed.
+        /// Stops monitoring. Blocks until monitoring completed.
         /// </summary>
-        /// <exception cref="InvalidOperationException">If this monitor is attached to a poller you must detach it first and not use the stop method.</exception>
+        /// <exception cref="InvalidOperationException">If this monitor is attached to a poller you must detach it first and not use the <see cref="Stop"/> method.</exception>
         void Stop();
     }
 }

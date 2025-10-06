@@ -68,84 +68,48 @@ namespace NetMQ.Monitoring
             m_ownsMonitoringSocket = ownsSocket;
         }
 
-        /// <summary>
-        /// The monitoring address.
-        /// </summary>
+        /// <inheritdoc />
         public string Endpoint { get; }
 
-        /// <summary>
-        /// Get whether this monitor is currently running.
-        /// </summary>
-        /// <remarks>
-        /// Start the monitor running via either <see cref="Start"/> or <see cref="AttachToPoller{T}"/>.
-        /// Stop the monitor via either <see cref="Stop"/> or <see cref="DetachFromPoller()"/>.
-        /// </remarks>
+        /// <inheritdoc />
         public bool IsRunning { get; private set; }
 
-        /// <summary>
-        /// Gets and sets the timeout interval for poll iterations when using <see cref="Start"/> and <see cref="Stop"/>.
-        /// </summary>
-        /// <remarks>
-        /// The higher the number the longer it may take the to stop the monitor.
-        /// This value has no effect when the monitor is run via <see cref="AttachToPoller{T}"/>.
-        /// </remarks>
+        /// <inheritdoc />
         public TimeSpan Timeout { get; set; }
 
         #region Events
 
-        /// <summary>
-        /// Raised whenever any monitored event fires.
-        /// </summary>
+        /// <inheritdoc />
         public event EventHandler<NetMQMonitorEventArgs>? EventReceived;
 
-        /// <summary>
-        /// Occurs when a connection is made to a socket.
-        /// </summary>
+        /// <inheritdoc />
         public event EventHandler<NetMQMonitorSocketEventArgs>? Connected;
 
-        /// <summary>
-        /// Occurs when a synchronous connection attempt failed, and its completion is being polled for.
-        /// </summary>
+        /// <inheritdoc />
         public event EventHandler<NetMQMonitorErrorEventArgs>? ConnectDelayed;
 
-        /// <summary>
-        /// Occurs when an asynchronous connect / reconnection attempt is being handled by a reconnect timer.
-        /// </summary>
+        /// <inheritdoc />
         public event EventHandler<NetMQMonitorIntervalEventArgs>? ConnectRetried;
 
-        /// <summary>
-        /// Occurs when a socket is bound to an address and is ready to accept connections.
-        /// </summary>
+        /// <inheritdoc />
         public event EventHandler<NetMQMonitorSocketEventArgs>? Listening;
 
-        /// <summary>
-        /// Occurs when a socket could not bind to an address.
-        /// </summary>
+        /// <inheritdoc />
         public event EventHandler<NetMQMonitorErrorEventArgs>? BindFailed;
 
-        /// <summary>
-        /// Occurs when a connection from a remote peer has been established with a socket's listen address.
-        /// </summary>
+        /// <inheritdoc />
         public event EventHandler<NetMQMonitorSocketEventArgs>? Accepted;
 
-        /// <summary>
-        /// Occurs when a connection attempt to a socket's bound address fails.
-        /// </summary>
+        /// <inheritdoc />
         public event EventHandler<NetMQMonitorErrorEventArgs>? AcceptFailed;
 
-        /// <summary>
-        /// Occurs when a connection was closed.
-        /// </summary>
+        /// <inheritdoc />
         public event EventHandler<NetMQMonitorSocketEventArgs>? Closed;
 
-        /// <summary>
-        /// Occurs when a connection couldn't be closed.
-        /// </summary>
+        /// <inheritdoc />
         public event EventHandler<NetMQMonitorErrorEventArgs>? CloseFailed;
 
-        /// <summary>
-        /// Occurs when the stream engine (TCP and IPC specific) detects a corrupted / broken session.
-        /// </summary>
+        /// <inheritdoc />
         public event EventHandler<NetMQMonitorSocketEventArgs>? Disconnected;
 
         #endregion
@@ -219,13 +183,7 @@ namespace NetMQ.Monitoring
             }
         }
 
-        /// <summary>
-        /// Add the monitor object to a NetMQPoller, register to <see cref="EventReceived"/> to be signalled on new events
-        /// </summary>
-        /// <param name="poller"></param>
-        /// <typeparam name="T"></typeparam>
-        /// <exception cref="ArgumentNullException"></exception>
-        /// <exception cref="InvalidOperationException"></exception>
+        /// <inheritdoc />
         public void AttachToPoller<T>(T poller) where T : INetMQPoller
         {
             if (poller == null)
@@ -239,9 +197,7 @@ namespace NetMQ.Monitoring
             poller.Add(m_monitoringSocket);
         }
 
-        /// <summary>
-        /// Remove the monitor object from attached poller
-        /// </summary>
+        /// <inheritdoc />
         public void DetachFromPoller()
         {
             DetachFromPoller(false);
@@ -260,10 +216,7 @@ namespace NetMQ.Monitoring
             InternalClose();
         }
 
-        /// <summary>
-        /// Start monitor the socket, the method doesn't start a new thread and will block until the monitor poll is stopped
-        /// </summary>
-        /// <exception cref="InvalidOperationException">The Monitor must not have already started nor attached to a poller.</exception>
+        /// <inheritdoc />
         public void Start()
         {
             if (IsRunning)
@@ -287,10 +240,7 @@ namespace NetMQ.Monitoring
             }
         }
 
-        /// <summary>
-        /// Start a background task for the monitoring operation.
-        /// </summary>
-        /// <returns></returns>
+        /// <inheritdoc />
         public Task StartAsync()
         {
             if (IsRunning)
@@ -302,10 +252,7 @@ namespace NetMQ.Monitoring
             return Task.Factory.StartNew(Start);
         }
 
-        /// <summary>
-        /// Stop monitoring. Blocks until monitoring completed.
-        /// </summary>
-        /// <exception cref="InvalidOperationException">If this monitor is attached to a poller you must detach it first and not use the stop method.</exception>
+        /// <inheritdoc />
         public void Stop()
         {
             if (m_attachedPoller != null)
