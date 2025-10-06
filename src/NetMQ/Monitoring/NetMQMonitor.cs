@@ -17,7 +17,7 @@ namespace NetMQ.Monitoring
     ///   <item>Call <see cref="AttachToPoller{T}"/> and <see cref="DetachFromPoller()"/>.</item>
     /// </list>
     /// </remarks>
-    public class NetMQMonitor : IDisposable
+    public class NetMQMonitor : INetMQMonitor
     {
         private readonly NetMQSocket m_monitoringSocket;
         private readonly bool m_ownsMonitoringSocket;
