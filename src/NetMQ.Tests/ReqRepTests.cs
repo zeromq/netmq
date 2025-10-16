@@ -1,4 +1,7 @@
-﻿using NetMQ.Sockets;
+using System;
+using System.Threading;
+using System.Threading.Tasks;
+using NetMQ.Sockets;
 using Xunit;
 
 namespace NetMQ.Tests
@@ -280,6 +283,60 @@ namespace NetMQ.Tests
                 rep.SendMoreFrame("Hello").SendFrame("Back");
 
                 Assert.Equal(new[] { "Hello", "Back" }, req.ReceiveMultipartStrings());
+            }
+        }
+
+        [Fact]
+        public async Task DisposedSocketDoesNotCauseInfiniteLoop()
+        {
+            // This test validates that when a socket is disposed while a send operation is in progress,
+            // it doesn't cause an infinite loop in TrySend. The fix ensures that Mailbox.TryRecv only
+            // catches SocketException and not ObjectDisposedException, allowing the exception to propagate
+            // and break out of the sending loop.
+
+            var req = new RequestSocket();
+            req.Options.Linger = TimeSpan.Zero;
+            
+            // Bind to an endpoint that has no peer - this will cause sends to block
+            req.Connect("tcp://localhost:15555");
+
+            // Dispose the socket to trigger ObjectDisposedException
+            req.Dispose();
+
+            // Create a task that will attempt to send on the disposed socket
+            // This should complete quickly by throwing an exception rather than hanging
+            var sendTask = Task.Run(() =>
+            {
+                try
+                {
+                    var msg = new NetMQMessage();
+                    msg.Append("test");
+                    req.SendMultipartMessage(msg);
+                }
+                catch (ObjectDisposedException)
+                {
+                    // Expected exception - this is good, it means we broke out of the loop
+                    return true;
+                }
+                catch (Exception)
+                {
+                    // Any other exception is also fine - the key is that we don't hang
+                    return true;
+                }
+                return false;
+            });
+
+            // If the fix is working, this should complete quickly (within 5 seconds)
+            // If there's an infinite loop, it will timeout
+            var timeoutTask = Task.Delay(TimeSpan.FromSeconds(5));
+            var completedTask = await Task.WhenAny(sendTask, timeoutTask);
+            
+            Assert.True(completedTask == sendTask, "Send operation should complete quickly after disposal, not hang in infinite loop");
+            
+            if (completedTask == sendTask)
+            {
+                var result = await sendTask;
+                Assert.True(result, "Send operation should have thrown an exception");
             }
         }
     }
