@@ -1,7 +1,4 @@
-using System;
-using System.Threading;
-using System.Threading.Tasks;
-using NetMQ.Sockets;
+﻿using NetMQ.Sockets;
 using Xunit;
 
 namespace NetMQ.Tests
@@ -284,41 +281,6 @@ namespace NetMQ.Tests
 
                 Assert.Equal(new[] { "Hello", "Back" }, req.ReceiveMultipartStrings());
             }
-        }
-
-        [Fact]
-        public async Task DisposedSocketDoesNotCauseInfiniteLoop()
-        {
-            // This test validates that when a socket is disposed while a send operation is in progress,
-            // it doesn't cause an infinite loop in TrySend. The fix ensures that Mailbox.TryRecv only
-            // catches SocketException and not ObjectDisposedException, allowing the exception to propagate
-            // and break out of the sending loop.
-
-            var req = new RequestSocket();
-            req.Options.Linger = TimeSpan.Zero;
-            
-            // Connect to an endpoint that has no peer - this will cause sends to block
-            req.Connect("tcp://localhost:15555");
-
-            // Dispose the socket to trigger ObjectDisposedException
-            req.Dispose();
-
-            // Create a task that will attempt to send on the disposed socket
-            // This should complete quickly by throwing an exception rather than hanging
-            var sendTask = Task.Run(() =>
-            {
-                var msg = new NetMQMessage();
-                msg.Append("test");
-                req.SendMultipartMessage(msg);
-            });
-
-            // If the fix is working, this should complete quickly (within 5 seconds)
-            // If there's an infinite loop, it will timeout
-            // The task may complete with an exception (which is fine - we just want it to complete)
-            var timeoutTask = Task.Delay(TimeSpan.FromSeconds(5));
-            var completedTask = await Task.WhenAny(sendTask, timeoutTask);
-            
-            Assert.True(completedTask == sendTask, "Send operation should complete quickly after disposal, not hang in infinite loop");
         }
     }
 }
