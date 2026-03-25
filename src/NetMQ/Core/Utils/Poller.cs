@@ -23,9 +23,6 @@ using System;
 using System.Collections.Generic;
 using System.Linq;
 using System.Net.Sockets;
-#if !NETFRAMEWORK
-using System.Runtime.InteropServices;
-#endif
 using System.Threading;
 
 namespace NetMQ.Core.Utils
@@ -281,22 +278,7 @@ namespace NetMQ.Core.Utils
                 try
                 {
                     timeout = timeout != 0 ? timeout * 1000 : -1;
-#if NETFRAMEWORK
                     Socket.Select(readList, null, errorList, timeout);
-#else
-                    if (RuntimeInformation.IsOSPlatform(OSPlatform.OSX))
-                    {
-                        // Socket.Select does not work properly on macOS .NET Core when readList and errorList are passed
-                        // together. To avoid this problem, we call the Select function separately for errorList.
-                        // Please refer to this issue: https://github.com/dotnet/corefx/issues/39617
-                        SocketUtility.Select(readList, null, null, timeout);
-                        SocketUtility.Select(null, null, errorList, timeout);
-                    }
-                    else
-                    {
-                        Socket.Select(readList, null, errorList, timeout);
-                    }
-#endif
                 }
                 catch (SocketException)
                 {
