@@ -15,6 +15,22 @@ jobs:
       run: dotnet build src/NetMQ.sln /p:Configuration=Release /verbosity:minimal
     - name: test net10.0
       run: dotnet test -v n -p:ParallelizeTestCollections=false --configuration Release --no-build -f net10.0 src/NetMQ.Tests/NetMQ.Tests.csproj
+  macos:
+    runs-on: macos-latest
+    permissions:
+      contents: read
+    env:
+      DOTNET_NOLOGO: true
+    steps:
+    - uses: actions/checkout@v6
+    - uses: actions/setup-dotnet@v5
+      with:
+        dotnet-version: 10.0.x
+    - run: dotnet restore src/NetMQ.sln
+    - name: build
+      run: dotnet build src/NetMQ.sln /p:Configuration=Release /verbosity:minimal
+    - name: test net10.0
+      run: dotnet test -v n -p:ParallelizeTestCollections=false --configuration Release --no-build -f net10.0 src/NetMQ.Tests/NetMQ.Tests.csproj
   windows:
     runs-on: windows-latest
     env:
