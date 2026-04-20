@@ -259,8 +259,6 @@ namespace NetMQ.Core.Utils
         private void Loop()
         {
             var readList = new List<Socket>();
-//            var writeList = new List<Socket>();
-            var errorList = new List<Socket>();
 
             while (!m_stopping)
             {
@@ -272,13 +270,16 @@ namespace NetMQ.Core.Utils
                 int timeout = ExecuteTimers();
 
                 readList.AddRange(m_checkRead.ToArray());
-//                writeList.AddRange(m_checkWrite.ToArray());
-                errorList.AddRange(m_checkError.ToArray());
 
                 try
                 {
                     timeout = timeout != 0 ? timeout * 1000 : -1;
-                    Socket.Select(readList, null, errorList, timeout);
+                    // Pass null for the error list: every socket is already tracked in
+                    // m_checkRead (callers always invoke SetPollIn after AddHandle), so
+                    // socket errors surface as readable events too. Passing a non-null
+                    // error list alongside readList causes Socket.Select to hang
+                    // indefinitely on macOS .NET (https://github.com/dotnet/corefx/issues/39617).
+                    Socket.Select(readList, null, null, timeout);
                 }
                 catch (SocketException)
                 {
@@ -290,36 +291,6 @@ namespace NetMQ.Core.Utils
                 {
                     if (pollSet.Cancelled)
                         continue;
-
-                    // Invoke its handler's InEvent if it's in our error-list.
-                    if (errorList.Contains(pollSet.Socket))
-                    {
-                        try
-                        {
-                            pollSet.Handler.InEvent();
-                        }
-                        catch (TerminatingException)
-                        {
-                        }
-                    }
-
-                    if (pollSet.Cancelled)
-                        continue;
-
-//                    // Invoke its handler's OutEvent if it's in our write-list.
-//                    if (writeList.Contains(pollSet.Socket))
-//                    {
-//                        try
-//                        {
-//                            pollSet.Handler.OutEvent();
-//                        }
-//                        catch (TerminatingException)
-//                        {
-//                        }
-//                    }
-//
-//                    if (pollSet.Cancelled)
-//                        continue;
 
                     // Invoke its handler's InEvent if it's in our read-list.
                     if (readList.Contains(pollSet.Socket))
@@ -334,8 +305,6 @@ namespace NetMQ.Core.Utils
                     }
                 }
 
-                errorList.Clear();
-//                writeList.Clear();
                 readList.Clear();
 
                 if (m_retired)
