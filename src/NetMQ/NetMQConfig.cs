@@ -48,14 +48,17 @@ namespace NetMQ
         /// <param name="block">Set to true when you want to make sure sockets send all pending messages</param>
         public static void Cleanup(bool block = true)
         {
+            Ctx? ctx;
             lock (s_sync)
             {
-                if (s_ctx != null)
-                {
-                    s_ctx.Terminate(block);
-                    s_ctx = null;
-                }
+                // Capture and clear the context reference while holding the lock, then
+                // call Terminate outside the lock so a long-running or stuck Terminate
+                // (e.g. on macOS with block:false) never prevents other threads from
+                // acquiring s_sync and observing that cleanup has already been initiated.
+                ctx = s_ctx;
+                s_ctx = null;
             }
+            ctx?.Terminate(block);
         }
 
         /// <summary>

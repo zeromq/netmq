@@ -74,7 +74,10 @@ namespace NetMQ.Tests
             // and an error list, causing Cleanup to hang forever without this guard.
             _ = new DealerSocket(">tcp://localhost:5557"); // intentionally not disposed
 
-            var thread = new Thread(() => NetMQConfig.Cleanup(block: false));
+            // Run cleanup on a background (daemon) thread so the process can still exit
+            // if the thread gets stuck. IsBackground = true prevents it from blocking
+            // process shutdown if a regression causes Cleanup to hang.
+            var thread = new Thread(() => NetMQConfig.Cleanup(block: false)) { IsBackground = true };
             thread.Start();
             Assert.True(thread.Join(TimeSpan.FromSeconds(10)),
                 "Cleanup(block: false) did not complete within 10 seconds");

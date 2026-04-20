@@ -290,7 +290,11 @@ namespace NetMQ.Core.Utils
                         // together. To avoid this problem, we call the Select function separately for errorList.
                         // Please refer to this issue: https://github.com/dotnet/corefx/issues/39617
                         SocketUtility.Select(readList, null, null, timeout);
-                        SocketUtility.Select(null, null, errorList, timeout);
+                        // If the first select found readable sockets, use a non-blocking (0) timeout for the
+                        // error check so we don't block indefinitely on a stale list before processing InEvent.
+                        // Events queued by the first select (e.g. a ForceStop command) are not yet processed
+                        // because InEvent runs after both selects, so a second infinite-wait here would deadlock.
+                        SocketUtility.Select(null, null, errorList, readList.Count > 0 ? 0 : timeout);
                     }
                     else
                     {
