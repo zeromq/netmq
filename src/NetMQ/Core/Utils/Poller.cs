@@ -253,6 +253,15 @@ namespace NetMQ.Core.Utils
         }
 
         /// <summary>
+        /// Maximum timeout (in microseconds) passed to Socket.Select.
+        /// On macOS ARM64, <c>Socket.Select</c> can fail to wake up when a TCP
+        /// loopback socket becomes readable. Capping the timeout ensures the loop
+        /// re-evaluates <see cref="m_stopping"/> periodically so that
+        /// <see cref="Stop"/> requests are never missed.
+        /// </summary>
+        private const int MaxSelectTimeoutMicroseconds = 500_000; // 500,000 µs = 500 ms
+
+        /// <summary>
         /// This method is the polling-loop that is invoked on a background thread when Start is called.
         /// As long as Stop hasn't been called: execute the timers, and invoke the handler-methods on each of the saved PollSets.
         /// </summary>
@@ -274,11 +283,14 @@ namespace NetMQ.Core.Utils
                 try
                 {
                     timeout = timeout != 0 ? timeout * 1000 : -1;
-                    // Pass null for the error list: every socket is already tracked in
-                    // m_checkRead (callers always invoke SetPollIn after AddHandle), so
-                    // socket errors surface as readable events too. Passing a non-null
-                    // error list alongside readList causes Socket.Select to hang
-                    // indefinitely on macOS .NET (https://github.com/dotnet/corefx/issues/39617).
+
+                    // Cap the timeout so the loop wakes up periodically. This
+                    // prevents an indefinite hang on platforms where Socket.Select
+                    // does not reliably detect readability on TCP loopback pairs
+                    // (the Signaler mechanism used by the Mailbox).
+                    if (timeout < 0 || timeout > MaxSelectTimeoutMicroseconds)
+                        timeout = MaxSelectTimeoutMicroseconds;
+
                     Socket.Select(readList, null, null, timeout);
                 }
                 catch (SocketException)
