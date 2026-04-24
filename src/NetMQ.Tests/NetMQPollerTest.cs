@@ -582,7 +582,7 @@ namespace NetMQ.Tests
             {
                 poller.RunAsync();
 
-                Thread.Sleep(timerIntervalMillis * 6);
+                Thread.Sleep(timerIntervalMillis * 30);
 
                 poller.Stop();
 
@@ -705,7 +705,7 @@ namespace NetMQ.Tests
             {
                 poller.RunAsync();
 
-                Thread.Sleep(timerIntervalMillis * 6);
+                Thread.Sleep(timerIntervalMillis * 30);
 
                 poller.Stop();
             }
@@ -758,7 +758,7 @@ namespace NetMQ.Tests
             {
                 poller.RunAsync();
 
-                Thread.Sleep(200);
+                Thread.Sleep(500);
 
                 poller.Stop();
             }
