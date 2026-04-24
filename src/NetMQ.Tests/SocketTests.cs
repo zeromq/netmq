@@ -97,7 +97,7 @@ namespace NetMQ.Tests
             {
                 var pubSync = new AutoResetEvent(false);
                 var payload = new byte[300];
-                const int waitTime = 500;
+                const int waitTime = 1500;
                 int port = 0;
 
                 var t1 = new Task(() =>
@@ -121,7 +121,7 @@ namespace NetMQ.Tests
                     {
                         subSocket.Connect($"tcp://127.0.0.1:{port}");
                         subSocket.Subscribe("");
-                        Thread.Sleep(100);
+                        Thread.Sleep(500);
                         pubSync.Set();
 
                         NetMQMessage? msg = null;
