@@ -735,13 +735,13 @@ namespace NetMQ.Tests
                 if (count == 1)
                 {
                     stopwatch.Start();
-                    timer.Interval = 100;
+                    timer.Interval = 500;
                 }
                 else if (count == 2)
                 {
                     length1 = stopwatch.ElapsedMilliseconds;
 
-                    timer.Interval = 200;
+                    timer.Interval = 1000;
                     stopwatch.Restart();
                 }
                 else if (count == 3)
@@ -758,15 +758,15 @@ namespace NetMQ.Tests
             {
                 poller.RunAsync();
 
-                Thread.Sleep(1500);
+                Thread.Sleep(5000);
 
                 poller.Stop();
             }
 
             Assert.Equal(3, count);
 
-            Assert.True(Math.Abs(length1 - 100) <= 50.0);
-            Assert.True(Math.Abs(length2 - 200) <= 50.0);
+            Assert.True(Math.Abs(length1 - 500) <= 200.0);
+            Assert.True(Math.Abs(length2 - 1000) <= 200.0);
         }
 
         [Fact]

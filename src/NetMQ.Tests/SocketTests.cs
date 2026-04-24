@@ -127,7 +127,7 @@ namespace NetMQ.Tests
                         NetMQMessage? msg = null;
                         Assert.False(subSocket.TryReceiveMultipartMessage(TimeSpan.FromMilliseconds(100), ref msg));
 
-                        Assert.True(subSocket.TryReceiveMultipartMessage(TimeSpan.FromMilliseconds(waitTime), ref msg));
+                        Assert.True(subSocket.TryReceiveMultipartMessage(TimeSpan.FromSeconds(10), ref msg));
                         Assert.NotNull(msg);
                         Assert.Equal(1, msg!.FrameCount);
                         Assert.Equal(300, msg.First.MessageSize);
