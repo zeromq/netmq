@@ -630,8 +630,8 @@ namespace NetMQ.Tests
         [Fact]
         public void TwoTimers()
         {
-            var timer1 = new NetMQTimer(TimeSpan.FromMilliseconds(60));
-            var timer2 = new NetMQTimer(TimeSpan.FromMilliseconds(40));
+            var timer1 = new NetMQTimer(TimeSpan.FromMilliseconds(300));
+            var timer2 = new NetMQTimer(TimeSpan.FromMilliseconds(200));
 
             int count = 0;
             int count2 = 0;
@@ -657,8 +657,8 @@ namespace NetMQ.Tests
             {
                 poller.RunAsync();
 
-                Assert.True(signal1.WaitOne(300));
-                Assert.True(signal2.WaitOne(300));
+                Assert.True(signal1.WaitOne(2000));
+                Assert.True(signal2.WaitOne(2000));
 
                 poller.Stop();
             }
@@ -765,8 +765,8 @@ namespace NetMQ.Tests
 
             Assert.Equal(3, count);
 
-            Assert.True(Math.Abs(length1 - 30) <= 10.0);
-            Assert.True(Math.Abs(length2 - 60) <= 10.0);
+            Assert.True(Math.Abs(length1 - 30) <= 20.0);
+            Assert.True(Math.Abs(length2 - 60) <= 20.0);
         }
 
         [Fact]

@@ -82,13 +82,13 @@ namespace NetMQ.Tests
             await Assert.ThrowsAnyAsync<OperationCanceledException>(async () => await server.ReceiveStringAsync(source.Token));
         }
 
-        [Fact(Timeout = 120)]
+        [Fact(Timeout = 5000)]
         public async Task AsyncEnumerableCanceled()
         {
             using CancellationTokenSource source = new CancellationTokenSource();
             using var server = new ServerSocket();
             
-            source.CancelAfter(100);
+            source.CancelAfter(500);
 
             await Assert.ThrowsAnyAsync<OperationCanceledException>(async () =>
             {

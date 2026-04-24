@@ -98,24 +98,28 @@ namespace NetMQ.Tests
                 var pubSync = new AutoResetEvent(false);
                 var payload = new byte[300];
                 const int waitTime = 500;
+                int port = 0;
 
                 var t1 = new Task(() =>
                 {
                     using (var pubSocket = new PublisherSocket())
                     {
-                        pubSocket.Bind("tcp://127.0.0.1:12345");
-                        pubSync.WaitOne();
+                        port = pubSocket.BindRandomPort("tcp://127.0.0.1");
+                        pubSync.Set(); // signal port is ready
+                        pubSync.WaitOne(TimeSpan.FromSeconds(10));
                         Thread.Sleep(waitTime);
                         pubSocket.SendFrame(payload);
-                        pubSync.WaitOne();
+                        pubSync.WaitOne(TimeSpan.FromSeconds(10));
                     }
                 }, TaskCreationOptions.LongRunning);
 
                 var t2 = new Task(() =>
                 {
+                    pubSync.WaitOne(TimeSpan.FromSeconds(10)); // wait for bind
+
                     using (var subSocket = new SubscriberSocket())
                     {
-                        subSocket.Connect("tcp://127.0.0.1:12345");
+                        subSocket.Connect($"tcp://127.0.0.1:{port}");
                         subSocket.Subscribe("");
                         Thread.Sleep(100);
                         pubSync.Set();
