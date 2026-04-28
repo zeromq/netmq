@@ -643,21 +643,21 @@ namespace NetMQ.Tests
                 using (var dealer = new DealerSocket())
                 {
                     dealer.Options.Identity = Encoding.ASCII.GetBytes("dealer");
-                    dealer.Bind("tcp://localhost:6667");
+                    int port = dealer.BindRandomPort("tcp://localhost");
 
                     using (var router = new RouterSocket())
                     {
                         router.Options.RouterMandatory = true;
-                        router.Connect("tcp://localhost:6667");
+                        router.Connect($"tcp://localhost:{port}");
                         Thread.Sleep(100);
 
                         router.SendMoreFrame("dealer").SendFrame("Hello");
                         var message = dealer.ReceiveFrameString();
                         Assert.Equal("Hello", message);
 
-                        router.Disconnect("tcp://localhost:6667");
+                        router.Disconnect($"tcp://localhost:{port}");
                         Thread.Sleep(1000);
-                        router.Connect("tcp://localhost:6667");
+                        router.Connect($"tcp://localhost:{port}");
                         Thread.Sleep(100);
 
                         router.SendMoreFrame("dealer").SendFrame("Hello");
@@ -675,7 +675,7 @@ namespace NetMQ.Tests
                 using (var dealer = new DealerSocket())
                 {
                     dealer.Options.Identity = Encoding.ASCII.GetBytes("dealer");
-                    dealer.Bind("tcp://localhost:6667");
+                    dealer.BindRandomPort("tcp://localhost");
 
                     using (var router = new RouterSocket())
                     {
@@ -695,7 +695,7 @@ namespace NetMQ.Tests
             using (var dealer = new DealerSocket())
             {
                 dealer.Options.Identity = Encoding.ASCII.GetBytes("dealer");
-                dealer.Bind("tcp://localhost:6667");
+                dealer.BindRandomPort("tcp://localhost");
 
                 using (var router = new RouterSocket())
                 {

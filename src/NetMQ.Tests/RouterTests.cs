@@ -18,12 +18,12 @@ namespace NetMQ.Tests
             using (var router = new RouterSocket())
             {
                 router.Options.RouterMandatory = true;
-                router.Bind("tcp://127.0.0.1:5555");
+                int port = router.BindRandomPort("tcp://127.0.0.1");
 
                 using (var dealer = new DealerSocket())
                 {
                     dealer.Options.Identity = Encoding.ASCII.GetBytes("1");
-                    dealer.Connect("tcp://127.0.0.1:5555");
+                    dealer.Connect($"tcp://127.0.0.1:{port}");
 
                     dealer.SendFrame("Hello");
 

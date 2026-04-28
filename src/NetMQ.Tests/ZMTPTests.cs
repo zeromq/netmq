@@ -164,8 +164,16 @@ namespace NetMQ.Tests
             using (var ctx = new ZContext())
             using (var zmq = ZSocket.Create(ctx, ZSocketType.DEALER))
             {
-                zmq.Bind($"tcp://127.0.0.1:55367");
-                socket.Connect("tcp://127.0.0.1:55367");
+                // Find a free port dynamically to avoid AddressAlreadyInUseException
+                int port;
+                using (var temp = new Socket(AddressFamily.InterNetwork, SocketType.Stream, ProtocolType.Tcp))
+                {
+                    temp.Bind(new IPEndPoint(IPAddress.Loopback, 0));
+                    port = ((IPEndPoint)temp.LocalEndPoint).Port;
+                }
+
+                zmq.Bind($"tcp://127.0.0.1:{port}");
+                socket.Connect($"tcp://127.0.0.1:{port}");
 
                 zmq.SendBytes(Encoding.ASCII.GetBytes("Hello"), 0, 5);
                 var hello = socket.ReceiveFrameString();
