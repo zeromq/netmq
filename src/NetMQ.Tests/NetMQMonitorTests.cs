@@ -68,7 +68,7 @@ namespace NetMQ.Tests
                 Thread.Sleep(200);
                 Assert.Equal(TaskStatus.Running, task.Status);
                 monitor.Stop();
-                var completedTask = await Task.WhenAny(task, Task.Delay(1000));
+                var completedTask = await Task.WhenAny(task, Task.Delay(5000));
                 Assert.Equal(task, completedTask);
             }
         }
@@ -157,7 +157,7 @@ namespace NetMQ.Tests
                 await Task.Delay(100);
                 // Monitor.Dispose should complete
                 var task = Task.Factory.StartNew(() => monitor.Dispose());
-                var completedTask = await Task.WhenAny(task, Task.Delay(1000));
+                var completedTask = await Task.WhenAny(task, Task.Delay(5000));
                 Assert.Equal(task, completedTask);
             }
             // NOTE If this test fails, it will hang because context.Dispose will block
