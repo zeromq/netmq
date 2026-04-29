@@ -83,6 +83,7 @@ jobs:
         name: windows-blame-hang
         path: TestResults/
     - name: coverage
+      timeout-minutes: 10
       run: |
-        OpenCover.Console.exe -register:user -target:"C:\Program Files\dotnet\dotnet.exe" -targetargs:"test --no-build --configuration Release -f net10.0 --logger:trx;LogFileName=results.trx /p:DebugType=full src\NetMQ.Tests\NetMQ.Tests.csproj" -filter:"+[NetMQ*]* -[NetMQ.Tests*]*" -output:".\NetMQ_coverage.xml" -oldStyle
+        OpenCover.Console.exe -register:user -target:"C:\Program Files\dotnet\dotnet.exe" -targetargs:"test --no-build --configuration Release -f net10.0 --logger:trx;LogFileName=results.trx /p:DebugType=full --blame-hang --blame-hang-timeout 90s --blame-hang-dump-type none src\NetMQ.Tests\NetMQ.Tests.csproj" -filter:"+[NetMQ*]* -[NetMQ.Tests*]*" -output:".\NetMQ_coverage.xml" -oldStyle
         codecov -f "NetMQ_coverage.xml"
