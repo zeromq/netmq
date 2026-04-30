@@ -1360,14 +1360,22 @@ namespace NetMQ.Core
             // will be initiated.
             UnregisterEndpoints(this);
 
+            // Take a snapshot of the pipe list before iterating. For thread-safe sockets a
+            // user thread may process commands (including ProcessBind) via TrySend/TryRecv
+            // concurrently with this reaper-thread call, which can add entries to m_pipes
+            // and cause an ArgumentOutOfRangeException when iterating the live list.
+            var pipes = m_pipes.ToArray();
+
             // Ask all attached pipes to terminate.
-            foreach (var pipe in m_pipes)
+            foreach (var pipe in pipes)
             {
                 pipe.SendDisconnectMessage();
                 pipe.Terminate(false);
             }
 
-            RegisterTermAcks(m_pipes.Count);
+            // Register term-acks only for the pipes we actually asked to terminate so that
+            // the count stays consistent even if m_pipes was concurrently modified.
+            RegisterTermAcks(pipes.Length);
 
             // Continue the termination process immediately.
             base.ProcessTerm(linger);
