@@ -342,6 +342,41 @@ namespace NetMQ.Tests
             }
         }
 
+        /// <summary>
+        /// Verifies that calling Send between receiving a subscription and calling Subscribe
+        /// does not clear m_lastPipe, so Subscribe still applies to the correct pipe.
+        /// This was a race condition bug where XSend unconditionally set m_lastPipe = null.
+        /// </summary>
+        [Fact]
+        public void ManualSubscribeAfterSend()
+        {
+            using (var pub = new XPublisherSocket())
+            using (var sub = new XSubscriberSocket())
+            {
+                pub.Bind("inproc://manual-subscribe-after-send");
+                pub.Options.ManualPublisher = true;
+
+                sub.Connect("inproc://manual-subscribe-after-send");
+
+                sub.SendFrame(new byte[] { 1, (byte)'A' });
+                var subscription = pub.ReceiveFrameBytes();
+
+                Assert.Equal((byte)'A', subscription[1]);
+
+                // Send a message BEFORE calling Subscribe.
+                // Previously this cleared m_lastPipe, causing Subscribe to fail silently.
+                pub.SendFrame("A");
+
+                // Subscribe must still work and apply to the correct pipe.
+                pub.Subscribe(subscription.Skip(1).ToArray());
+
+                // The subscriber should now receive messages on topic "A".
+                pub.SendFrame("A");
+
+                Assert.Equal("A", sub.ReceiveFrameString());
+            }
+        }
+
         [Fact]
         public void WelcomeMessage()
         {

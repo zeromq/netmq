@@ -352,9 +352,16 @@ namespace NetMQ.Core.Patterns
                 m_distribution.Unmatch();
                 if (m_broadcastEnabled)
                 {
+                    // Only clear m_lastPipe when it was set for broadcast purposes.
+                    // Clearing it unconditionally would break manual-mode subscriptions
+                    // when a send occurs between XRecv (which sets m_lastPipe to the
+                    // subscribing pipe) and Subscribe/Unsubscribe (which read m_lastPipe).
+                    if (m_lastPipeIsBroadcast)
+                    {
+                        m_lastPipe = null;
+                    }
                     m_lastPipeIsBroadcast = false;
                 }
-                m_lastPipe = null;
             }
 
             m_moreOut = msgMore;
