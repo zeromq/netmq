@@ -273,13 +273,18 @@ namespace NetMQ.Tests
                 sub.SendFrame("Message from subscriber");
                 sub2.SendFrame("Message from subscriber 2");
 
-                Assert.Equal("Message from subscriber", pub.ReceiveFrameString());
-                Assert.Equal("Message from subscriber", pub2.ReceiveFrameString());
+                // Each publisher receives one message from each subscriber, but TCP delivery
+                // order between two independent connections is non-deterministic.  Collect
+                // both messages first, then assert the unordered set.
+                var pubMessages = new[] { pub.ReceiveFrameString(), pub.ReceiveFrameString() };
+                Assert.Contains("Message from subscriber", pubMessages);
+                Assert.Contains("Message from subscriber 2", pubMessages);
 
                 // Does not hang even though is the same as above, but the first byte is not 1 or 0.
                 // Won't hang even when messages are equal
-                Assert.Equal("Message from subscriber 2", pub.ReceiveFrameString());
-                Assert.Equal("Message from subscriber 2", pub2.ReceiveFrameString());
+                var pub2Messages = new[] { pub2.ReceiveFrameString(), pub2.ReceiveFrameString() };
+                Assert.Contains("Message from subscriber", pub2Messages);
+                Assert.Contains("Message from subscriber 2", pub2Messages);
             }
         }
 

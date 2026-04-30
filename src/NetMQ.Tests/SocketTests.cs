@@ -95,7 +95,10 @@ namespace NetMQ.Tests
         public async Task ReceiveMessageWithTimeout()
         {
             {
-                var pubSync = new AutoResetEvent(false);
+                // Use two separate events so that the publisher's "port ready" signal
+                // cannot be accidentally consumed by the publisher's own WaitOne call.
+                var pubReady = new AutoResetEvent(false);
+                var subReady = new AutoResetEvent(false);
                 var payload = new byte[300];
                 const int waitTime = 1500;
                 int port = 0;
@@ -105,24 +108,24 @@ namespace NetMQ.Tests
                     using (var pubSocket = new PublisherSocket())
                     {
                         port = pubSocket.BindRandomPort("tcp://127.0.0.1");
-                        pubSync.Set(); // signal port is ready
-                        pubSync.WaitOne(TimeSpan.FromSeconds(10));
+                        pubReady.Set(); // signal port is ready
+                        subReady.WaitOne(TimeSpan.FromSeconds(10));
                         Thread.Sleep(waitTime);
                         pubSocket.SendFrame(payload);
-                        pubSync.WaitOne(TimeSpan.FromSeconds(10));
+                        subReady.WaitOne(TimeSpan.FromSeconds(10));
                     }
                 }, TaskCreationOptions.LongRunning);
 
                 var t2 = new Task(() =>
                 {
-                    pubSync.WaitOne(TimeSpan.FromSeconds(10)); // wait for bind
+                    pubReady.WaitOne(TimeSpan.FromSeconds(10)); // wait for bind
 
                     using (var subSocket = new SubscriberSocket())
                     {
                         subSocket.Connect($"tcp://127.0.0.1:{port}");
                         subSocket.Subscribe("");
                         Thread.Sleep(500);
-                        pubSync.Set();
+                        subReady.Set();
 
                         NetMQMessage? msg = null;
                         Assert.False(subSocket.TryReceiveMultipartMessage(TimeSpan.FromMilliseconds(100), ref msg));
@@ -131,7 +134,7 @@ namespace NetMQ.Tests
                         Assert.NotNull(msg);
                         Assert.Equal(1, msg!.FrameCount);
                         Assert.Equal(300, msg.First.MessageSize);
-                        pubSync.Set();
+                        subReady.Set();
                     }
                 }, TaskCreationOptions.LongRunning);
 
