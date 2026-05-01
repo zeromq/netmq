@@ -316,6 +316,11 @@ namespace NetMQ.Core.Utils
                         }
                         catch (SocketException)
                         {
+                            // A SocketException can be thrown by Signaler.Send() when the loopback
+                            // TCP socket pair used for inter-thread signaling fails (e.g. when all
+                            // network traffic is blocked by a firewall or network simulation tool).
+                            // Swallow the exception so the Poller loop continues rather than
+                            // crashing the thread.
                         }
                     }
                 }
