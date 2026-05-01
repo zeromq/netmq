@@ -87,6 +87,8 @@ namespace NetMQ.Tests
             blockedClient.Options.CurveCertificate = blockedClientPair;
             blockedClient.Connect($"tcp://127.0.0.1:{port}");
 
+            // The send may or may not succeed at the transport level (the handshake failure
+            // happens asynchronously), but the server must never deliver the message.
             blockedClient.TrySendFrame(TimeSpan.FromMilliseconds(100), "ShouldBeBlocked");
 
             // Server should not receive anything from the blocked client

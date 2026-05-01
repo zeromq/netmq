@@ -253,8 +253,7 @@ namespace NetMQ.Core.Mechanisms
             Span<byte> vouchNonce = stackalloc byte[Curve25519XSalsa20Poly1305.NonceLength];
             Span<byte> vouchPlaintext = stackalloc byte[64];
             Span<byte> vouchBox = new Span<byte>(initiatePlaintext, 48, 80);
-            var clientKey = new byte[32];
-            Buffer.BlockCopy(initiatePlaintext, 0, clientKey, 0, 32);
+            var clientKey = new Span<byte>(initiatePlaintext, 0, 32);
 
             VouchNoncePrefix.CopyTo(vouchNonce);
             new Span<byte>(initiatePlaintext, 32, 16).CopyTo(vouchNonce.Slice(8));
@@ -268,8 +267,9 @@ namespace NetMQ.Core.Mechanisms
             if (!SpanUtility.Equals(vouchPlaintext.Slice(0, 32), m_cnClientKey))
                 return PushMsgResult.Error;
 
-            //  Verify client long-term public key is in the allowed clients list (if configured)
-            if (Options.CurveAllowedClients.Count > 0 && !Options.CurveAllowedClients.Contains(clientKey))
+            //  Verify client long-term public key is in the allowed clients list (if configured).
+            //  The byte[] is only allocated when the whitelist is non-empty.
+            if (Options.CurveAllowedClients.Count > 0 && !Options.CurveAllowedClients.Contains(clientKey.ToArray()))
                 return PushMsgResult.Error;
 
             //  Create the session box
