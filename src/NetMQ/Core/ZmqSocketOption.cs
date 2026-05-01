@@ -360,6 +360,12 @@
         PgmMaxTransportServiceDataUnitLength = 1001,
 
         Correlate = 58, // in zmq it's 52 and 53, but I guess it does not matter so long as it is unique.
-        Relaxed = 59
+        Relaxed = 59,
+        
+        /// <summary>
+        /// The set of allowed client public keys for a CURVE server socket.
+        /// When non-empty, only clients whose long-term public key is present in this set will be allowed to connect.
+        /// </summary>
+        CurveAllowedClients = 61
     }
 }

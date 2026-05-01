@@ -21,7 +21,9 @@
 */
 
 using System;
+using System.Collections.Generic;
 using System.Text;
+using NetMQ.Core.Utils;
 
 namespace NetMQ.Core
 {
@@ -303,6 +305,12 @@ namespace NetMQ.Core
         public byte[] CurveServerKey { get; set; }
         
         /// <summary>
+        /// The set of allowed client long-term public keys for a CURVE server socket.
+        /// When non-empty, only clients whose long-term public key is present in this set will be allowed to connect.
+        /// </summary>
+        public HashSet<byte[]> CurveAllowedClients { get; } = new HashSet<byte[]>(new ByteArrayEqualityComparer());
+        
+        /// <summary>
         /// If remote peer receives a PING message and doesn't receive another
         /// message within the ttl value, it should close the connection
         /// (measured in tenths of a second)
@@ -529,6 +537,17 @@ namespace NetMQ.Core
                     break;
                 }
 
+                case ZmqSocketOption.CurveAllowedClients:
+                {
+                    var key = Get<byte[]>();
+                    if (key.Length != 32)
+                        throw new InvalidException("Curve key size must be 32 bytes");
+                    var keyCopy = new byte[32];
+                    Buffer.BlockCopy(key, 0, keyCopy, 0, 32);
+                    CurveAllowedClients.Add(keyCopy);
+                    break;
+                }
+
                 case ZmqSocketOption.HelloMessage:
                 {
                     if (optionValue == null)
@@ -699,6 +718,9 @@ namespace NetMQ.Core
                 
                 case ZmqSocketOption.CurveServerKey:
                     return CurveServerKey;
+                
+                case ZmqSocketOption.CurveAllowedClients:
+                    return CurveAllowedClients;
                 
                 default:
                     throw new InvalidException("GetSocketOption called with invalid ZmqSocketOption of " + option);
