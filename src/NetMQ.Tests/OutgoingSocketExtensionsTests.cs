@@ -345,5 +345,110 @@ namespace NetMQ.Tests
 
 	        Assert.True(socket.TrySendFrame(TimeSpan.Zero, buffer, data.Length));
         }
+
+        /// <summary>
+        /// Test that TrySendMultipartMessage applies timeout to ALL frames, not just the first.
+        /// This validates the fix for issue #1127 where low bandwidth caused infinite blocking
+        /// because only the first frame respected the timeout parameter.
+        /// </summary>
+        [Fact]
+        public void TrySendMultipartMessage_AppliesTimeoutToAllFrames()
+        {
+            var timeout = TimeSpan.FromMilliseconds(500);
+            var frameCount = 0;
+
+            var socket = new MockOutgoingSocket((ref Msg msg, TimeSpan actualTimeout, bool more) =>
+            {
+                // CRITICAL: ALL frames must respect the timeout parameter
+                Assert.Equal(timeout, actualTimeout);
+                
+                frameCount++;
+                
+                // Verify 'more' flag is correct for each frame
+                if (frameCount < 3)
+                    Assert.True(more, $"Frame {frameCount} should have 'more' flag set");
+                else
+                    Assert.False(more, "Last frame should not have 'more' flag");
+                
+                return true;
+            });
+
+            var message = new NetMQMessage();
+            message.Append(new byte[] { 1 });  // Frame 1: Identity
+            message.Append(new byte[] { });    // Frame 2: Empty frame
+            message.Append(new byte[] { 2 });  // Frame 3: Payload
+
+            bool result = socket.TrySendMultipartMessage(timeout, message);
+            
+            Assert.True(result, "Send should succeed when all frames are sent");
+            Assert.Equal(3, frameCount);
+        }
+
+        /// <summary>
+        /// Test that TrySendMultipartMessage fails gracefully when a middle frame times out.
+        /// This validates that the timeout is respected on ALL frames, preventing infinite blocking.
+        /// </summary>
+        [Fact]
+        public void TrySendMultipartMessage_FailsGracefullyOnMiddleFrameTimeout()
+        {
+            var timeout = TimeSpan.FromMilliseconds(500);
+            var frameCount = 0;
+
+            var socket = new MockOutgoingSocket((ref Msg msg, TimeSpan actualTimeout, bool more) =>
+            {
+                // Verify timeout is applied to all frames
+                Assert.Equal(timeout, actualTimeout);
+                
+                frameCount++;
+                
+                // Simulate timeout on the second frame
+                if (frameCount == 2)
+                    return false;  // Timeout!
+                
+                return true;
+            });
+
+            var message = new NetMQMessage();
+            message.Append(new byte[] { 1 });
+            message.Append(new byte[] { });
+            message.Append(new byte[] { 2 });
+
+            bool result = socket.TrySendMultipartMessage(timeout, message);
+            
+            Assert.False(result, "Send should fail when a middle frame times out");
+            Assert.Equal(2, frameCount);  // Should stop after the failed frame
+        }
+
+        /// <summary>
+        /// Test that TrySendMultipartMessage fails gracefully when the last frame times out.
+        /// </summary>
+        [Fact]
+        public void TrySendMultipartMessage_FailsGracefullyOnLastFrameTimeout()
+        {
+            var timeout = TimeSpan.FromMilliseconds(500);
+            var frameCount = 0;
+
+            var socket = new MockOutgoingSocket((ref Msg msg, TimeSpan actualTimeout, bool more) =>
+            {
+                Assert.Equal(timeout, actualTimeout);
+                frameCount++;
+                
+                // Simulate timeout on the last frame
+                if (frameCount == 3)
+                    return false;
+                
+                return true;
+            });
+
+            var message = new NetMQMessage();
+            message.Append(new byte[] { 1 });
+            message.Append(new byte[] { });
+            message.Append(new byte[] { 2 });
+
+            bool result = socket.TrySendMultipartMessage(timeout, message);
+            
+            Assert.False(result, "Send should fail when the last frame times out");
+            Assert.Equal(3, frameCount);
+        }
     }
 }
