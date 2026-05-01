@@ -314,6 +314,9 @@ namespace NetMQ.Core.Utils
                         catch (TerminatingException)
                         {
                         }
+                        catch (SocketException)
+                        {
+                        }
                     }
                 }
 

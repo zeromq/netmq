@@ -1,5 +1,6 @@
 ﻿using System;
 using System.Collections.Generic;
+using System.Net.Sockets;
 using System.Threading;
 using AsyncIO;
 
@@ -138,6 +139,8 @@ namespace NetMQ.Core.Utils
                         }
                     }
                     catch (TerminatingException)
+                    { }
+                    catch (SocketException)
                     { }
                 }
             }
