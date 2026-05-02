@@ -481,6 +481,12 @@ namespace NetMQ.Core
         }
 
         /// <summary>
+        /// Gets the set of allowed client long-term public keys for a CURVE server socket.
+        /// When non-empty, only clients whose long-term public key is present in this set will be allowed to connect.
+        /// </summary>
+        internal System.Collections.Generic.HashSet<byte[]> CurveAllowedClients => m_options.CurveAllowedClients;
+
+        /// <summary>
         /// Join the dish socket to a group
         /// </summary>
         /// <param name="group">The group to join</param>

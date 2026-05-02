@@ -537,17 +537,6 @@ namespace NetMQ.Core
                     break;
                 }
 
-                case ZmqSocketOption.CurveAllowedClients:
-                {
-                    var key = Get<byte[]>();
-                    if (key.Length != 32)
-                        throw new InvalidException("Curve key size must be 32 bytes");
-                    var keyCopy = new byte[32];
-                    Buffer.BlockCopy(key, 0, keyCopy, 0, 32);
-                    CurveAllowedClients.Add(keyCopy);
-                    break;
-                }
-
                 case ZmqSocketOption.HelloMessage:
                 {
                     if (optionValue == null)
@@ -718,9 +707,6 @@ namespace NetMQ.Core
                 
                 case ZmqSocketOption.CurveServerKey:
                     return CurveServerKey;
-                
-                case ZmqSocketOption.CurveAllowedClients:
-                    return CurveAllowedClients;
                 
                 default:
                     throw new InvalidException("GetSocketOption called with invalid ZmqSocketOption of " + option);

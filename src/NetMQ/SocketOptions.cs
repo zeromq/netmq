@@ -486,7 +486,7 @@ namespace NetMQ
         /// </code>
         /// </summary>
         public HashSet<byte[]> CurveAllowedClients =>
-            m_socket.GetSocketOptionX<HashSet<byte[]>>(ZmqSocketOption.CurveAllowedClients)!;
+            m_socket.SocketHandle.CurveAllowedClients;
         
         /// <summary>
         /// If remote peer receives a PING message and doesn't receive another
