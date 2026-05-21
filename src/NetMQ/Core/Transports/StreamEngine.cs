@@ -1189,6 +1189,7 @@ namespace NetMQ.Core.Transports
             return result;
         }
         
+#nullable enable
         void MechanismReady ()
         {
             if (m_options.HeartbeatInterval > 0)
@@ -1199,8 +1200,8 @@ namespace NetMQ.Core.Transports
             
             if (m_options.RecvIdentity) {
                 Msg identity = new Msg();
-                byte[] peerIdentity = m_mechanism.PeerIdentity;
-                if (peerIdentity == null)
+                byte[]? peerIdentity = m_mechanism.PeerIdentity;
+                if (peerIdentity is null)
                     identity.InitEmpty();
                 else
                 {
@@ -1221,6 +1222,7 @@ namespace NetMQ.Core.Transports
             m_nextMsg = PullAndEncode;
             m_processMsg = DecodeAndPush;
         }
+#nullable disable
         
         PullMsgResult PullAndEncode (ref Msg msg)
         {
