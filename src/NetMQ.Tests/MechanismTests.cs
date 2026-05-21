@@ -1,5 +1,9 @@
-﻿using System.Text;
+﻿using System.Reflection;
+using System.Runtime.Serialization;
+using System.Text;
+using NetMQ.Core;
 using NetMQ.Core.Mechanisms;
+using NetMQ.Core.Transports;
 using Xunit;
 
 namespace NetMQ.Tests
@@ -41,6 +45,51 @@ namespace NetMQ.Tests
             // this test case would fail due to an exception being throw (in 4.0.1.10 and prior)
             msg = CreateMsg("READY", 2);
             Assert.False(mechanism.IsCommand("READY", ref msg));
+        }
+
+        [Fact]
+        public void MechanismReadyShouldHandleNullPeerIdentityWhenRecvIdentityIsEnabled()
+        {
+#pragma warning disable SYSLIB0050
+            var streamEngine = (StreamEngine)FormatterServices.GetUninitializedObject(typeof(StreamEngine));
+#pragma warning restore SYSLIB0050
+            var options = new Options { RecvIdentity = true, HeartbeatInterval = 0 };
+            var session = new RecordingSession();
+            var mechanism = new NullMechanism(session, options) { PeerIdentity = null };
+
+            SetPrivateField(streamEngine, "m_options", options);
+            SetPrivateField(streamEngine, "m_session", session);
+            SetPrivateField(streamEngine, "m_mechanism", mechanism);
+
+            var method = typeof(StreamEngine).GetMethod("MechanismReady", BindingFlags.Instance | BindingFlags.NonPublic);
+            Assert.NotNull(method);
+
+            var exception = Record.Exception(() => method!.Invoke(streamEngine, null));
+            Assert.Null(exception);
+            Assert.Equal(0, session.LastPushedMessageSize);
+        }
+
+        private static void SetPrivateField(object instance, string fieldName, object value)
+        {
+            var field = instance.GetType().GetField(fieldName, BindingFlags.Instance | BindingFlags.NonPublic);
+            Assert.NotNull(field);
+            field!.SetValue(instance, value);
+        }
+
+        private sealed class RecordingSession : SessionBase
+        {
+            public int LastPushedMessageSize { get; private set; } = -1;
+
+            public RecordingSession()
+                : base(new IOThread(new Ctx(), 0), false, null!, new Options(), null!)
+            {
+            }
+
+            public override PushMsgResult PushMsg(ref Msg msg)
+            {
+                LastPushedMessageSize = msg.Size;
+                return PushMsgResult.Ok;
+            }
         }
 
         // this test was used to validate the behavior prior to changing the validation logic in Mechanism.IsCommand

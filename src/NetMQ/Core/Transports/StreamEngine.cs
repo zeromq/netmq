@@ -1199,8 +1199,14 @@ namespace NetMQ.Core.Transports
             
             if (m_options.RecvIdentity) {
                 Msg identity = new Msg();
-                identity.InitPool(m_mechanism.PeerIdentity.Length);
-                identity.Put(m_mechanism.PeerIdentity, 0, m_mechanism.PeerIdentity.Length);
+                byte[] peerIdentity = m_mechanism.PeerIdentity;
+                if (peerIdentity == null)
+                    identity.InitEmpty();
+                else
+                {
+                    identity.InitPool(peerIdentity.Length);
+                    identity.Put(peerIdentity, 0, peerIdentity.Length);
+                }
                 var pushResult = m_session.PushMsg(ref identity);
                 if (pushResult == PushMsgResult.Full) {
                     // If the write is failing at this stage with
