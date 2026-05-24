@@ -19,8 +19,6 @@
     along with this program.  If not, see <http://www.gnu.org/licenses/>.
 */
 
-#nullable disable
-
 using System;
 using System.Collections.Generic;
 using System.Diagnostics;
@@ -105,7 +103,7 @@ namespace NetMQ.Core
         /// <summary>
         /// The reaper thread.
         /// </summary>
-        private Reaper m_reaper;
+        private Reaper? m_reaper;
 
         /// <summary>
         /// List of I/O threads.
@@ -120,7 +118,7 @@ namespace NetMQ.Core
         /// <summary>
         /// Array of pointers to mailboxes for both application and I/O threads.
         /// </summary>
-        private IMailbox[] m_slots;
+        private IMailbox?[]? m_slots;
 
         /// <summary>
         /// Mailbox for zmq_term thread.
@@ -198,9 +196,9 @@ namespace NetMQ.Core
                             socket.Stop();
 
                         if (!block)
-                            m_reaper.ForceStop();
+                            m_reaper!.ForceStop();
                         else if (m_sockets.Count == 0)
-                            m_reaper.Stop();
+                            m_reaper!.Stop();
                     }
                     finally
                     {
@@ -338,7 +336,7 @@ namespace NetMQ.Core
                 SocketBase s = SocketBase.Create(type, this, slot, socketId);
 
                 m_sockets.Add(s);
-                m_slots[slot] = s.Mailbox;
+                m_slots![slot] = s.Mailbox;
 
                 //LOG.debug("NEW Slot [" + slot + "] " + s);
 
@@ -361,7 +359,7 @@ namespace NetMQ.Core
             {
                 int threadId = socket.ThreadId;
                 m_emptySlots.Push(threadId);
-                m_slots[threadId].Close();
+                m_slots![threadId]!.Close();
                 m_slots[threadId] = null;
 
                 // Remove the socket from the list of sockets.
@@ -370,7 +368,7 @@ namespace NetMQ.Core
                 // If zmq_term() was already called and there are no more socket
                 // we can ask reaper thread to terminate.
                 if (m_terminating && m_sockets.Count == 0)
-                    m_reaper.Stop();
+                    m_reaper!.Stop();
             }
 
             //LOG.debug("Released Slot [" + socket_ + "] ");
@@ -381,7 +379,7 @@ namespace NetMQ.Core
         /// </summary>
         public ZObject GetReaper()
         {
-            return m_reaper;
+            return m_reaper!;
         }
 
         /// <summary>
@@ -389,7 +387,7 @@ namespace NetMQ.Core
         /// </summary>
         public void SendCommand(int threadId, Command command)
         {
-            m_slots[threadId].Send(command);
+            m_slots![threadId]!.Send(command);
         }
 
         /// <summary>
@@ -397,14 +395,14 @@ namespace NetMQ.Core
         /// </summary>
         /// <paramref name="affinity">Which threads are eligible (0 = all).</paramref>
         /// <returns>The least busy thread, or <c>null</c> if none is available.</returns>
-        public IOThread ChooseIOThread(long affinity)
+        public IOThread? ChooseIOThread(long affinity)
         {
             if (m_ioThreads.Count == 0)
                 return null;
 
             // Find the I/O thread with minimum load.
             int minLoad = -1;
-            IOThread selectedIOThread = null;
+            IOThread? selectedIOThread = null;
 
             for (int i = 0; i != m_ioThreads.Count; i++)
             {
@@ -452,7 +450,7 @@ namespace NetMQ.Core
             lock (m_endpointsSync)
             {
 
-                if (!m_endpoints.TryGetValue(address, out Endpoint endpoint))
+                if (!m_endpoints.TryGetValue(address, out Endpoint? endpoint))
                     return false;
 
                 if (socket != endpoint.Socket)
@@ -490,8 +488,6 @@ namespace NetMQ.Core
         /// </remarks>
         public Endpoint FindEndpoint(string addr)
         {
-            Debug.Assert(addr != null);
-
             lock (m_endpointsSync)
             {
                 if (!m_endpoints.ContainsKey(addr))
