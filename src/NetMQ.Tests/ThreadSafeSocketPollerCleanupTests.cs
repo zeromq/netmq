@@ -25,12 +25,18 @@ namespace NetMQ.Tests
 
         /// <summary>
         /// Repeatedly creates a <see cref="ServerSocket"/>, connects several
-        /// <see cref="ClientSocket"/>s to it, sends messages concurrently from multiple
-        /// threads (to keep the user thread processing commands), then disposes the server
-        /// while new clients are still connecting.
+        /// <see cref="ClientSocket"/>s to it, reads from it with a small positive timeout
+        /// (so the reader thread holds <c>m_threadSafeSync</c> while blocked in
+        /// <c>ProcessCommands</c>), then disposes the server while new clients are still
+        /// connecting.
         ///
-        /// Without the fix this reliably throws ArgumentOutOfRangeException inside
-        /// SocketBase.ProcessTerm when run enough iterations.
+        /// Without the fix this reliably throws <see cref="ArgumentOutOfRangeException"/>
+        /// inside <c>SocketBase.ProcessTerm</c> when run enough iterations.
+        ///
+        /// The reader task also catches <see cref="TerminatingException"/> because
+        /// <c>ProcessCommands</c> calls <c>CheckContextTerminated()</c> after draining the
+        /// mailbox, and that check can fire once the reaper has set <c>m_isStopped</c> on
+        /// the socket — a normal part of socket shutdown that the reader must tolerate.
         /// </summary>
         [Fact]
         public async Task ClosingServerWhileClientsConnectDoesNotCrash()
@@ -62,6 +68,7 @@ namespace NetMQ.Tests
                     }
                     catch (ObjectDisposedException) { }
                     catch (OperationCanceledException) { }
+                    catch (TerminatingException) { }
                 });
 
                 // Connect several clients.  Each successful TCP handshake will enqueue a
