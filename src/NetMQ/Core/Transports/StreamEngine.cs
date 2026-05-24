@@ -19,8 +19,6 @@
     along with this program.  If not, see <http://www.gnu.org/licenses/>.
 */
 
-#nullable disable
-
 using System;
 using System.Collections.Generic;
 using System.Diagnostics;
@@ -131,17 +129,16 @@ namespace NetMQ.Core.Transports
         // Position of the version field in the greeting.
         private const int VersionPos = 10;
 
-        //private IOObject io_object;
-        private AsyncSocket m_handle;
+        private AsyncSocket? m_handle;
 
-        private ByteArraySegment m_inpos;
+        private ByteArraySegment? m_inpos;
         private int m_insize;
-        private DecoderBase m_decoder;
+        private DecoderBase? m_decoder;
         private bool m_subscriptionRequired;
 
-        private ByteArraySegment m_outpos;
+        private ByteArraySegment? m_outpos;
         private int m_outsize;
-        private EncoderBase m_encoder;
+        private EncoderBase? m_encoder;
 
         // The receive buffer holding the greeting message
         // that we are receiving from the peer.
@@ -157,7 +154,7 @@ namespace NetMQ.Core.Transports
         private readonly ByteArraySegment m_greetingOutputBuffer = new byte[64];
 
         // The session this engine is attached to.
-        private SessionBase m_session;
+        private SessionBase? m_session;
 
         // Detached transient session.
         //private SessionBase leftover_session;
@@ -170,9 +167,9 @@ namespace NetMQ.Core.Transports
         private bool m_plugged;
 
         // Socket
-        private SocketBase m_socket;
+        private SocketBase? m_socket;
 
-        private IOObject m_ioObject;
+        private IOObject? m_ioObject;
 
         private SendState m_sendingState;
         private ReceiveState m_receivingState;
@@ -183,7 +180,7 @@ namespace NetMQ.Core.Transports
         private NextMsgDelegate m_nextMsg;
         private ProcessMsgDelegate m_processMsg;
         
-        private Mechanism m_mechanism;
+        private Mechanism? m_mechanism;
         private Msg m_pongMsg;
         
         // queue for actions that happen during the state machine
@@ -201,14 +198,9 @@ namespace NetMQ.Core.Transports
             m_sendingState = SendState.Idle;
             m_receivingState = ReceiveState.Idle;
             m_outsize = 0;
-            m_session = null;
             m_options = options;
             m_plugged = false;
             m_endpoint = endpoint;
-            m_socket = null;
-            m_encoder = null;
-            m_decoder = null;
-            m_mechanism = null;
             m_actionsQueue = new Queue<StateMachineAction>();
             m_subscriptionRequired = false;
             
@@ -229,11 +221,11 @@ namespace NetMQ.Core.Transports
             // Set the socket buffer limits for the underlying socket.
             if (m_options.SendBuffer != 0)
             {
-                m_handle.SendBufferSize = m_options.SendBuffer;
+                m_handle!.SendBufferSize = m_options.SendBuffer;
             }
             if (m_options.ReceiveBuffer != 0)
             {
-                m_handle.ReceiveBufferSize = m_options.ReceiveBuffer;
+                m_handle!.ReceiveBufferSize = m_options.ReceiveBuffer;
             }
         }
 
@@ -265,14 +257,14 @@ namespace NetMQ.Core.Transports
             Debug.Assert(m_session == null);
             Debug.Assert(session != null);
             m_session = session;
-            m_socket = m_session.Socket;
+            m_socket = m_session!.Socket;
 
             m_ioObject = new IOObject(null);
-            m_ioObject.SetHandler(this);
+            m_ioObject!.SetHandler(this);
 
             // Connect to I/O threads poller object.
-            m_ioObject.Plug(ioThread);
-            m_ioObject.AddSocket(m_handle);
+            m_ioObject!.Plug(ioThread);
+            m_ioObject!.AddSocket(m_handle!);
 
             FeedAction(Action.Start, SocketError.Success, 0);
         }
@@ -289,25 +281,25 @@ namespace NetMQ.Core.Transports
             m_plugged = false;
             
             if (m_hasTtlTimer) {
-                m_ioObject.CancelTimer(HeartbeatTtlTimerId);
+                m_ioObject!.CancelTimer(HeartbeatTtlTimerId);
                 m_hasTtlTimer = false;
             }
 
             if (m_hasTimeoutTimer) {
-                m_ioObject.CancelTimer(HeartbeatTimeoutTimerId);
+                m_ioObject!.CancelTimer(HeartbeatTimeoutTimerId);
                 m_hasTimeoutTimer = false;
             }
 
             if (m_hasHeartbeatTimer) {
-                m_ioObject.CancelTimer(HeartbeatIntervalTimerId);
+                m_ioObject!.CancelTimer(HeartbeatIntervalTimerId);
                 m_hasHeartbeatTimer = false;
             }
 
             // remove handle from proactor.
-            m_ioObject.RemoveSocket(m_handle);
+            m_ioObject!.RemoveSocket(m_handle!);
             
             // Disconnect from I/O threads poller object.
-            m_ioObject.Unplug();
+            m_ioObject!.Unplug();
 
             m_state = State.Closed;
 
@@ -319,9 +311,9 @@ namespace NetMQ.Core.Transports
         {
             Debug.Assert(m_session != null);
             m_state = State.Error;
-            m_socket.EventDisconnected(m_endpoint, m_handle);
-            m_session.Flush();
-            m_session.Detach(m_state != State.Handshaking && (m_mechanism is null || m_mechanism.Status != MechanismStatus.Handshaking) );
+            m_socket!.EventDisconnected(m_endpoint, m_handle!);
+            m_session!.Flush();
+            m_session!.Detach(m_state != State.Handshaking && (m_mechanism is null || m_mechanism!.Status != MechanismStatus.Handshaking) );
             Unplug();
             Destroy();
         }
@@ -356,8 +348,8 @@ namespace NetMQ.Core.Transports
                             {
                                 m_encoder = new RawEncoder(Config.OutBatchSize, m_options.Endian);
                                 m_decoder = new RawDecoder(Config.InBatchSize, m_options.MaxMessageSize, m_options.Endian);
-                                m_nextMsg = m_session.PullMsg;
-                                m_processMsg = m_session.PushMsg;
+                                m_nextMsg = m_session!.PullMsg;
+                                m_processMsg = m_session!.PushMsg;
                                     
                                 Activate();
                             }
@@ -387,11 +379,11 @@ namespace NetMQ.Core.Transports
                             // if we stuck let's continue, other than that nothing to do
                             if (m_receivingState == ReceiveState.Stuck)
                             {
-                                var pushResult = m_decoder.PushMsg(m_processMsg);
+                                var pushResult = m_decoder!.PushMsg(m_processMsg);
                                 if (pushResult == PushMsgResult.Ok)
                                 {
                                     m_receivingState = ReceiveState.Active;
-                                    m_session.Flush();
+                                    m_session!.Flush();
                                     ProcessInput();    
                                 }
                             }
@@ -408,7 +400,7 @@ namespace NetMQ.Core.Transports
                             }
                             else
                             {
-                                m_outpos.AdvanceOffset(bytesSent);
+                                m_outpos!.AdvanceOffset(bytesSent);
                                 m_outsize -= bytesSent;
 
                                 BeginSending();
@@ -435,18 +427,18 @@ namespace NetMQ.Core.Transports
             if (m_outsize == 0)
             {
                 m_outpos = null;
-                m_outsize = m_encoder.Encode(ref m_outpos, 0);
+                m_outsize = m_encoder!.Encode(ref m_outpos, 0);
                 
                 while (m_outsize < Config.OutBatchSize)
                 {
                     Msg msg = new Msg();
                     if (m_nextMsg(ref msg) != PullMsgResult.Ok)
                         break;
-                    m_encoder.LoadMsg(ref msg);
-                    ByteArraySegment buffer = null;
+                    m_encoder!.LoadMsg(ref msg);
+                    ByteArraySegment? buffer = null;
                     if (m_outpos != null)
                         buffer = m_outpos + m_outsize;
-                    var n = m_encoder.Encode(ref buffer, Config.OutBatchSize - m_outsize);
+                    var n = m_encoder!.Encode(ref buffer, Config.OutBatchSize - m_outsize);
                     if (m_outpos == null)
                         m_outpos = buffer;
                     m_outsize += n;
@@ -458,12 +450,12 @@ namespace NetMQ.Core.Transports
                 }
                 else
                 {
-                    BeginWrite(m_outpos, m_outsize);
+                    BeginWrite(m_outpos!, m_outsize);
                 }
             }
             else
             {
-                BeginWrite(m_outpos, m_outsize);
+                BeginWrite(m_outpos!, m_outsize);
             }
         }
 
@@ -490,7 +482,7 @@ namespace NetMQ.Core.Transports
 
                             m_handshakeState = HandshakeState.SendingGreeting;
 
-                            BeginWrite(m_outpos, m_outsize);
+                            BeginWrite(m_outpos!, m_outsize);
                             break;
                         default:
                             Debug.Assert(false);
@@ -509,12 +501,12 @@ namespace NetMQ.Core.Transports
                             }
                             else
                             {
-                                m_outpos.AdvanceOffset(bytesSent);
+                                m_outpos!.AdvanceOffset(bytesSent);
                                 m_outsize -= bytesSent;
 
                                 if (m_outsize > 0)
                                 {
-                                    BeginWrite(m_outpos, m_outsize);
+                                    BeginWrite(m_outpos!, m_outsize);
                                 }
                                 else
                                 {
@@ -565,7 +557,7 @@ namespace NetMQ.Core.Transports
                                     var tmp = new byte[10];
                                     var bufferp = new ByteArraySegment(tmp);
 
-                                    int bufferSize = m_encoder.Encode(ref bufferp, headerSize);
+                                    int bufferSize = m_encoder!.Encode(ref bufferp, headerSize);
                                     Debug.Assert(bufferSize == headerSize);
                                     
                                     // Make sure the decoder sees the data we have already received.
@@ -593,10 +585,10 @@ namespace NetMQ.Core.Transports
                                 {
                                     // The peer is using versioned protocol.
                                     // Send the rest of the greeting.
-                                    m_outpos[m_outsize++] = 3; // Protocol version
+                                    m_outpos![m_outsize++] = 3; // Protocol version
                                     m_handshakeState = HandshakeState.SendingMajorVersion;
                                     
-                                    BeginWrite(m_outpos, m_outsize);
+                                    BeginWrite(m_outpos!, m_outsize);
                                 }
                             }
                             break;
@@ -621,12 +613,12 @@ namespace NetMQ.Core.Transports
                             }
                             else
                             {
-                                m_outpos.AdvanceOffset(bytesSent);
+                                m_outpos!.AdvanceOffset(bytesSent);
                                 m_outsize -= bytesSent;
 
                                 if (m_outsize > 0)
                                 {
-                                    BeginWrite(m_outpos, m_outsize);
+                                    BeginWrite(m_outpos!, m_outsize);
                                 }
                                 else
                                 {
@@ -667,38 +659,38 @@ namespace NetMQ.Core.Transports
                                 }
                                 else if (m_greeting[VersionPos] == 0 || m_greeting[VersionPos] == 1)
                                 {
-                                    m_outpos[m_outsize++] = (byte)m_options.SocketType;
+                                    m_outpos![m_outsize++] = (byte)m_options.SocketType;
                                     m_handshakeState = HandshakeState.SendingSocketType;
                                     
-                                    BeginWrite(m_outpos, m_outsize);
+                                    BeginWrite(m_outpos!, m_outsize);
                                 }
                                 else
                                 {
-                                    m_outpos[m_outsize++] = 0; // Minor version
+                                    m_outpos![m_outsize++] = 0; // Minor version
                                             
                                     switch (m_options.Mechanism)
                                     {
                                         case MechanismType.Null:
-                                            m_outpos.PutBytes(NullMechanismBytes, m_outsize);
+                                            m_outpos!.PutBytes(NullMechanismBytes, m_outsize);
                                             m_outsize += 20;
                                             break;
                                         case MechanismType.Plain:
-                                            m_outpos.PutBytes(PlainMechanismBytes, m_outsize);
+                                            m_outpos!.PutBytes(PlainMechanismBytes, m_outsize);
                                             m_outsize += 20;
                                             break;
                                         case MechanismType.Curve:
-                                            m_outpos.PutBytes(CurveMechanismBytes, m_outsize);
+                                            m_outpos!.PutBytes(CurveMechanismBytes, m_outsize);
                                             m_outsize += 20;
                                             break;
                                         default:
                                             throw new ArgumentOutOfRangeException();
                                     }
                                     
-                                    m_outpos.Fill(0, m_outsize, 32);
+                                    m_outpos!.Fill(0, m_outsize, 32);
                                     m_outsize += 32;
                                             
                                     m_handshakeState = HandshakeState.SendingV3Greeting;
-                                    BeginWrite(m_outpos, m_outsize);
+                                    BeginWrite(m_outpos!, m_outsize);
                                 }
                             }
                             break;
@@ -723,12 +715,12 @@ namespace NetMQ.Core.Transports
                             }
                             else
                             {
-                                m_outpos.AdvanceOffset(bytesSent);
+                                m_outpos!.AdvanceOffset(bytesSent);
                                 m_outsize -= bytesSent;
 
                                 if (m_outsize > 0)
                                 {
-                                    BeginWrite(m_outpos, m_outsize);
+                                    BeginWrite(m_outpos!, m_outsize);
                                 }
                                 else
                                 {
@@ -836,12 +828,12 @@ namespace NetMQ.Core.Transports
                             }
                             else
                             {
-                                m_outpos.AdvanceOffset(bytesSent);
+                                m_outpos!.AdvanceOffset(bytesSent);
                                 m_outsize -= bytesSent;
 
                                 if (m_outsize > 0)
                                 {
-                                    BeginWrite(m_outpos, m_outsize);
+                                    BeginWrite(m_outpos!, m_outsize);
                                 }
                                 else
                                 {
@@ -886,7 +878,7 @@ namespace NetMQ.Core.Transports
                                     
                                     if (m_options.Mechanism == MechanismType.Null
                                         && ByteArrayUtility.AreEqual(m_greeting, 12, NullMechanismBytes, 0, 20))
-                                        m_mechanism = new NullMechanism(m_session, m_options);
+                                        m_mechanism = new NullMechanism(m_session!, m_options);
                                     else if (m_options.Mechanism == MechanismType.Plain
                                              && ByteArrayUtility.AreEqual(m_greeting, 12, PlainMechanismBytes, 0, 20))
                                     {
@@ -897,9 +889,9 @@ namespace NetMQ.Core.Transports
                                              && ByteArrayUtility.AreEqual(m_greeting, 12, CurveMechanismBytes, 0, 20))
                                     {
                                         if (m_options.AsServer)
-                                            m_mechanism = new CurveServerMechanism(m_session, m_options);
+                                            m_mechanism = new CurveServerMechanism(m_session!, m_options);
                                         else
-                                            m_mechanism = new CurveClientMechanism(m_session, m_options);
+                                            m_mechanism = new CurveClientMechanism(m_session!, m_options);
                                     }
                                     else {
                                         // Unsupported mechanism
@@ -944,8 +936,8 @@ namespace NetMQ.Core.Transports
 
             if (m_insize == 0)
             {
-                m_decoder.GetBuffer(out m_inpos, out m_insize);
-                BeginRead(m_inpos, m_insize);
+                m_decoder!.GetBuffer(out m_inpos, out m_insize);
+                BeginRead(m_inpos!, m_insize);
             }
             else
             {
@@ -964,8 +956,8 @@ namespace NetMQ.Core.Transports
             
             while (m_insize > 0)
             {
-                var result = m_decoder.Decode(m_inpos, m_insize, out var processed);
-                m_inpos.AdvanceOffset(processed);
+                var result = m_decoder!.Decode(m_inpos!, m_insize, out var processed);
+                m_inpos!.AdvanceOffset(processed);
                 m_insize -= processed;
 
                 if (result == DecodeResult.Error)
@@ -977,11 +969,11 @@ namespace NetMQ.Core.Transports
                 if (result == DecodeResult.Processing)
                     break;
 
-                var pushResult = m_decoder.PushMsg(m_processMsg);
+                var pushResult = m_decoder!.PushMsg(m_processMsg);
                 if (pushResult == PushMsgResult.Full)
                 {
                     m_receivingState = ReceiveState.Stuck;
-                    m_session.Flush();
+                    m_session!.Flush();
                     return;
                 }
                 else if (pushResult == PushMsgResult.Error)
@@ -991,9 +983,9 @@ namespace NetMQ.Core.Transports
                 }
             }
 
-            m_session.Flush();
-            m_decoder.GetBuffer(out m_inpos, out m_insize);
-            BeginRead(m_inpos, m_insize);
+            m_session!.Flush();
+            m_decoder!.GetBuffer(out m_inpos, out m_insize);
+            BeginRead(m_inpos!, m_insize);
         }
 
         /// <summary>
@@ -1058,7 +1050,7 @@ namespace NetMQ.Core.Transports
         {
             try
             {
-                m_handle.Send((byte[])data, data.Offset, size, SocketFlags.None);
+                m_handle!.Send((byte[])data, data.Offset, size, SocketFlags.None);
             }
             catch (SocketException ex)
             {
@@ -1098,7 +1090,7 @@ namespace NetMQ.Core.Transports
         {
             try
             {
-                m_handle.Receive((byte[])data, data.Offset, size, SocketFlags.None);
+                m_handle!.Receive((byte[])data, data.Offset, size, SocketFlags.None);
             }
             catch (SocketException ex)
             {
@@ -1116,7 +1108,7 @@ namespace NetMQ.Core.Transports
                 msg.Put(m_options.Identity, 0, m_options.IdentitySize);
             }
             
-            m_nextMsg = m_session.PullMsg;
+            m_nextMsg = m_session!.PullMsg;
             return PullMsgResult.Ok;
         }
 
@@ -1125,7 +1117,7 @@ namespace NetMQ.Core.Transports
             if (m_options.RecvIdentity) 
             {
                 msg.SetFlags(MsgFlags.Identity);
-                m_session.PushMsg(ref msg);
+                m_session!.PushMsg(ref msg);
             } 
             else 
             {
@@ -1139,27 +1131,27 @@ namespace NetMQ.Core.Transports
                 subscription.InitPool(1);
                 subscription.Put((byte)1);
                 
-                m_session.PushMsg(ref subscription);
+                m_session!.PushMsg(ref subscription);
             }
             
-            m_processMsg = m_session.PushMsg;
+            m_processMsg = m_session!.PushMsg;
             return PushMsgResult.Ok;
         }
 
         PullMsgResult NextHandshakeCommand (ref Msg msg)
         {
-            if (m_mechanism.Status == MechanismStatus.Ready) 
+            if (m_mechanism!.Status == MechanismStatus.Ready) 
             {
                 MechanismReady();
                 return PullAndEncode (ref msg);
             }
-            else if (m_mechanism.Status == MechanismStatus.Error) 
+            else if (m_mechanism!.Status == MechanismStatus.Error) 
             {
                 return PullMsgResult.Error;
             } 
             else 
             {
-                var result = m_mechanism.NextHandshakeCommand(ref msg);
+                var result = m_mechanism!.NextHandshakeCommand(ref msg);
 
                 if (result == PullMsgResult.Ok)
                     msg.SetFlags(MsgFlags.Command);
@@ -1170,12 +1162,12 @@ namespace NetMQ.Core.Transports
 
         PushMsgResult ProcessHandshakeCommand (ref Msg msg)
         {
-            var result = m_mechanism.ProcessHandshakeCommand(ref msg);
+            var result = m_mechanism!.ProcessHandshakeCommand(ref msg);
             if (result == PushMsgResult.Ok) 
             {
-                if (m_mechanism.Status == MechanismStatus.Ready)
+                if (m_mechanism!.Status == MechanismStatus.Ready)
                     MechanismReady();
-                else if (m_mechanism.Status == MechanismStatus.Error)
+                else if (m_mechanism!.Status == MechanismStatus.Error)
                     return PushMsgResult.Error;
                 
                 if (m_sendingState == SendState.Idle)
@@ -1193,13 +1185,13 @@ namespace NetMQ.Core.Transports
         {
             if (m_options.HeartbeatInterval > 0)
             {
-                m_ioObject.AddTimer(m_options.HeartbeatInterval, HeartbeatIntervalTimerId);
+                m_ioObject!.AddTimer(m_options.HeartbeatInterval, HeartbeatIntervalTimerId);
                 m_hasHeartbeatTimer = true;
             }
             
             if (m_options.RecvIdentity) {
                 Msg identity = new Msg();
-                byte[]? peerIdentity = m_mechanism.PeerIdentity;
+                byte[]? peerIdentity = m_mechanism!.PeerIdentity;
                 if (peerIdentity is null)
                     identity.InitEmpty();
                 else
@@ -1207,7 +1199,7 @@ namespace NetMQ.Core.Transports
                     identity.InitPool(peerIdentity.Length);
                     identity.Put(peerIdentity, 0, peerIdentity.Length);
                 }
-                var pushResult = m_session.PushMsg(ref identity);
+                var pushResult = m_session!.PushMsg(ref identity);
                 if (pushResult == PushMsgResult.Full) {
                     // If the write is failing at this stage with
                     // an EAGAIN the pipe must be being shut down,
@@ -1215,7 +1207,7 @@ namespace NetMQ.Core.Transports
                     return;
                 }
                 
-                m_session.Flush();
+                m_session!.Flush();
             }
 
             m_nextMsg = PullAndEncode;
@@ -1225,33 +1217,33 @@ namespace NetMQ.Core.Transports
         
         PullMsgResult PullAndEncode (ref Msg msg)
         {
-            var result = m_session.PullMsg(ref msg); 
+            var result = m_session!.PullMsg(ref msg); 
             if (result != PullMsgResult.Ok)
                 return result;
 
-            return m_mechanism.Encode(ref msg);
+            return m_mechanism!.Encode(ref msg);
         }
 
         PushMsgResult DecodeAndPush (ref Msg msg)
         {
-            var result = m_mechanism.Decode(ref msg);
+            var result = m_mechanism!.Decode(ref msg);
             if (result != PushMsgResult.Ok)
                 return result;
             
             if (m_hasTimeoutTimer) {
                 m_hasTimeoutTimer = false;
-                m_ioObject.CancelTimer(HeartbeatTimeoutTimerId);
+                m_ioObject!.CancelTimer(HeartbeatTimeoutTimerId);
             }
             
             if (m_hasTtlTimer) {
                 m_hasTtlTimer = false;
-                m_ioObject.CancelTimer(HeartbeatTtlTimerId);
+                m_ioObject!.CancelTimer(HeartbeatTtlTimerId);
             }
             
             if (msg.HasCommand)
                 ProcessCommandMessage(ref msg);
 
-            result = m_session.PushMsg(ref msg);
+            result = m_session!.PushMsg(ref msg);
             if (result == PushMsgResult.Full) 
                 m_processMsg = PushOneThenDecodeAndPush;
                 
@@ -1260,7 +1252,7 @@ namespace NetMQ.Core.Transports
         
         PushMsgResult PushOneThenDecodeAndPush (ref Msg msg)
         {
-            var result = m_session.PushMsg(ref msg);
+            var result = m_session!.PushMsg(ref msg);
             if (result == PushMsgResult.Ok)
                 m_processMsg = DecodeAndPush;
             return result;
@@ -1280,12 +1272,12 @@ namespace NetMQ.Core.Transports
             
             NetworkOrderBitsConverter.PutUInt16((ushort)m_options.HeartbeatTtl, msg, 1 + V3Protocol.PingCommand.Length);
 
-            var result = m_mechanism.Encode(ref msg);
+            var result = m_mechanism!.Encode(ref msg);
             m_nextMsg = PullAndEncode;
             
             if (!m_hasTimeoutTimer && m_heartbeatTimeout > 0) 
             {
-                m_ioObject.AddTimer(m_heartbeatTimeout, HeartbeatTimeoutTimerId);
+                m_ioObject!.AddTimer(m_heartbeatTimeout, HeartbeatTimeoutTimerId);
                 m_hasTimeoutTimer = true;
             }
             
@@ -1296,7 +1288,7 @@ namespace NetMQ.Core.Transports
         {
             msg.Move(ref m_pongMsg);
             m_nextMsg = PullAndEncode;
-            return m_mechanism.Encode(ref msg);
+            return m_mechanism!.Encode(ref msg);
         }
         
         void ProcessCommandMessage (ref Msg msg)
@@ -1328,7 +1320,7 @@ namespace NetMQ.Core.Transports
             remoteHeartbeatTtl *= 100;
 
             if (!m_hasTtlTimer && remoteHeartbeatTtl > 0) {
-                m_ioObject.AddTimer(remoteHeartbeatTtl, HeartbeatTtlTimerId);
+                m_ioObject!.AddTimer(remoteHeartbeatTtl, HeartbeatTtlTimerId);
                 m_hasTtlTimer = true;
             }
             
@@ -1371,7 +1363,7 @@ namespace NetMQ.Core.Transports
                     BeginSending();
                 }
                 
-                m_ioObject.AddTimer(m_options.HeartbeatInterval, HeartbeatIntervalTimerId);
+                m_ioObject!.AddTimer(m_options.HeartbeatInterval, HeartbeatIntervalTimerId);
             } 
             else if (id == HeartbeatTtlTimerId) 
             {
