@@ -19,8 +19,6 @@
     along with this program.  If not, see <http://www.gnu.org/licenses/>.
 */
 
-#nullable disable
-
 using System;
 using System.Diagnostics;
 namespace NetMQ.Core.Utils
@@ -49,7 +47,6 @@ namespace NetMQ.Core.Utils
             {
                 Values = new T[size];
                 GlobalOffset = globalIndex;
-                Debug.Assert(Values != null);
             }
 
             public T[] Values { get; }
@@ -58,10 +55,10 @@ namespace NetMQ.Core.Utils
             public int GlobalOffset { get; }
 
             /// <summary>Optional link to the previous <see cref="Chunk"/>.</summary>
-            public Chunk Previous { get; set; }
+            public Chunk? Previous { get; set; }
 
             /// <summary>Optional link to the next <see cref="Chunk"/>.</summary>
-            public Chunk Next { get; set; }
+            public Chunk? Next { get; set; }
         }
 
         #endregion
@@ -122,12 +119,12 @@ namespace NetMQ.Core.Utils
         public T Pop()
         {
             T value = m_beginChunk.Values[m_beginPositionInChunk];
-            m_beginChunk.Values[m_beginPositionInChunk] = default(T);
+            m_beginChunk.Values[m_beginPositionInChunk] = default!;
 
             m_beginPositionInChunk++;
             if (m_beginPositionInChunk == m_chunkSize)
             {
-                m_beginChunk = m_beginChunk.Next;
+                m_beginChunk = m_beginChunk.Next!;
                 m_beginChunk.Previous = null;
                 m_beginPositionInChunk = 0;
             }
@@ -149,7 +146,7 @@ namespace NetMQ.Core.Utils
             Chunk sc = m_spareChunk;
             if (sc != m_beginChunk)
             {
-                m_spareChunk = m_spareChunk.Next;
+                m_spareChunk = m_spareChunk.Next!;
                 m_endChunk.Next = sc;
                 sc.Previous = m_endChunk;
             }
@@ -159,7 +156,7 @@ namespace NetMQ.Core.Utils
                 m_nextGlobalIndex += m_chunkSize;
                 m_endChunk.Next.Previous = m_endChunk;
             }
-            m_endChunk = m_endChunk.Next;
+            m_endChunk = m_endChunk.Next!;
             m_endPosition = 0;
         }
 
@@ -178,7 +175,7 @@ namespace NetMQ.Core.Utils
             else
             {
                 m_backPositionInChunk = m_chunkSize - 1;
-                m_backChunk = m_backChunk.Previous;
+                m_backChunk = m_backChunk.Previous!;
             }
 
             // Now, move 'end' position backwards. Note that obsolete end chunk
@@ -192,13 +189,13 @@ namespace NetMQ.Core.Utils
             else
             {
                 m_endPosition = m_chunkSize - 1;
-                m_endChunk = m_endChunk.Previous;
+                m_endChunk = m_endChunk.Previous!;
                 m_endChunk.Next = null;
             }
 
             // Capturing and removing the unpushed value from chunk.
             T value = m_backChunk.Values[m_backPositionInChunk];
-            m_backChunk.Values[m_backPositionInChunk] = default(T);
+            m_backChunk.Values[m_backPositionInChunk] = default!;
 
             return value;
         }
