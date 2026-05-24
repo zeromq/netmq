@@ -54,7 +54,6 @@
   </ItemGroup>
   
   <ItemGroup>
-    <PackageReference Update="JetBrains.Annotations" Version="2025.2.4" />
     <PackageReference Update="Microsoft.SourceLink.GitHub" Version="10.0.202" />
   </ItemGroup>
 

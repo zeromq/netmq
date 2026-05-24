@@ -23,8 +23,6 @@
 
 using System;
 using System.Diagnostics;
-using JetBrains.Annotations;
-
 namespace NetMQ.Core.Utils
 {
     /// <summary>A FIFO queue.</summary>
@@ -54,18 +52,15 @@ namespace NetMQ.Core.Utils
                 Debug.Assert(Values != null);
             }
 
-            [NotNull]
             public T[] Values { get; }
 
             /// <summary>Contains global index positions of elements in the chunk.</summary>
             public int GlobalOffset { get; }
 
             /// <summary>Optional link to the previous <see cref="Chunk"/>.</summary>
-            [CanBeNull]
             public Chunk Previous { get; set; }
 
             /// <summary>Optional link to the next <see cref="Chunk"/>.</summary>
-            [CanBeNull]
             public Chunk Next { get; set; }
         }
 

@@ -24,8 +24,6 @@
 using System;
 using System.Collections.Generic;
 using System.Diagnostics;
-using JetBrains.Annotations;
-
 namespace NetMQ.Core.Patterns.Utils
 {
     /// <summary>
@@ -40,7 +38,7 @@ namespace NetMQ.Core.Patterns.Utils
         private int m_liveNodes;
         private MultiTrie[] m_next;
 
-        public delegate void MultiTrieDelegate([CanBeNull] Pipe pipe, [CanBeNull] byte[] data, int size, [CanBeNull] object arg);
+        public delegate void MultiTrieDelegate(Pipe pipe, byte[] data, int size, object arg);
 
         public MultiTrie()
         {
@@ -56,12 +54,12 @@ namespace NetMQ.Core.Patterns.Utils
         /// Add key to the trie. Returns true if it's a new subscription
         /// rather than a duplicate.
         /// </summary>
-        public bool Add(Span<byte> prefix, [NotNull] Pipe pipe)
+        public bool Add(Span<byte> prefix, Pipe pipe)
         {
             return AddHelper(prefix, pipe);
         }
 
-        private bool AddHelper(Span<byte> prefix, [NotNull] Pipe pipe)
+        private bool AddHelper(Span<byte> prefix, Pipe pipe)
         {
             // We are at the node corresponding to the prefix. We are done.
             if (prefix.Length == 0)
@@ -147,12 +145,12 @@ namespace NetMQ.Core.Patterns.Utils
         /// <param name="func"></param>
         /// <param name="arg"></param>
         /// <returns></returns>
-        public bool RemoveHelper([NotNull] Pipe pipe, [NotNull] MultiTrieDelegate func, [CanBeNull] object arg)
+        public bool RemoveHelper(Pipe pipe, MultiTrieDelegate func, object arg)
         {
             return RemoveHelper(pipe, [], 0, 0, func, arg);
         }
 
-        private bool RemoveHelper([NotNull] Pipe pipe, [NotNull] byte[] buffer, int bufferSize, int maxBufferSize, [NotNull] MultiTrieDelegate func, [CanBeNull] object arg)
+        private bool RemoveHelper(Pipe pipe, byte[] buffer, int bufferSize, int maxBufferSize, MultiTrieDelegate func, object arg)
         {
             // Remove the subscription from this node.
             if (m_pipes != null && m_pipes.Remove(pipe) && m_pipes.Count == 0)
@@ -284,12 +282,12 @@ namespace NetMQ.Core.Patterns.Utils
         /// <param name="prefix"></param>
         /// <param name="pipe"></param>
         /// <returns></returns>
-        public bool Remove(Span<byte> prefix, [NotNull] Pipe pipe)
+        public bool Remove(Span<byte> prefix, Pipe pipe)
         {
             return RemoveHelper(prefix, pipe);
         }
 
-        private bool RemoveHelper(Span<byte> prefix, [NotNull] Pipe pipe)
+        private bool RemoveHelper(Span<byte> prefix, Pipe pipe)
         {
             if (prefix.Length == 0)
             {
@@ -394,7 +392,7 @@ namespace NetMQ.Core.Patterns.Utils
         /// <summary>
         /// Signal all the matching pipes.
         /// </summary>
-        public void Match(Span<byte> data, [NotNull] MultiTrieDelegate func, [CanBeNull] object arg)
+        public void Match(Span<byte> data, MultiTrieDelegate func, object arg)
         {
             MultiTrie current = this;
 
