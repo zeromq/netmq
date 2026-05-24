@@ -56,7 +56,7 @@ namespace NetMQ.Tests
                         msg.InitEmpty();
                         while (!cts.IsCancellationRequested)
                         {
-                            if (server.TryReceive(ref msg, TimeSpan.FromMilliseconds(1)))
+                            if (server.TryReceive(ref msg, TimeSpan.Zero))
                                 msg.Close();
                         }
                     }
