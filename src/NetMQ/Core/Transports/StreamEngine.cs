@@ -1222,7 +1222,7 @@ namespace NetMQ.Core.Transports
             m_nextMsg = PullAndEncode;
             m_processMsg = DecodeAndPush;
         }
-#nullable disable
+#nullable restore
         
         PullMsgResult PullAndEncode (ref Msg msg)
         {
