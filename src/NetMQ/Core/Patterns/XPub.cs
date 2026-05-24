@@ -80,7 +80,7 @@ namespace NetMQ.Core.Patterns
         {
             s_markAsMatching = (pipe, data, size, arg) =>
             {
-                var self = (XPub)arg;
+                var self = (XPub)arg!;
                 // skip the sender of a broadcast message
                 if (!(self.m_broadcastEnabled && self.m_lastPipeIsBroadcast && self.m_lastPipe == pipe))
                 {
@@ -90,7 +90,7 @@ namespace NetMQ.Core.Patterns
 
             s_sendUnsubscription = (pipe, data, size, arg) =>
             {
-                var self = (XPub)arg;
+                var self = (XPub)arg!;
 
                 if (self.m_options.SocketType != ZmqSocketType.Pub)
                 {
