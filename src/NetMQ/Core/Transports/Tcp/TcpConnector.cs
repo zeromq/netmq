@@ -236,10 +236,17 @@ namespace NetMQ.Core.Transports.Tcp
                 m_ioObject.RemoveSocket(m_s);
                 m_handleValid = false;
 
-                try {
+                try
+                {
                     m_s.NoDelay = true;
-                } catch (ArgumentException) {
+                }
+                catch (ArgumentException)
+                {
                     // OSX sometime fail while the socket is still connecting
+                }
+                catch (SocketException ex) when (ex.SocketErrorCode == SocketError.InvalidArgument)
+                {
+                    // macOS may report EINVAL here while the socket is still connecting.
                 }
 
                 // As long as the TCP keep-alive option is not -1 (indicating no change),
