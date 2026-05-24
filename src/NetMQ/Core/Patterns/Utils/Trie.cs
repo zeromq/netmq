@@ -20,8 +20,6 @@
     along with this program.  If not, see <http://www.gnu.org/licenses/>.
 */
 
-#nullable disable
-
 using System;
 using System.Diagnostics;
 namespace NetMQ.Core.Patterns.Utils
@@ -34,9 +32,9 @@ namespace NetMQ.Core.Patterns.Utils
         private short m_count;
         private short m_liveNodes;
 
-        public delegate void TrieDelegate(byte[] data, int size, object arg);
+        public delegate void TrieDelegate(byte[]? data, int size, object? arg);
 
-        private Trie[] m_next;
+        private Trie?[]? m_next;
 
         /// <summary>
         /// Add key to the trie. Returns true if this is a new item in the trie
@@ -67,7 +65,7 @@ namespace NetMQ.Core.Patterns.Utils
                 else if (m_count == 1)
                 {
                     byte oldc = m_minCharacter;
-                    Trie oldp = m_next[0];
+                    Trie? oldp = m_next![0];
                     m_count = (short)((m_minCharacter < currentCharacter ? currentCharacter - m_minCharacter : m_minCharacter - currentCharacter) + 1);
                     m_next = new Trie[m_count];
                     m_minCharacter = Math.Min(m_minCharacter, currentCharacter);
@@ -77,13 +75,13 @@ namespace NetMQ.Core.Patterns.Utils
                 {
                     // The new character is above the current character range.
                     m_count = (short)(currentCharacter - m_minCharacter + 1);
-                    m_next = m_next.Resize(m_count, true);
+                    m_next = m_next!.Resize(m_count, true);
                 }
                 else
                 {
                     // The new character is below the current character range.
                     m_count = (short)((m_minCharacter + m_count) - currentCharacter);
-                    m_next = m_next.Resize(m_count, false);
+                    m_next = m_next!.Resize(m_count, false);
                     m_minCharacter = currentCharacter;
                 }
             }
@@ -98,17 +96,17 @@ namespace NetMQ.Core.Patterns.Utils
                     ++m_liveNodes;
                     //alloc_Debug.Assert(next.node);
                 }
-                return m_next[0].Add(prefix.Slice(1));
+                return m_next[0]!.Add(prefix.Slice(1));
             }
             else
             {
-                if (m_next[currentCharacter - m_minCharacter] == null)
+                if (m_next![currentCharacter - m_minCharacter] == null)
                 {
                     m_next[currentCharacter - m_minCharacter] = new Trie();
                     ++m_liveNodes;
                     //alloc_Debug.Assert(next.table [c - min]);
                 }
-                return m_next[currentCharacter - m_minCharacter].Add(prefix.Slice(1));
+                return m_next[currentCharacter - m_minCharacter]!.Add(prefix.Slice(1));
             }
         }
 
@@ -133,7 +131,7 @@ namespace NetMQ.Core.Patterns.Utils
             if (m_count == 0 || currentCharacter < m_minCharacter || currentCharacter >= m_minCharacter + m_count)
                 return false;
 
-            Trie nextNode = m_count == 1 ? m_next[0] : m_next[currentCharacter - m_minCharacter];
+            Trie? nextNode = m_count == 1 ? m_next![0] : m_next![currentCharacter - m_minCharacter];
 
             if (nextNode == null)
                 return false;
@@ -154,7 +152,7 @@ namespace NetMQ.Core.Patterns.Utils
                 }
                 else
                 {
-                    m_next[currentCharacter - m_minCharacter] = null;
+                    m_next![currentCharacter - m_minCharacter] = null;
                     Debug.Assert(m_liveNodes > 1);
                     --m_liveNodes;
 
@@ -164,7 +162,7 @@ namespace NetMQ.Core.Patterns.Utils
                         // If there's only one live node in the table we can
                         // switch to using the more compact single-node
                         // representation
-                        Trie node = null;
+                        Trie? node = null;
                         for (short i = 0; i < m_count; ++i)
                         {
                             if (m_next[i] != null)
@@ -177,8 +175,7 @@ namespace NetMQ.Core.Patterns.Utils
 
                         Debug.Assert(node != null);
 
-                        m_next = null;
-                        m_next = new[] { node };
+                        m_next = [node];
                         m_count = 1;
                     }
                     else if (currentCharacter == m_minCharacter)
@@ -256,13 +253,17 @@ namespace NetMQ.Core.Patterns.Utils
 
                 // Move to the next character.
                 if (current.m_count == 1)
-                    current = current.m_next[0];
+                {
+                    current = current.m_next![0]!;
+                }
                 else
                 {
-                    current = current.m_next[character - current.m_minCharacter];
+                    var next = current.m_next![character - current.m_minCharacter];
 
-                    if (current == null)
+                    if (next == null)
                         return false;
+
+                    current = next;
                 }
                 start++;
                 size--;
@@ -270,12 +271,12 @@ namespace NetMQ.Core.Patterns.Utils
         }
 
         // Apply the function supplied to each subscription in the trie.
-        public void Apply(TrieDelegate func, object arg)
+        public void Apply(TrieDelegate func, object? arg)
         {
             ApplyHelper(null, 0, 0, func, arg);
         }
 
-        private void ApplyHelper(byte[] buffer, int bufferSize, int maxBufferSize, TrieDelegate func, object arg)
+        private void ApplyHelper(byte[]? buffer, int bufferSize, int maxBufferSize, TrieDelegate func, object? arg)
         {
             // If this node is a subscription, apply the function.
             if (m_referenceCount > 0)
@@ -286,7 +287,6 @@ namespace NetMQ.Core.Patterns.Utils
             {
                 maxBufferSize = bufferSize + 256;
                 Array.Resize(ref buffer, maxBufferSize);
-                Debug.Assert(buffer != null);
             }
 
             // If there are no subnodes in the trie, return.
@@ -296,18 +296,18 @@ namespace NetMQ.Core.Patterns.Utils
             // If there's one subnode (optimisation).
             if (m_count == 1)
             {
-                buffer[bufferSize] = m_minCharacter;
+                buffer![bufferSize] = m_minCharacter;
                 bufferSize++;
-                m_next[0].ApplyHelper(buffer, bufferSize, maxBufferSize, func, arg);
+                m_next![0]!.ApplyHelper(buffer, bufferSize, maxBufferSize, func, arg);
                 return;
             }
 
             // If there are multiple subnodes.
             for (short c = 0; c != m_count; c++)
             {
-                buffer[bufferSize] = (byte)(m_minCharacter + c);
-                if (m_next[c] != null)
-                    m_next[c].ApplyHelper(buffer, bufferSize + 1, maxBufferSize, func, arg);
+                buffer![bufferSize] = (byte)(m_minCharacter + c);
+                if (m_next![c] != null)
+                    m_next[c]!.ApplyHelper(buffer, bufferSize + 1, maxBufferSize, func, arg);
             }
         }
 
