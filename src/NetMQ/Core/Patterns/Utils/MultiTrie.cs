@@ -19,13 +19,9 @@
     along with this program.  If not, see <http://www.gnu.org/licenses/>.
 */
 
-#nullable disable
-
 using System;
 using System.Collections.Generic;
 using System.Diagnostics;
-using JetBrains.Annotations;
-
 namespace NetMQ.Core.Patterns.Utils
 {
     /// <summary>
@@ -33,14 +29,14 @@ namespace NetMQ.Core.Patterns.Utils
     /// </summary>
     internal class MultiTrie
     {
-        private HashSet<Pipe> m_pipes;
+        private HashSet<Pipe>? m_pipes;
 
         private int m_minCharacter;
         private int m_count;
         private int m_liveNodes;
-        private MultiTrie[] m_next;
+        private MultiTrie?[]? m_next;
 
-        public delegate void MultiTrieDelegate([CanBeNull] Pipe pipe, [CanBeNull] byte[] data, int size, [CanBeNull] object arg);
+        public delegate void MultiTrieDelegate(Pipe pipe, byte[]? data, int size, object? arg);
 
         public MultiTrie()
         {
@@ -56,12 +52,12 @@ namespace NetMQ.Core.Patterns.Utils
         /// Add key to the trie. Returns true if it's a new subscription
         /// rather than a duplicate.
         /// </summary>
-        public bool Add(Span<byte> prefix, [NotNull] Pipe pipe)
+        public bool Add(Span<byte> prefix, Pipe pipe)
         {
             return AddHelper(prefix, pipe);
         }
 
-        private bool AddHelper(Span<byte> prefix, [NotNull] Pipe pipe)
+        private bool AddHelper(Span<byte> prefix, Pipe pipe)
         {
             // We are at the node corresponding to the prefix. We are done.
             if (prefix.Length == 0)
@@ -74,8 +70,6 @@ namespace NetMQ.Core.Patterns.Utils
                 m_pipes.Add(pipe);
                 return result;
             }
-
-            Debug.Assert(prefix != null);
 
             byte currentCharacter = prefix[0];
 
@@ -92,7 +86,7 @@ namespace NetMQ.Core.Patterns.Utils
                 else if (m_count == 1)
                 {
                     int oldc = m_minCharacter;
-                    MultiTrie oldp = m_next[0];
+                    MultiTrie? oldp = m_next![0];
                     m_count = (m_minCharacter < currentCharacter ? currentCharacter - m_minCharacter : m_minCharacter - currentCharacter) + 1;
                     m_next = new MultiTrie[m_count];
                     m_minCharacter = Math.Min(m_minCharacter, currentCharacter);
@@ -102,13 +96,13 @@ namespace NetMQ.Core.Patterns.Utils
                 {
                     // The new character is above the current character range.
                     m_count = currentCharacter - m_minCharacter + 1;
-                    m_next = m_next.Resize(m_count, true);
+                    m_next = m_next!.Resize(m_count, true);
                 }
                 else
                 {
                     // The new character is below the current character range.
                     m_count = (m_minCharacter + m_count) - currentCharacter;
-                    m_next = m_next.Resize(m_count, false);
+                    m_next = m_next!.Resize(m_count, false);
                     m_minCharacter = currentCharacter;
                 }
             }
@@ -123,17 +117,17 @@ namespace NetMQ.Core.Patterns.Utils
                     ++m_liveNodes;
                 }
 
-                return m_next[0].AddHelper(prefix.Slice(1), pipe);
+                return m_next[0]!.AddHelper(prefix.Slice(1), pipe);
             }
             else
             {
-                if (m_next[currentCharacter - m_minCharacter] == null)
+                if (m_next![currentCharacter - m_minCharacter] == null)
                 {
                     m_next[currentCharacter - m_minCharacter] = new MultiTrie();
                     ++m_liveNodes;
                 }
 
-                return m_next[currentCharacter - m_minCharacter].AddHelper(prefix.Slice(1), pipe);
+                return m_next[currentCharacter - m_minCharacter]!.AddHelper(prefix.Slice(1), pipe);
             }
         }
 
@@ -147,12 +141,12 @@ namespace NetMQ.Core.Patterns.Utils
         /// <param name="func"></param>
         /// <param name="arg"></param>
         /// <returns></returns>
-        public bool RemoveHelper([NotNull] Pipe pipe, [NotNull] MultiTrieDelegate func, [CanBeNull] object arg)
+        public bool RemoveHelper(Pipe pipe, MultiTrieDelegate func, object? arg)
         {
             return RemoveHelper(pipe, [], 0, 0, func, arg);
         }
 
-        private bool RemoveHelper([NotNull] Pipe pipe, [NotNull] byte[] buffer, int bufferSize, int maxBufferSize, [NotNull] MultiTrieDelegate func, [CanBeNull] object arg)
+        private bool RemoveHelper(Pipe pipe, byte[] buffer, int bufferSize, int maxBufferSize, MultiTrieDelegate func, object? arg)
         {
             // Remove the subscription from this node.
             if (m_pipes != null && m_pipes.Remove(pipe) && m_pipes.Count == 0)
@@ -177,10 +171,10 @@ namespace NetMQ.Core.Patterns.Utils
             {
                 buffer[bufferSize] = (byte)m_minCharacter;
                 bufferSize++;
-                m_next[0].RemoveHelper(pipe, buffer, bufferSize, maxBufferSize, func, arg);
+                m_next![0]!.RemoveHelper(pipe, buffer, bufferSize, maxBufferSize, func, arg);
 
                 // Prune the node if it was made redundant by the removal
-                if (m_next[0].IsRedundant)
+                if (m_next[0]!.IsRedundant)
                 {
                     m_next = null;
                     m_count = 0;
@@ -201,13 +195,13 @@ namespace NetMQ.Core.Patterns.Utils
             for (int currentCharacter = 0; currentCharacter != m_count; currentCharacter++)
             {
                 buffer[bufferSize] = (byte)(m_minCharacter + currentCharacter);
-                if (m_next[currentCharacter] != null)
+                if (m_next![currentCharacter] != null)
                 {
-                    m_next[currentCharacter].RemoveHelper(pipe, buffer, bufferSize + 1,
+                    m_next[currentCharacter]!.RemoveHelper(pipe, buffer, bufferSize + 1,
                         maxBufferSize, func, arg);
 
                     // Prune redundant nodes from the mtrie
-                    if (m_next[currentCharacter].IsRedundant)
+                    if (m_next[currentCharacter]!.IsRedundant)
                     {
                         m_next[currentCharacter] = null;
 
@@ -249,12 +243,11 @@ namespace NetMQ.Core.Patterns.Utils
                 Debug.Assert(newMin == newMax);
                 Debug.Assert(newMin >= m_minCharacter && newMin < m_minCharacter + m_count);
 
-                MultiTrie node = m_next[newMin - m_minCharacter];
+                MultiTrie? node = m_next![newMin - m_minCharacter];
 
                 Debug.Assert(node != null);
 
-                m_next = null;
-                m_next = new[] { node };
+                m_next = [node];
                 m_count = 1;
                 m_minCharacter = newMin;
             }
@@ -262,7 +255,7 @@ namespace NetMQ.Core.Patterns.Utils
             {
                 Debug.Assert(newMax - newMin + 1 > 1);
 
-                MultiTrie[] oldTable = m_next;
+                MultiTrie?[] oldTable = m_next!;
                 Debug.Assert(newMin > m_minCharacter || newMax < m_minCharacter + m_count - 1);
                 Debug.Assert(newMin >= m_minCharacter);
                 Debug.Assert(newMax <= m_minCharacter + m_count - 1);
@@ -284,12 +277,12 @@ namespace NetMQ.Core.Patterns.Utils
         /// <param name="prefix"></param>
         /// <param name="pipe"></param>
         /// <returns></returns>
-        public bool Remove(Span<byte> prefix, [NotNull] Pipe pipe)
+        public bool Remove(Span<byte> prefix, Pipe pipe)
         {
             return RemoveHelper(prefix, pipe);
         }
 
-        private bool RemoveHelper(Span<byte> prefix, [NotNull] Pipe pipe)
+        private bool RemoveHelper(Span<byte> prefix, Pipe pipe)
         {
             if (prefix.Length == 0)
             {
@@ -309,7 +302,7 @@ namespace NetMQ.Core.Patterns.Utils
             if (m_count == 0 || currentCharacter < m_minCharacter || currentCharacter >= m_minCharacter + m_count)
                 return false;
 
-            MultiTrie nextNode = m_count == 1 ? m_next[0] : m_next[currentCharacter - m_minCharacter];
+            MultiTrie? nextNode = m_count == 1 ? m_next![0] : m_next![currentCharacter - m_minCharacter];
 
             if (nextNode == null)
                 return false;
@@ -328,7 +321,7 @@ namespace NetMQ.Core.Patterns.Utils
                 }
                 else
                 {
-                    m_next[currentCharacter - m_minCharacter] = null;
+                    m_next![currentCharacter - m_minCharacter] = null;
                     Debug.Assert(m_liveNodes > 1);
                     --m_liveNodes;
 
@@ -350,8 +343,8 @@ namespace NetMQ.Core.Patterns.Utils
                         Debug.Assert(i < m_count);
                         m_minCharacter += i;
                         m_count = 1;
-                        MultiTrie old = m_next[i];
-                        m_next = new[] { old };
+                        MultiTrie? old = m_next[i];
+                        m_next = [old];
                     }
                     else if (currentCharacter == m_minCharacter)
                     {
@@ -394,7 +387,7 @@ namespace NetMQ.Core.Patterns.Utils
         /// <summary>
         /// Signal all the matching pipes.
         /// </summary>
-        public void Match(Span<byte> data, [NotNull] MultiTrieDelegate func, [CanBeNull] object arg)
+        public void Match(Span<byte> data, MultiTrieDelegate func, object? arg)
         {
             MultiTrie current = this;
 
@@ -424,7 +417,7 @@ namespace NetMQ.Core.Patterns.Utils
                 {
                     if (c != current.m_minCharacter)
                         break;
-                    current = current.m_next[0];
+                    current = current.m_next![0]!;
                     index++;
                     size--;
                     continue;
@@ -434,9 +427,9 @@ namespace NetMQ.Core.Patterns.Utils
                 if (c < current.m_minCharacter || c >=
                     current.m_minCharacter + current.m_count)
                     break;
-                if (current.m_next[c - current.m_minCharacter] == null)
+                if (current.m_next![c - current.m_minCharacter] == null)
                     break;
-                current = current.m_next[c - current.m_minCharacter];
+                current = current.m_next[c - current.m_minCharacter]!;
                 index++;
                 size--;
             }

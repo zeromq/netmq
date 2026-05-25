@@ -64,7 +64,7 @@ namespace NetMQ.Core.Patterns
         {
             s_sendSubscription = (data, size, arg) =>
             {
-                var pipe = (Pipe)arg;
+                var pipe = (Pipe)arg!;
 
                 // Create the subscription message.
                 var msg = new Msg();
