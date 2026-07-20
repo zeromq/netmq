@@ -199,11 +199,14 @@ namespace NetMQ.Core.Transports.Tcp
                     // TODO: check TcpFilters
                     var acceptedSocket = m_handle.GetAcceptedSocket();
 
+                    StreamEngine engine;
+                    try
+                    {
                         acceptedSocket.NoDelay = true;
 
-                    if (m_options.TcpKeepalive != -1)
-                    {
-                        acceptedSocket.SetSocketOption(SocketOptionLevel.Socket, SocketOptionName.KeepAlive, m_options.TcpKeepalive);
+                        if (m_options.TcpKeepalive != -1)
+                        {
+                            acceptedSocket.SetSocketOption(SocketOptionLevel.Socket, SocketOptionName.KeepAlive, m_options.TcpKeepalive);
 #if NET
                             if (m_options.TcpKeepaliveIdle != -1)
                                 acceptedSocket.SetSocketOption(SocketOptionLevel.Tcp, SocketOptionName.TcpKeepAliveTime, m_options.TcpKeepaliveIdle / 1000);
@@ -213,24 +216,54 @@ namespace NetMQ.Core.Transports.Tcp
                                 acceptedSocket.SetSocketOption(SocketOptionLevel.Tcp, SocketOptionName.TcpKeepAliveRetryCount, m_options.TcpKeepaliveCnt);
 #else
 
-                        if (m_options.TcpKeepaliveIdle != -1 && m_options.TcpKeepaliveIntvl != -1)
-                        {
-                            var bytes = new ByteArraySegment(new byte[12]);
+                            if (m_options.TcpKeepaliveIdle != -1 && m_options.TcpKeepaliveIntvl != -1)
+                            {
+                                var bytes = new ByteArraySegment(new byte[12]);
 
-                            Endianness endian = BitConverter.IsLittleEndian ? Endianness.Little : Endianness.Big;
+                                Endianness endian = BitConverter.IsLittleEndian ? Endianness.Little : Endianness.Big;
 
-                            bytes.PutInteger(endian, m_options.TcpKeepalive, 0);
-                            bytes.PutInteger(endian, m_options.TcpKeepaliveIdle, 4);
-                            bytes.PutInteger(endian, m_options.TcpKeepaliveIntvl, 8);
+                                bytes.PutInteger(endian, m_options.TcpKeepalive, 0);
+                                bytes.PutInteger(endian, m_options.TcpKeepaliveIdle, 4);
+                                bytes.PutInteger(endian, m_options.TcpKeepaliveIntvl, 8);
 
 
-                            acceptedSocket.IOControl(IOControlCode.KeepAliveValues, (byte[])bytes, null);
-                        }
+                                acceptedSocket.IOControl(IOControlCode.KeepAliveValues, (byte[])bytes, null);
+                            }
 #endif
-                    }
+                        }
 
-                    // Create the engine object for this connection.
-                    var engine = new StreamEngine(acceptedSocket, m_options, m_endpoint);
+                        // Create the engine object for this connection. The engine
+                        // constructor also touches the socket (send/receive buffer
+                        // sizes), so it shares the failure window below.
+                        engine = new StreamEngine(acceptedSocket, m_options, m_endpoint);
+                    }
+                    catch (SocketException ex)
+                    {
+                        // The peer can reset the connection between the accept
+                        // completing and the socket options above being applied; the
+                        // accepted socket is then already dead and the option calls
+                        // throw (EINVAL/InvalidArgument on macOS and Linux). Without
+                        // this catch the exception escapes on the proactor thread and
+                        // terminates the process. Treat it as a failed accept, as
+                        // libzmq does: drop the socket and keep listening. The raw
+                        // SocketError is deliberately not passed through ToErrorCode,
+                        // which Debug.Asserts on unmapped values; ConnectionReset is
+                        // the effective outcome whatever the exact reported code.
+                        Debug.WriteLine($"TcpListener dropping accepted socket that failed setup: {ex.SocketErrorCode}");
+
+                        try
+                        {
+                            acceptedSocket.Dispose();
+                        }
+                        catch (SocketException)
+                        {
+                        }
+
+                        m_socket.EventAcceptFailed(m_endpoint, ErrorCode.ConnectionReset);
+
+                        Accept();
+                        break;
+                    }
 
                     // Choose I/O thread to run connector in. Given that we are already
                     // running in an I/O thread, there must be at least one available.
