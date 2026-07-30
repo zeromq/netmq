@@ -1,3 +1,4 @@
+using System;
 using System.Net;
 using System.Net.Sockets;
 using System.Text;
@@ -39,6 +40,60 @@ namespace NetMQ.Tests
             }
             
             
+        }
+
+        [Fact]
+        public void CurveAllowedClientsTest_AllowedClientCanConnect()
+        {
+            var serverPair = new NetMQCertificate();
+            using var server = new DealerSocket();
+            server.Options.CurveServer = true;
+            server.Options.CurveCertificate = serverPair;
+
+            var allowedClientPair = new NetMQCertificate();
+            // Only allow this specific client
+            server.Options.CurveAllowedClients.Add(allowedClientPair.PublicKey);
+
+            int port = server.BindRandomPort("tcp://127.0.0.1");
+
+            using var client = new DealerSocket();
+            client.Options.CurveServerKey = serverPair.PublicKey;
+            client.Options.CurveCertificate = allowedClientPair;
+            client.Connect($"tcp://127.0.0.1:{port}");
+
+            client.SendFrame("Hello");
+            var hello = server.ReceiveFrameString();
+            Assert.Equal("Hello", hello);
+        }
+
+        [Fact]
+        public void CurveAllowedClientsTest_BlockedClientCannotConnect()
+        {
+            var serverPair = new NetMQCertificate();
+            using var server = new DealerSocket();
+            server.Options.CurveServer = true;
+            server.Options.CurveCertificate = serverPair;
+
+            var allowedClientPair = new NetMQCertificate();
+            // Only allow this specific client
+            server.Options.CurveAllowedClients.Add(allowedClientPair.PublicKey);
+
+            int port = server.BindRandomPort("tcp://127.0.0.1");
+
+            // Connect with a different (not allowed) client
+            var blockedClientPair = new NetMQCertificate();
+            using var blockedClient = new DealerSocket();
+            blockedClient.Options.CurveServerKey = serverPair.PublicKey;
+            blockedClient.Options.CurveCertificate = blockedClientPair;
+            blockedClient.Connect($"tcp://127.0.0.1:{port}");
+
+            // The send may or may not succeed at the transport level (the handshake failure
+            // happens asynchronously), but the server must never deliver the message.
+            blockedClient.TrySendFrame(TimeSpan.FromMilliseconds(100), "ShouldBeBlocked");
+
+            // Server should not receive anything from the blocked client
+            var received = server.TryReceiveFrameString(TimeSpan.FromMilliseconds(500), out var message);
+            Assert.False(received, "Blocked client should not have been able to send a message");
         }
         
 #if NETFRAMEWORK

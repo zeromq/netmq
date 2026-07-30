@@ -1,4 +1,5 @@
 ﻿using System;
+using System.Collections.Generic;
 using System.Diagnostics.CodeAnalysis;
 using NetMQ.Core;
 
@@ -368,6 +369,17 @@ namespace NetMQ
         {
             set => SetSocketOption(ZmqSocketOption.CurveServerKey, value.PublicKey);
         }
+
+        /// <summary>
+        /// Gets the set of allowed client public keys for a CURVE server socket.
+        /// When non-empty, only clients whose long-term public key is present in this set will be allowed to connect.
+        /// Add public keys to restrict which clients can connect:
+        /// <code>
+        /// server.Options.CurveAllowedClients.Add(clientCertificate.PublicKey);
+        /// </code>
+        /// </summary>
+        public HashSet<byte[]> CurveAllowedClients =>
+            m_socket.CurveAllowedClients;
         
         /// <summary>
         /// If remote peer receives a PING message and doesn't receive another
