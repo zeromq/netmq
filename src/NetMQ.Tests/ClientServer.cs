@@ -155,5 +155,61 @@ namespace NetMQ.Tests
             Assert.Equal(15002, totalCount);
         }
 
+        /// <summary>
+        /// Sends from both ends of an inproc pair at once while each end keeps draining, so both
+        /// flushes find a passive peer reader and notify the peer's mailbox. Before the fix each
+        /// sender held its own socket's lock while taking the peer's, and the two sends deadlocked.
+        /// </summary>
+        [Fact]
+        public void InprocConcurrentSendsInBothDirectionsDoNotDeadlock()
+        {
+            using var server = new ServerSocket();
+            using var client = new ClientSocket();
+            server.Bind("inproc://client-server-concurrent");
+            client.Connect("inproc://client-server-concurrent");
+
+            client.Send("Hello");
+            var (routingId, _) = server.ReceiveString();
+
+            const int count = 20000;
+            using var start = new Barrier(2);
+
+            var clientThread = new Thread(() =>
+            {
+                start.SignalAndWait();
+                int received = 0;
+                for (int i = 0; i < count; i++)
+                {
+                    client.Send("c");
+                    while (client.TryReceiveString(TimeSpan.Zero, out _))
+                        received++;
+                }
+
+                // Keep draining so the server's last sends are not held at the high-water mark.
+                for (; received < count; received++)
+                    client.ReceiveString();
+            }) { IsBackground = true };
+            var serverThread = new Thread(() =>
+            {
+                start.SignalAndWait();
+                int received = 0;
+                for (int i = 0; i < count; i++)
+                {
+                    server.Send(routingId, "s");
+                    while (server.TryReceiveString(out _, out _))
+                        received++;
+                }
+
+                for (; received < count; received++)
+                    server.ReceiveString();
+            }) { IsBackground = true };
+
+            clientThread.Start();
+            serverThread.Start();
+
+            Assert.True(clientThread.Join(TimeSpan.FromSeconds(30)), "client send deadlocked");
+            Assert.True(serverThread.Join(TimeSpan.FromSeconds(30)), "server send deadlocked");
+        }
+
     }
 }
