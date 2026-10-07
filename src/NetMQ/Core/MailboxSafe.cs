@@ -12,8 +12,14 @@ namespace NetMQ.Core
         /// </summary>
         private readonly YPipe<Command> m_commandPipe = new YPipe<Command>(Config.CommandPipeGranularity, "mailbox");
 
-        //  Synchronize access to the mailbox from receivers and senders
+        //  The owning socket's lock: held by receivers, never taken by senders
         private object m_sync;
+
+        //  Serialises senders and wakes waiting receivers. Senders take only this lock, never the
+        //  owning socket's m_sync: a sender may already hold its own socket's lock (a pipe flush
+        //  inside Send), and taking a second socket's lock there deadlocks two sockets sending
+        //  to each other. Nothing else is acquired while this lock is held.
+        private readonly object m_commandSync = new object();
 
         private List<Signaler> m_signalers = new List<Signaler>();
 
@@ -44,29 +50,32 @@ namespace NetMQ.Core
 
         public void AddSignaler(Signaler signaler)
         {
-            m_signalers.Add(signaler);
+            lock (m_commandSync)
+                m_signalers.Add(signaler);
         }
 
         public void RemoveSignaler(Signaler signaler)
         {
-            m_signalers.Remove(signaler);
+            lock (m_commandSync)
+                m_signalers.Remove(signaler);
         }
 
         public void ClearSignalers()
         {
-            m_signalers.Clear();
+            lock (m_commandSync)
+                m_signalers.Clear();
         }
 
         public void Send(Command cmd)
         {
-            lock (m_sync)
+            lock (m_commandSync)
             {
                 m_commandPipe.Write(ref cmd, false);
                 bool ok = m_commandPipe.Flush();
 
                 if (!ok)
                 {
-                    Monitor.PulseAll(m_sync);
+                    Monitor.PulseAll(m_commandSync);
 
                     foreach (var signaler in m_signalers)
                     {
@@ -91,8 +100,49 @@ namespace NetMQ.Core
             }
             else
             {
-                //  Wait for signal from the command sender.
-                Monitor.Wait(m_sync, timeout);
+                //  Wait for signal from the command sender, releasing the socket while waiting.
+                int depth = 0;
+                try
+                {
+                    lock (m_commandSync)
+                    {
+                        //  A command flushed before we took m_commandSync pulsed nobody; read it now.
+                        if (m_commandPipe.TryRead(out command))
+                            return true;
+
+                        while (Monitor.IsEntered(m_sync))
+                        {
+                            Monitor.Exit(m_sync);
+                            depth++;
+                        }
+
+                        Monitor.Wait(m_commandSync, timeout);
+                    }
+                }
+                finally
+                {
+                    //  Retake the socket lock only after releasing m_commandSync, so m_sync is never
+                    //  acquired while m_commandSync is held. Restore every level even if interrupted,
+                    //  as Monitor.Wait(m_sync) did; the caller's Unlock depends on it.
+                    bool interrupted = false;
+                    while (depth > 0)
+                    {
+                        try
+                        {
+                            Monitor.Enter(m_sync);
+                            depth--;
+                        }
+                        catch (ThreadInterruptedException)
+                        {
+                            interrupted = true;
+                        }
+                    }
+
+                    //  Re-arm the interruption for the next blocking call rather than throwing here,
+                    //  which would replace an exception already unwinding.
+                    if (interrupted)
+                        Thread.CurrentThread.Interrupt();
+                }
             }
 
             //  Another thread may already fetch the command
@@ -101,8 +151,12 @@ namespace NetMQ.Core
 
         public void Close()
         {
-            Monitor.Enter(m_sync);
-            Monitor.Exit(m_sync);
+            lock (m_sync)
+            {
+                lock (m_commandSync)
+                {
+                }
+            }
         }
 
 #if DEBUG
