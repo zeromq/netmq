@@ -465,15 +465,23 @@ namespace NetMQ
         }
 
         /// <summary>
-        /// Sets the socket's long term server certificate.
-        /// You must set this on CURVE client sockets.
+        /// Sets the socket's long term server certificate (the server's own key pair).
+        /// You must set this on CURVE server sockets.
         /// You can provide the key as 32 binary bytes.
-        /// This key must have been generated together with the server's secret key.
         /// To generate a certificate, use <see cref="NetMQCertificate"/>.
+        /// For client sockets that need to specify the server's public key, use
+        /// <see cref="CurveServerKey"/> with <see cref="NetMQCertificate.PublicKey"/>.
         /// </summary>
         public NetMQCertificate CurveServerCertificate
         {
-            set => m_socket.SetSocketOption(ZmqSocketOption.CurveServerKey, value.PublicKey);
+            set
+            {
+                if (value.SecretKey == null)
+                    throw new ArgumentException("NetMQCertificate must have a secret key", nameof(value));
+
+                m_socket.SetSocketOption(ZmqSocketOption.CurveSecretKey, value.SecretKey);
+                m_socket.SetSocketOption(ZmqSocketOption.CurvePublicKey, value.PublicKey);
+            }
         }
         
         /// <summary>
