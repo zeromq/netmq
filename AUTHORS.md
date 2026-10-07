@@ -12,6 +12,7 @@ Contributors
 * Ilya Loginov &mdash; [@iloginov](https://github.com/iloginov)
 * James Hurst &mdash; [@JamesWhurst](https://github.com/JamesWhurst)
 * Jay Shelton &mdash; [@jayshelton](https://github.com/jayshelton)
+* Jonas Follesø &mdash; [@follesoe](https://github.com/follesoe)
 * Miguel Angel Jimenez &mdash; [@majimenezp](https://github.com/majimenezp)
 * Nicolas Dextraze &mdash; [@ndextraze-pbp](https://github.com/ndextraze-pbp)
 * Peter H. Merkel &mdash; [@mph911](https://github.com/mph911)
