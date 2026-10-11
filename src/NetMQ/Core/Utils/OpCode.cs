@@ -95,7 +95,7 @@ namespace NetMQ.Core.Utils
 
             var currentValues = parameters[0];
             var machineValue = (string)(utsname!.GetField("machine")?.GetValue(currentValues) ?? "unknown");
-            return machineValue.ToLower().Contains("arm");
+            return machineValue.ToLower().Contains("arm") || machineValue.ToLower().Contains("aarch");
         }
 
         public static void Close()
