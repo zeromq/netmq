@@ -21,7 +21,9 @@
 */
 
 using System;
+using System.Collections.Generic;
 using System.Text;
+using NetMQ.Core.Utils;
 
 namespace NetMQ.Core
 {
@@ -301,6 +303,12 @@ namespace NetMQ.Core
         /// Security credentials for CURVE mechanism
         /// </summary>
         public byte[] CurveServerKey { get; set; }
+        
+        /// <summary>
+        /// The set of allowed client long-term public keys for a CURVE server socket.
+        /// When non-empty, only clients whose long-term public key is present in this set will be allowed to connect.
+        /// </summary>
+        public HashSet<byte[]> CurveAllowedClients { get; } = new HashSet<byte[]>(new ByteArrayEqualityComparer());
         
         /// <summary>
         /// If remote peer receives a PING message and doesn't receive another
