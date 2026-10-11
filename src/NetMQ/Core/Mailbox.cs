@@ -213,7 +213,7 @@ namespace NetMQ.Core
                     m_active = false;
                     m_signaler.Recv();
                 }
-                catch
+                catch (SocketException)
                 {
                     m_active = true;
                     command = default(Command);
