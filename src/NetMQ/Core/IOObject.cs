@@ -125,8 +125,7 @@ namespace NetMQ.Core
         /// <param name="id">an integer used to identify the timer</param>
         public virtual void TimerEvent(int id)
         {
-            Assumes.NotNull(m_handler);
-            m_handler.TimerEvent(id);
+            m_handler?.TimerEvent(id);
         }
 
         public void AddTimer(long timeout, int id)
