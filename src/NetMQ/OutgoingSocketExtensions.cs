@@ -456,25 +456,17 @@ namespace NetMQ
         {
             if (message.FrameCount == 0)
                 throw new ArgumentException("message is empty", nameof(message));
-            else if (message.FrameCount == 1)
+
+            // Send all frames except the last with timeout and 'more' flag
+            for (int i = 0; i < message.FrameCount - 1; i++)
             {
-                return TrySendFrame(socket, timeout, message[0].Buffer, message[0].MessageSize);
-            }
-            else
-            {
-                bool sentSuccessfully = TrySendFrame(socket, timeout, message[0].Buffer, message[0].MessageSize, true);
+                bool sentSuccessfully = TrySendFrame(socket, timeout, message[i].Buffer, message[i].MessageSize, true);
                 if (!sentSuccessfully)
                     return false;
             }
 
-            for (int i = 1; i < message.FrameCount - 1; i++)
-            {
-                socket.SendMoreFrame(message[i].Buffer, message[i].MessageSize);
-            }
-
-            socket.SendFrame(message.Last.Buffer, message.Last.MessageSize);
-
-            return true;
+            // Send the last frame with timeout (no 'more' flag)
+            return TrySendFrame(socket, timeout, message.Last.Buffer, message.Last.MessageSize, false);
         }
 
         #endregion
