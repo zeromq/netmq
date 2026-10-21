@@ -23,6 +23,10 @@ namespace NetMQ.Core
 
         private List<Signaler> m_signalers = new List<Signaler>();
 
+        //  Set when the socket is closed. From then on a receiver that had to release
+        //  the socket lock must not read commands: they belong to the reaper.
+        private bool m_closed;
+
 #if DEBUG
         /// <summary>Mailbox name. Only used for debugging.</summary>
         private readonly string m_name;
@@ -64,6 +68,11 @@ namespace NetMQ.Core
         {
             lock (m_commandSync)
                 m_signalers.Clear();
+        }
+
+        public void SetClosed()
+        {
+            m_closed = true;
         }
 
         public void Send(Command cmd)
@@ -144,6 +153,11 @@ namespace NetMQ.Core
                         Thread.CurrentThread.Interrupt();
                 }
             }
+
+            //  The socket may have been closed while its lock was released, in which case
+            //  the commands belong to the reaper.
+            if (m_closed)
+                return false;
 
             //  Another thread may already fetch the command
             return m_commandPipe.TryRead(out command);
