@@ -12,6 +12,12 @@
 
         protected override void Next()
         {
+            if (m_inProgress.Size == 0)
+            {
+                NextStep(null, 0, RawMessageReadyState, true);
+                return;
+            }
+
             Assumes.NotNull(m_inProgress.UnsafeData);
 
             // Write message body into the buffer.
