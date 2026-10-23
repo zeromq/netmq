@@ -54,6 +54,8 @@ namespace NetMQ.Tests
             Assert.Equal("World", serverMsg);
         }
 
+        // These tests block on purpose, always with a timeout, to detect a hang.
+#pragma warning disable xUnit1031
         [Fact]
         public void DisposeWhileReceiving()
         {
@@ -122,6 +124,7 @@ namespace NetMQ.Tests
             server.Dispose();
             Assert.True(Task.Run(() => NetMQConfig.Cleanup()).Wait(TimeSpan.FromSeconds(5)));
         }
+#pragma warning restore xUnit1031
 
         [Fact]
         public async Task Async()
