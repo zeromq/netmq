@@ -396,6 +396,8 @@ namespace NetMQ.Core
                 }
                 if (option == ZmqSocketOption.Events)
                 {
+                    CheckDisposed();
+
                     try
                     {
                         ProcessCommands(0, false);
@@ -453,6 +455,8 @@ namespace NetMQ.Core
 
                 if (option == ZmqSocketOption.Events)
                 {
+                    CheckDisposed();
+
                     try
                     {
                         ProcessCommands(0, false);
@@ -490,6 +494,7 @@ namespace NetMQ.Core
 
             try
             {
+                CheckDisposed();
                 XJoin(group);
             }
             finally
@@ -508,6 +513,7 @@ namespace NetMQ.Core
 
             try
             {
+                CheckDisposed();
                 XLeave(group);
             }
             finally
@@ -539,6 +545,7 @@ namespace NetMQ.Core
             try
             {
                 CheckContextTerminated();
+                CheckDisposed();
 
                 // Process pending commands, if any.
                 ProcessCommands(0, false);
@@ -729,6 +736,7 @@ namespace NetMQ.Core
             try
             {
                 CheckContextTerminated();
+                CheckDisposed();
 
                 // Process pending commands, if any.
                 ProcessCommands(0, false);
@@ -962,6 +970,7 @@ namespace NetMQ.Core
             try
             {
                 CheckContextTerminated();
+                CheckDisposed();
 
                 // Check whether endpoint address passed to the function is valid.
                 if (addr == null)
@@ -1019,6 +1028,7 @@ namespace NetMQ.Core
             try
             {
                 CheckContextTerminated();
+                CheckDisposed();
 
                 // Check whether message passed to the function is valid.
                 if (!msg.IsInitialised)
@@ -1101,6 +1111,7 @@ namespace NetMQ.Core
             try
             {
                 CheckContextTerminated();
+                CheckDisposed();
 
                 // Check whether message passed to the function is valid.
                 if (!msg.IsInitialised)
@@ -1199,7 +1210,10 @@ namespace NetMQ.Core
             try
             {
                 if (m_threadSafe)
+                {
                     ((MailboxSafe)m_mailbox).ClearSignalers();
+                    ((MailboxSafe)m_mailbox).SetClosed();
+                }
 
                 // Mark the socket as disposed
                 m_disposed = true;
@@ -1277,6 +1291,7 @@ namespace NetMQ.Core
         /// <exception cref="TerminatingException">The Ctx context must not already be terminating.</exception>
         private void ProcessCommands(int timeout, bool throttle, CancellationToken cancellationToken = default)
         {
+            bool disposed = m_disposed;
             bool found;
             Command command;
             if (timeout != 0)
@@ -1324,6 +1339,11 @@ namespace NetMQ.Core
                 command.Destination.ProcessCommand(command);
                 found = m_mailbox.TryRecv(0, out command);
             }
+
+            //  If the socket was closed while the mailbox released its lock, the commands and
+            //  pipes now belong to the reaper and this call must not go on to use them.
+            if (!disposed)
+                CheckDisposed();
 
             CheckContextTerminated();
         }
