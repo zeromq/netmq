@@ -72,7 +72,11 @@ namespace NetMQ.Core
 
         public void SetClosed()
         {
-            m_closed = true;
+            lock (m_commandSync)
+            {
+                m_closed = true;
+                Monitor.PulseAll(m_commandSync);
+            }
         }
 
         public void Send(Command cmd)

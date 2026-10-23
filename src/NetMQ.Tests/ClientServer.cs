@@ -78,6 +78,21 @@ namespace NetMQ.Tests
         }
 
         [Fact]
+        public void DisposeWhileReceivingWithoutPeers()
+        {
+            using var server = new ServerSocket();
+
+            var receive = Task.Run(() => server.ReceiveString());
+            Thread.Sleep(100);
+            server.Dispose();
+
+            var ex = Assert.Throws<AggregateException>(() => receive.Wait(TimeSpan.FromSeconds(5)));
+            Assert.IsType<ObjectDisposedException>(ex.InnerException);
+
+            Assert.True(Task.Run(() => NetMQConfig.Cleanup()).Wait(TimeSpan.FromSeconds(5)));
+        }
+
+        [Fact]
         public void DisposeWhileConnecting()
         {
             using var server = new ServerSocket();
