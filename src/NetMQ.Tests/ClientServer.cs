@@ -1,4 +1,5 @@
 using System;
+using System.Diagnostics;
 using System.Threading;
 using System.Threading.Tasks;
 using NetMQ;
@@ -8,7 +9,7 @@ using Xunit.Abstractions;
 
 namespace NetMQ.Tests
 {
-    public class ClientServer
+    public class ClientServer : IClassFixture<CleanupAfterFixture>
     {
         private readonly ITestOutputHelper m_testOutputHelper;
 
@@ -52,6 +53,78 @@ namespace NetMQ.Tests
             var serverMsg = client.ReceiveString();
             Assert.Equal("World", serverMsg);
         }
+
+        // These tests block on purpose, always with a timeout, to detect a hang.
+#pragma warning disable xUnit1031
+        [Fact]
+        public void DisposeWhileReceiving()
+        {
+            using var server = new ServerSocket();
+            using (var client = new ClientSocket())
+            {
+                int port = server.BindRandomPort("tcp://127.0.0.1");
+                client.Connect($"tcp://127.0.0.1:{port}");
+
+                client.Send("Hello");
+                server.ReceiveString();
+
+                var receive = Task.Run(() => server.ReceiveString());
+                Thread.Sleep(100);
+                server.Dispose();
+
+                var ex = Assert.Throws<AggregateException>(() => receive.Wait(TimeSpan.FromSeconds(5)));
+                Assert.IsType<ObjectDisposedException>(ex.InnerException);
+            }
+
+            Assert.True(Task.Run(() => NetMQConfig.Cleanup()).Wait(TimeSpan.FromSeconds(5)));
+        }
+
+        [Fact]
+        public void DisposeWhileReceivingWithoutPeers()
+        {
+            using var server = new ServerSocket();
+
+            var receive = Task.Run(() => server.ReceiveString());
+            Thread.Sleep(100);
+            server.Dispose();
+
+            var ex = Assert.Throws<AggregateException>(() => receive.Wait(TimeSpan.FromSeconds(5)));
+            Assert.IsType<ObjectDisposedException>(ex.InnerException);
+
+            Assert.True(Task.Run(() => NetMQConfig.Cleanup()).Wait(TimeSpan.FromSeconds(5)));
+        }
+
+        [Fact]
+        public void DisposeWhileConnecting()
+        {
+            using var server = new ServerSocket();
+            int port = server.BindRandomPort("tcp://127.0.0.1");
+            string address = $"tcp://127.0.0.1:{port}";
+
+            for (int i = 0; i < 20; i++)
+            {
+                using var client = new ClientSocket();
+
+                var connect = Task.Run(() =>
+                {
+                    var stopwatch = Stopwatch.StartNew();
+                    while (stopwatch.Elapsed < TimeSpan.FromSeconds(5))
+                    {
+                        client.Connect(address);
+                        client.Disconnect(address);
+                    }
+                });
+                Thread.Sleep(10);
+                client.Dispose();
+
+                var ex = Assert.Throws<AggregateException>(() => connect.Wait(TimeSpan.FromSeconds(10)));
+                Assert.IsType<ObjectDisposedException>(ex.InnerException);
+            }
+
+            server.Dispose();
+            Assert.True(Task.Run(() => NetMQConfig.Cleanup()).Wait(TimeSpan.FromSeconds(5)));
+        }
+#pragma warning restore xUnit1031
 
         [Fact]
         public async Task Async()
