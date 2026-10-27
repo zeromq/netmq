@@ -267,6 +267,11 @@ namespace NetMQ.Core.Mechanisms
             if (!SpanUtility.Equals(vouchPlaintext.Slice(0, 32), m_cnClientKey))
                 return PushMsgResult.Error;
 
+            //  Verify client long-term public key is in the allowed clients list (if configured).
+            //  The byte[] is only allocated when the whitelist is non-empty.
+            if (Options.CurveAllowedClients.Count > 0 && !Options.CurveAllowedClients.Contains(clientKey.ToArray()))
+                return PushMsgResult.Error;
+
             //  Create the session box
             m_box = new Curve25519XSalsa20Poly1305(m_cnSecretKey, m_cnClientKey);
 
