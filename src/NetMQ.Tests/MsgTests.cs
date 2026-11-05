@@ -3,11 +3,19 @@ using Xunit;
 
 namespace NetMQ.Tests
 {
-    public class MsgTests
+    public class MsgTests : IDisposable
     {
         public MsgTests()
         {
             BufferPool.SetGCBufferPool();
+            AtomicCounterPool.SetGCCounterPool();
+        }
+
+        public void Dispose()
+        {
+            // Don't leak mock pools into other test classes
+            BufferPool.SetGCBufferPool();
+            AtomicCounterPool.SetGCCounterPool();
         }
 
         [Fact]
@@ -266,15 +274,16 @@ namespace NetMQ.Tests
 
             msg.Close();
 
+            // copy still references the buffer and the counter, so neither is returned yet
             Assert.Equal(0, pool.ReturnCallCount);
-            Assert.Equal(1, counterPool.ReturnCallCount);
+            Assert.Equal(0, counterPool.ReturnCallCount);
             Assert.False(msg.IsInitialised);
-            Assert.Null(msg.UnsafeData);            
+            Assert.Null(msg.UnsafeData);
 
             copy.Close();
 
             Assert.Equal(1, pool.ReturnCallCount);
-            Assert.Equal(2, counterPool.ReturnCallCount);
+            Assert.Equal(1, counterPool.ReturnCallCount);
             Assert.False(copy.IsInitialised);
             Assert.Null(copy.UnsafeData);
         }
@@ -294,6 +303,139 @@ namespace NetMQ.Tests
             }
             
             Assert.Equal(2 + 3 + 4, sum);
+        }
+
+        [Fact]
+        public void CloseClearsSharedFlag()
+        {
+            var msg = new Msg();
+            msg.InitPool(10);
+            var copy = new Msg();
+            copy.Copy(ref msg);
+
+            Assert.True(copy.IsShared);
+
+            copy.Close();
+
+            Assert.Equal(MsgFlags.None, copy.Flags);
+
+            msg.Close();
+        }
+
+        [Fact]
+        public void CopyFromAlreadySharedSourceAddsOneReference()
+        {
+            var pool = new MockBufferPool();
+            BufferPool.SetCustomBufferPool(pool);
+
+            var msg = new Msg();
+            msg.InitPool(10);
+            // 3 holders: msg plus two others (e.g. the same frame queued on other pipes)
+            msg.AddReferences(2);
+
+            var copy = new Msg();
+            copy.InitEmpty();
+            copy.Copy(ref msg);
+
+            copy.Close();
+            msg.Close();
+
+            // Two references are still outstanding, so the buffer must not be recycled yet
+            Assert.Equal(0, pool.ReturnCallCount);
+        }
+
+        [Fact]
+        public void CopyIntoPreviouslySharedDestinationReturnsBufferOnce()
+        {
+            var pool = new MockBufferPool();
+            BufferPool.SetCustomBufferPool(pool);
+
+            var first = new Msg();
+            first.InitPool(10);
+            var dest = new Msg();
+            dest.Copy(ref first); // dest becomes shared
+            dest.Close();
+            first.Close();
+            pool.Reset();
+
+            var src = new Msg();
+            src.InitPool(10);
+            dest.Copy(ref src);
+
+            Assert.True(src.IsShared);
+            Assert.True(dest.IsShared);
+
+            dest.Close();
+            Assert.Equal(0, pool.ReturnCallCount);
+
+            src.Close();
+            Assert.Equal(1, pool.ReturnCallCount);
+        }
+
+        [Fact]
+        public void MoveDoesNotReturnCounterStillInUse()
+        {
+            var counterPool = new MockCounterPool();
+            AtomicCounterPool.SetCustomCounterPool(counterPool);
+
+            var src = new Msg();
+            src.InitPool(10);
+            var dest = new Msg();
+            dest.InitEmpty();
+            dest.Move(ref src);
+
+            Assert.Equal(0, counterPool.ReturnCallCount);
+
+            dest.Close();
+
+            Assert.Equal(1, counterPool.ReturnCallCount);
+        }
+
+        [Fact]
+        public void InitEmptyAfterHandingOffSharedMsgDoesNotReturnCounter()
+        {
+            // Mirrors Distribution.Distribute: the msg is written by value to several
+            // pipes and the original is then detached via InitEmpty.
+            var pool = new MockBufferPool();
+            BufferPool.SetCustomBufferPool(pool);
+            var counterPool = new MockCounterPool();
+            AtomicCounterPool.SetCustomCounterPool(counterPool);
+
+            var msg = new Msg();
+            msg.InitPool(10);
+            msg.AddReferences(1);
+
+            var pipe1 = msg;
+            var pipe2 = msg;
+            msg.InitEmpty();
+
+            Assert.Equal(0, counterPool.ReturnCallCount);
+
+            pipe1.Close();
+            Assert.Equal(0, pool.ReturnCallCount);
+            Assert.Equal(0, counterPool.ReturnCallCount);
+
+            pipe2.Close();
+            Assert.Equal(1, pool.ReturnCallCount);
+            Assert.Equal(1, counterPool.ReturnCallCount);
+        }
+
+        [Fact]
+        public void RemoveReferencesToZeroUninitialisesMsg()
+        {
+            var pool = new MockBufferPool();
+            BufferPool.SetCustomBufferPool(pool);
+
+            var msg = new Msg();
+            msg.InitPool(10);
+            msg.AddReferences(2); // shared, count 3
+
+            msg.RemoveReferences(3);
+
+            Assert.Equal(1, pool.ReturnCallCount);
+            Assert.False(msg.IsInitialised);
+            Assert.Equal(MsgFlags.None, msg.Flags);
+            Assert.Null(msg.UnsafeData);
         }
     }
 }
