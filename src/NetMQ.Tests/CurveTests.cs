@@ -40,7 +40,33 @@ namespace NetMQ.Tests
             
             
         }
-        
+        [Fact]
+        public void CurveServerCertificateTest()
+        {
+            // Reproduce issue: server uses CurveServerCertificate to configure its own certificate.
+            // Previously this set CurveServerKey (the remote server's key) instead of the
+            // server's own CurveSecretKey, causing all client connections to be rejected.
+            var serverCert = new NetMQCertificate();
+            using var server = new DealerSocket();
+            server.Options.CurveServer = true;
+            server.Options.CurveServerCertificate = serverCert;
+            int port = server.BindRandomPort("tcp://127.0.0.1");
+
+            var clientCert = new NetMQCertificate();
+            using var client = new DealerSocket();
+            client.Options.CurveServerKey = serverCert.PublicKey;
+            client.Options.CurveCertificate = clientCert;
+            client.Connect($"tcp://127.0.0.1:{port}");
+
+            client.SendFrame("Hello");
+            var hello = server.ReceiveFrameString();
+            Assert.Equal("Hello", hello);
+
+            server.SendFrame("World");
+            var world = client.ReceiveFrameString();
+            Assert.Equal("World", world);
+        }
+
 #if NETFRAMEWORK
         [Fact]
         public void WithLibzmqClient()
