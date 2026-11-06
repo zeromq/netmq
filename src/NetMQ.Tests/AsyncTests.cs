@@ -53,6 +53,40 @@ namespace NetMQ.Tests
         }
         
         [Fact]
+        public void ReceiveFrameStringAsyncReportsMoreForQueuedFrames()
+        {
+            async Task ReceiveAsync()
+            {
+                using (var server = new PairSocket("@inproc://async-more"))
+                using (var client = new PairSocket(">inproc://async-more"))
+                {
+                    client.SendMoreFrame("a").SendMoreFrame("b").SendFrame("c");
+
+                    // Once "a" has arrived the remaining frames are already queued,
+                    // so they are taken by the immediate (non-listener) receive path.
+                    var (a, moreA) = await server.ReceiveFrameStringAsync();
+                    var (b, moreB) = await server.ReceiveFrameStringAsync();
+                    var (c, moreC) = await server.ReceiveFrameStringAsync();
+
+                    Assert.Equal(("a", true), (a, moreA));
+                    Assert.Equal(("b", true), (b, moreB));
+                    Assert.Equal(("c", false), (c, moreC));
+                }
+            }
+
+            using (var runtime = new NetMQRuntime())
+            {
+                var t = ReceiveAsync();
+                runtime.Run(t);
+
+                if (t.IsFaulted && t.Exception is AggregateException exc)
+                {
+                    throw exc.GetBaseException();
+                }
+            }
+        }
+
+        [Fact]
         public void ReceiveMultipartMessage()
         {
             async Task ReceiveAsync()

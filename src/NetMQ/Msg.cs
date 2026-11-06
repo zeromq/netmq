@@ -468,7 +468,6 @@ namespace NetMQ
 
             // Uninitialise the frame
             m_data = null;
-            Flags = MsgFlags.None;
             MsgType = MsgType.Uninitialised;
         }
 
@@ -533,7 +532,6 @@ namespace NetMQ
 
                 // The last reference is gone, so uninitialise the frame like Close does.
                 m_data = null;
-                Flags = MsgFlags.None;
                 MsgType = MsgType.Uninitialised;
             }
         }

@@ -306,20 +306,17 @@ namespace NetMQ.Tests
         }
 
         [Fact]
-        public void CloseClearsSharedFlag()
+        public void CloseKeepsFlags()
         {
+            // Callers such as ReceiveFrameStringAsync read HasMore after Close,
+            // so Close must not clear the flags.
             var msg = new Msg();
             msg.InitPool(10);
-            var copy = new Msg();
-            copy.Copy(ref msg);
-
-            Assert.True(copy.IsShared);
-
-            copy.Close();
-
-            Assert.Equal(MsgFlags.None, copy.Flags);
+            msg.SetFlags(MsgFlags.More);
 
             msg.Close();
+
+            Assert.True(msg.HasMore);
         }
 
         [Fact]
@@ -434,7 +431,6 @@ namespace NetMQ.Tests
 
             Assert.Equal(1, pool.ReturnCallCount);
             Assert.False(msg.IsInitialised);
-            Assert.Equal(MsgFlags.None, msg.Flags);
             Assert.Null(msg.UnsafeData);
         }
     }
