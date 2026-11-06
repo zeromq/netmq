@@ -371,7 +371,10 @@ namespace NetMQ
             Size = 0;
             m_offset = 0;
             m_data = null;
-            EnsureAtomicCounterNull();
+            // Only drop the reference: the counter may still be shared with copies of this
+            // Msg (e.g. after Move or a by-value write to a pipe), so it must not be returned
+            // here. The copy that releases the last reference returns it.
+            m_refCount = null;
         }
 
         /// <summary>
@@ -385,7 +388,6 @@ namespace NetMQ
             m_data = BufferPool.Take(size);
             Size = size;
             m_offset = 0;
-            EnsureAtomicCounterNull();
             m_refCount = AtomicCounterPool.Take();
         }
 
@@ -412,7 +414,7 @@ namespace NetMQ
             m_data = data;
             Size = size;
             m_offset = offset;
-            EnsureAtomicCounterNull();
+            m_refCount = null;
         }
 
         /// <summary>
@@ -454,11 +456,14 @@ namespace NetMQ
                 Assumes.NotNull(m_refCount);
                 Assumes.NotNull(m_data);
 
-                // if not shared or reference counter drop to zero
+                // if not shared or reference counter drop to zero, this was the last
+                // reference so both the buffer and the counter can be recycled.
+                // Otherwise other copies still use them, so leave them alone.
                 if (!IsShared || m_refCount.Decrement() == 0)
+                {
                     BufferPool.Return(m_data);
-
-                EnsureAtomicCounterNull();
+                    EnsureAtomicCounterNull();
+                }
             }
 
             // Uninitialise the frame
@@ -525,7 +530,9 @@ namespace NetMQ
 
                 BufferPool.Return(m_data);
 
-                // TODO shouldn't we set the type to uninitialised, or call clear, here? the object has a null refCount, but other methods may try to use it
+                // The last reference is gone, so uninitialise the frame like Close does.
+                m_data = null;
+                MsgType = MsgType.Uninitialised;
             }
         }
         
@@ -673,7 +680,7 @@ namespace NetMQ
                 
                 // One reference is added to shared messages. Non-shared messages
                 // are turned into shared messages and reference count is set to 2.
-                if (IsShared)
+                if (src.IsShared)
                 {
                     src.m_refCount.Increase(1);
                 }
